@@ -1,0 +1,208 @@
+name: Package check
+
+# The packager runs as a dry run here. CurseForge builds its releases with its
+# own packager from the tag webhook, against the same .pkgmeta - `check` exists
+# so a packaging mistake surfaces on a pull request instead of in a published
+# zip (Priestly's pattern). On a tag, the `release` job then PUBLISHES a GitHub
+# Release (GlassChat#70's job, from AltStable#209).
+#
+# -d is the real no-upload switch: merely leaving CF_API_KEY out still lets the
+# packager cut a GitHub release - with the WHOLE CHANGELOG.md as its notes.
+# That is why the GitHub Release is the `release` job below, not the packager.
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  # Release a tag whose release failed. Runs this file from main: `check`
+  # against the tag's tree, the notes from main's CHANGELOG.md (so a fixed
+  # heading needs no moved tag, which would re-fire CurseForge).
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to build and release (e.g. v0.1.0)
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # Empty except on a manual run, so checkout keeps its default: the
+          # commit that triggered the run (a branch ref would build its tip).
+          ref: ${{ inputs.tag }}
+
+      - name: Install Lua 5.1
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq lua5.1
+
+      # The embedded libraries at the refs .pkgmeta pins (read from there,
+      # never written twice), each checked to BE that commit. The tests load
+      # them from $LIBGLASS / $LIBACCOUNTSYNC; the packager fetches the same
+      # pins into Libs/.
+      - name: Fetch the embedded libraries at their pinned refs
+        run: |
+          bash tests/fetch_external.sh Libs/LibGlass-1.0 "$RUNNER_TEMP/LibGlass"
+          echo "LIBGLASS=$RUNNER_TEMP/LibGlass" >> "$GITHUB_ENV"
+          bash tests/fetch_external.sh Libs/LibAccountSync-1.0 "$RUNNER_TEMP/LibAccountSync"
+          echo "LIBACCOUNTSYNC=$RUNNER_TEMP/LibAccountSync" >> "$GITHUB_ENV"
+
+      # WoW runs Lua 5.1, so the tests do too. tests/run.ps1 is the Windows
+      # entry point for the same files. Our own files only: the library is
+      # checked in its repo.
+      - name: Syntax-check every Lua file
+        run: |
+          count=$(find . -name '*.lua' -not -path './.git/*' -not -path './Libs/*' | wc -l)
+          test "$count" -gt 0 || { echo "no Lua files found - the check would prove nothing"; exit 1; }
+          echo "checking $count files"
+          find . -name '*.lua' -not -path './.git/*' -not -path './Libs/*' -print0 | xargs -0 luac5.1 -p
+
+      # Without the API dump (local only), the stubs check event names against
+      # tests/events-70532.txt instead.
+      - name: Unit tests
+        run: |
+          for f in tests/test_*.lua; do
+            echo "-- $f"
+            lua5.1 "$f" || exit 1
+          done
+
+      # Pinned to a SHA, not the moving v2 tag (the siblings pin the same one).
+      - name: Package (dry run)
+        uses: BigWigsMods/packager@e50a250f8705041e40f2fa1ddcb280a686d65aa0
+        with:
+          args: -d
+
+      # The zip is what players install, so assert its SHAPE rather than
+      # trusting .pkgmeta to have been read the way it was meant. An exact
+      # allowlist, not a denylist: the TOC, every Lua file it loads, LICENSE,
+      # under Libs/ exactly what each library ships (its XML, every file the XML
+      # loads, LICENSE, LibGlass's Media/*.tga), and NOTHING else (a library's
+      # tests/docs/Tools, or a new notes file, fail here).
+      - name: The package is exactly the addon and its libraries
+        run: |
+          zip=$(ls .release/*.zip | head -1)
+          rm -rf unpacked && mkdir unpacked && unzip -q "$zip" -d unpacked
+          lib=GlassPearls/Libs/LibGlass-1.0
+          sync=GlassPearls/Libs/LibAccountSync-1.0
+          {
+            echo GlassPearls/GlassPearls.toc
+            echo GlassPearls/LICENSE
+            tr -d '\r' < GlassPearls.toc | grep -v '^#' | grep '\.lua$' | tr '\\' '/' | sed 's|^|GlassPearls/|'
+            echo "$lib/LibGlass-1.0.xml"
+            echo "$lib/LICENSE"
+            # Comments stripped non-greedily, as the test harness does (a sed
+            # range would swallow the lines after a one-line comment).
+            tr -d '\r' < "$LIBGLASS/LibGlass-1.0.xml" | perl -0pe 's/<!--.*?-->//gs' |
+              sed -n 's/.*<Script file="\([^"]*\)".*/\1/p' | tr '\\' '/' | sed "s|^|$lib/|"
+            (cd "$LIBGLASS" && ls Media/*.tga) | sed "s|^|$lib/|"
+            # LibAccountSync-1.0: its XML, every file the XML loads (LibStub,
+            # ChatThrottleLib, LibAccountSync.lua) and LICENSE; no media.
+            echo "$sync/LibAccountSync-1.0.xml"
+            echo "$sync/LICENSE"
+            tr -d '\r' < "$LIBACCOUNTSYNC/LibAccountSync-1.0.xml" | perl -0pe 's/<!--.*?-->//gs' |
+              sed -n 's/.*<Script file="\([^"]*\)".*/\1/p' | tr '\\' '/' | sed "s|^|$sync/|"
+          } | sort > expected.txt
+          (cd unpacked && find . -type f | sed 's|^\./||' | sort) > actual.txt
+          echo "library files expected: $(grep -c "^$lib/" expected.txt) ($(grep -c "^$lib/Media/" expected.txt) textures), $(grep -c "^$sync/" expected.txt) LibAccountSync"
+          if ! diff -u expected.txt actual.txt; then
+            echo "the package differs from the addon + libraries (- missing, + extra)"
+            exit 1
+          fi
+
+      # The packager fetched its own copy of the library; prove it embedded the
+      # pinned commit's content (the same files the tests just ran against).
+      # Its text filter rewrites .lua/.xml with CRLF (release.sh: line_ending
+      # defaults to "dos"), so those compare with CRs stripped; everything
+      # else (textures, LICENSE) must match byte for byte.
+      - name: The packaged libraries are the pinned commits
+        run: |
+          bad=0
+          for pair in "LibGlass-1.0:$LIBGLASS" "LibAccountSync-1.0:$LIBACCOUNTSYNC"; do
+            name=${pair%%:*}; src=${pair#*:}
+            lib=unpacked/GlassPearls/Libs/$name
+            while read -r f; do
+              case "$f" in
+                *.lua|*.xml) cmp -s <(tr -d '\r' < "$lib/$f") <(tr -d '\r' < "$src/$f") ;;
+                *) cmp -s "$lib/$f" "$src/$f" ;;
+              esac || { echo "$name differs from the pinned checkout: $f"; bad=1; }
+            done < <(cd "$lib" && find . -type f | sed 's|^\./||')
+          done
+          test "$bad" -eq 0
+
+      # The packager must have replaced @project-version@. A literal version
+      # committed over the token (deploy.ps1 writes "dev" into its copy) would
+      # ship silently.
+      - name: The packaged TOC carries a real version
+        run: |
+          v=$(tr -d '\r' < unpacked/GlassPearls/GlassPearls.toc | sed -n 's/^## Version: *//p')
+          echo "packaged version: '$v'"
+          case "$v" in ''|'@project-version@'|dev) echo "version not substituted"; exit 1 ;; esac
+
+      # .release is hidden, and upload-artifact@v4 skips hidden content by
+      # default: without include-hidden-files the upload finds nothing.
+      - name: Keep the zip for inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: glasspearls-package
+          path: .release/*.zip
+          include-hidden-files: true
+          if-no-files-found: error
+
+  # A GitHub Release for every tag: the zip `check` built and checked
+  # above - not a second build - with that tag's CHANGELOG.md section as the
+  # notes. The only job allowed to write.
+  release:
+    needs: check
+    if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      # Only CHANGELOG.md, at the run's own commit: the tag on a tag push,
+      # main on a manual run.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: CHANGELOG.md
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: glasspearls-package
+          path: dist
+
+      # The packager names the zip {package}-{version}-forever.zip (the TOC's
+      # game type adds -forever) from the version it read off the tree, so
+      # this also proves the checked zip IS the tag's build.
+      - name: The zip is the tag's
+        run: |
+          ls dist
+          zip="dist/GlassPearls-$TAG-forever.zip"
+          test -f "$zip" || { echo "no $zip"; exit 1; }
+          echo "ZIP=$zip" >> "$GITHUB_ENV"
+
+      # From the tag's "## vX.Y.Z" heading up to the next "## " heading.
+      - name: Release notes from the tag's changelog section
+        run: |
+          tr -d '\r' < CHANGELOG.md |
+            awk -v h="## $TAG" '$0 == h { on = 1; next } on && /^## / { exit } on' > notes.md
+          grep -q '[^[:space:]]' notes.md || { echo "CHANGELOG.md has no '## $TAG' section"; exit 1; }
+          cat notes.md
+
+      # gh refuses an existing release rather than overwriting it.
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pre=
+          # Case-insensitive, as the packager and CurseForge classify tags.
+          case "${TAG,,}" in *alpha*|*beta*) pre=--prerelease ;; esac
+          gh release create "$TAG" "$ZIP" --repo "$GITHUB_REPOSITORY" --verify-tag \
+            --title "GlassPearls ${TAG#v}" --notes-file notes.md $pre

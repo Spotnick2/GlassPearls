@@ -1,0 +1,55 @@
+package-as: GlassPearls
+
+enable-nolib-creation: no
+
+# The glass material and the own-account channel. Pinned, never `tag: latest`
+# (the packager picks the newest tag by creation date and falls back to the
+# branch HEAD). Bump a pin only in a release made anyway: players get library
+# fixes earlier through whichever addon ships the newest copy, since LibStub
+# runs that one. CI reads the pins from here, so they are written once.
+#
+# No comment on a value line: the packager's YAML reader keeps it as part of
+# the value (measured in GlassUnitFrames #64).
+externals:
+  # r11: the Pearl preset (Glass.lua asks for it).
+  Libs/LibGlass-1.0:
+    url: https://github.com/Spotnick2/LibGlass
+    tag: r11
+  # r5: one instance per snapshot kind, and the messages mode (unused yet).
+  Libs/LibAccountSync-1.0:
+    url: https://github.com/Spotnick2/LibAccountSync
+    tag: r5
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+# YAML list, not markdown bullets. Every pattern matches the WHOLE path from
+# the package root (release.sh's match_pattern is a shell `case`), so the
+# top-level names below never reach inside Libs/: Libs/LibGlass-1.0/LICENSE
+# ships (MIT).
+ignore:
+  - .github
+  - .claude
+  - docs
+  - tests
+  - Tools
+  - CLAUDE.md
+  - README.md
+  - CHANGELOG.md
+  # The libraries' own .pkgmeta ignores these, and the BigWigs packager
+  # honours that; CurseForge's packager, which builds the release, does NOT
+  # (measured in Priestly's published zip, Priestly #53). So they are named
+  # from here. CI asserts what the zip holds under Libs/.
+  - Libs/LibGlass-1.0/tests
+  - Libs/LibGlass-1.0/docs
+  - Libs/LibGlass-1.0/Tools
+  - Libs/LibGlass-1.0/AGENTS.md
+  - Libs/LibGlass-1.0/CLAUDE.md
+  - Libs/LibGlass-1.0/README.md
+  # LibAccountSync's ChatThrottleLib/ and LibStub/ ship: its XML loads them.
+  - Libs/LibAccountSync-1.0/tests
+  - Libs/LibAccountSync-1.0/docs
+  - Libs/LibAccountSync-1.0/Tools
+  - Libs/LibAccountSync-1.0/CLAUDE.md
+  - Libs/LibAccountSync-1.0/README.md
