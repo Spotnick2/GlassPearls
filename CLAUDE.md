@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), and the eighth, the paladin tank reminders (#22); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), and the ninth, the training reminder (#27); the day-one
 probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
@@ -31,10 +31,11 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 `Libs\HereBeDragons-2.0\HereBeDragons-Pins-2.0.lua` → `Compat.lua` → `Theme.lua` → `UI.lua` →
 `AccountSync.lua` → `Pearls.lua` → `SettingsSync.lua` → `Core\ToolItems.lua` → `Core\Bags.lua` →
 `Core\Merchant.lua` → `Core\AuraAlert.lua` →
-`Data\Landmarks.lua` → `Data\SpellRanks.lua` → `Data\AuraDurations.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
+`Data\Landmarks.lua` → `Data\SpellRanks.lua` → `Data\AuraDurations.lua` → `Data\Training.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
 `Pearls\BagsFull.lua` → `Pearls\Landmarks.lua` → `Pearls\SpellRanksFrame.lua` →
 `Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua` → `Pearls\FixateFrame.lua` →
-`Pearls\Fixate.lua` → `Pearls\Uncrushable.lua` → `Pearls\BuffsFrame.lua` → `Pearls\Buffs.lua` → `Pearls\PaladinTank.lua`)* →
+`Pearls\Fixate.lua` → `Pearls\Uncrushable.lua` → `Pearls\BuffsFrame.lua` → `Pearls\Buffs.lua` → `Pearls\PaladinTank.lua` → `Pearls\TrainingFrame.lua` →
+`Pearls\Training.lua`)* →
 `Options.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
@@ -152,6 +153,27 @@ order) and before the options window and bootstrap.
   "Salvation is on you" (Forever renamed it: 1038 "Salvation", 25895 "Mass Salvation") with its
   exact time left and who cast it. Unknown reads change nothing (last observed); a death forgets;
   hidden in combat, where Blizzard's Cooldown Manager is the pointer. No client sounds.
+- **`Data\Training.lua`**: **generated** by `Tools\gen_training.py` (never edit it): what each class
+  trainer teaches, from WhatsTraining's curated Forever lists (`References\Addons\Class\WhatsTraining`,
+  by Sveng, MIT: read as text, never run), checked against the client's SpellName and SpellLevels
+  (`Tools\training\report.txt`). Per class: entries `{ id, level, cost, req, talent, race, faction,
+  skill }` and override groups. The client's own tables can't tell trainer spells from talents
+  and quest rewards, which is why the curated list is the source.
+- **`Pearls\Training.lua`**: the training reminder (#27, pearl `training`, Combat > Spells, on by
+  default). On `PLAYER_LEVEL_UP` (held in combat), a toast: what the trainer now teaches (levels
+  passed), what was already waiting, the other spec's waiting talent ranks, talent points, the
+  cost. Listed only when **provably learnable**: level, every `req` known, the talent known, no
+  `skill` (rogue poisons), itself provably unknown (`IsSpellKnown`, `IsSpellInSpellBook` without
+  overrides, `IsPlayerSpell`, or a later member of its override or rank group); a read that throws
+  or is secret is "can't tell", never listed. **Dual spec by remembering** (`charDB.training`): a
+  spec group's talents and talent ranks recorded while it is active (Classic changes a spec's
+  talents only while active), another group's waiting ranks shown "as last seen"; a group never
+  seen says nothing. Talent points: `C_Traits.GetTreeCurrencyInfo` on the active config, only when
+  plain, whole and at most 51 (so the Legacy talent "Talented" counts). Spell tooltips through
+  `TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell)` (once; it checks `IsOn`):
+  the next ranks, from the trainer list. Unmeasured until day one.
+- **`Pearls\TrainingFrame.lua`**: its toast (icon rows with the rank in the corner, text lines, OK,
+  gone after 30 s unless the mouse is on it, position per character) and its panel.
 - **`Pearls\Fixate.lua`**: the fixate alert (#17, pearl `fixate`, Combat > Alerts, on by default).
   **Every client language: spell IDs only, never a name**; the alert's words are the client's
   (`C_Spell.GetSpellName` / `GetSpellTexture`). The IDs are the client's four spells named
@@ -264,7 +286,8 @@ order) and before the options window and bootstrap.
    adds each control's `refresh`; `help` for the Help button. Settings sync picks them up: give a
    string setting its `choices` and an integer one its `ranges`, or it won't travel. A list (a
    keep list) is a sync set: `SettingsSync.RegisterSet("<key>.<name>")` at file scope. Mind the
-   budget: `test_sync_budget` fails if the known keys outgrow their 4 KB.
+   budget: `test_sync_budget` fails if the known keys outgrow their 5 KB or the whole, every part
+   full, its 31 KB (about 30.4 KB with #27: room for ~17 more synced settings).
 5. Slash commands of its own: `commands = { name = { help, run(arg) } }` (`/gpearls <name>`, listed
    by `/gpearls help`).
 6. A test file `tests\test_<name>.lua` (the bags-full helper's four are the model), and a line in

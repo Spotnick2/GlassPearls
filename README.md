@@ -59,6 +59,10 @@ it, and its time left. Each buff has its own switch and sound.
 reminder when Righteous Fury is off, a heads-up before it ends, and when Salvation is on you, with
 its time left and who cast it.
 
+**Training reminder** (Combat, on by default). When you level, a toast lists what your class trainer
+now teaches you, what was already waiting, your talent points to spend and the cost. Spell tooltips
+say when the next ranks come; with dual spec, your other spec's waiting talent ranks.
+
 ## Using it
 
 - `/gpearls` opens the options window: each feature's checkbox, and a gear for its own options.
@@ -72,6 +76,7 @@ its time left and who cast it.
 - `/gpearls uncrushable`: whether you are uncrushable, and the numbers.
 - `/gpearls buffs`: what the game allowed the buff alerts; `/gpearls buffs test` to place them.
 - `/gpearls paladintank`: the paladin reminders' last reads; `/gpearls paladintank test` to place them.
+- `/gpearls training`: what your trainer teaches you now; `/gpearls training test` to place the toast.
 - `/gpearls sync`: your settings follow you across your own WoW accounts on the same Battle.net
   account, automatically (Settings in the window turns it off).
 - `/gpearls help` for the rest.
@@ -86,7 +91,8 @@ It wears WoW Forever's own look; with Glass UI installed, it follows Glass UI's 
 - [HereBeDragons](https://github.com/Nevcairiel/HereBeDragons) (BSD) and CallbackHandler-1.0
   (BSD): the map pins.
 
-All are embedded; nothing to install separately.
+All are embedded; nothing to install separately. The training reminder's trainer lists come from
+[WhatsTraining](https://www.curseforge.com/wow/addons/whats-training) by Sveng (MIT): thanks.
 
 ## Licence
 

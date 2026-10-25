@@ -27,6 +27,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #19 | Uncrushable (pearl `uncrushable`): the character panel line and `/gpearls uncrushable` | built; the numbers and placement wait for day one |
 | #21 | Buff alerts (pearl `buffs`): Clearcasting, Innervate, Power Infusion, the Blessings, with time left | built; the overlay and combat paths wait for day one |
 | #22 | Paladin tank reminders (pearl `paladintank`): Righteous Fury off, Salvation on you | built; the IDs and the Cooldown Manager wait for day one |
+| #27 | Training reminder (pearl `training`): a level-up toast, next ranks in spell tooltips, talent points, the other spec | built; the trainer match, the tooltip and dual spec wait for day one |
 | #14 | Restock food and water | backlog |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
@@ -182,6 +183,17 @@ Each line is a claim the code relies on that only the live client can settle.
 - [ ] **The Cooldown Manager** (Edit Mode): Righteous Fury and Salvation tracked, an On Aura Removed
       alert for Fury that fires in combat. Adjust the pearl's pointer to what it really offers.
 - [ ] Placement with the other alerts (screenshot), both looks.
+
+**Training reminder (#27)** (any class, a few levels from the next trainer spells)
+- [ ] Level up: the toast's new and waiting spells match the class trainer's list; learning one at
+      the trainer takes it off the open toast.
+- [ ] Spell tooltips in the spellbook (and on the action bars): the next ranks and their levels.
+- [ ] Talent points: the count is right (`C_Traits` tree currency), also below level 10 with the
+      Legacy talent Talented.
+- [ ] Dual spec: does it exist? If so, the other spec's waiting talent ranks, and are ranks learned
+      in one spec known in the other?
+- [ ] Righteous Fury: WhatsTraining says trainer level 10, the client's SpellLevels 16. Which?
+- [ ] Placement (screenshot), both looks.
 
 **The probe (#5):** its steps are added here by its PR.
 

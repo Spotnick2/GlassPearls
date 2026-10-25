@@ -29,7 +29,7 @@
 --
 -- Budget (each part capped where data is accepted, so the sum fits the
 -- 32 KB wire ceiling; test_sync_budget fills every part with the longest
--- values): known keys <= 4 KB (asserted on the real registry); set entries
+-- values): known keys <= 5 KB (asserted on the real registry); set entries
 -- <= 300 in all sets together, each line <= 69 B (~20.7 KB); unknown keys
 -- <= 32, each line <= 155 B (~5 KB); up to 8 set headers and the format line < 0.4 KB.
 --

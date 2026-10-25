@@ -68,4 +68,9 @@
   reminder when Righteous Fury is off (and a heads-up a minute before it ends), and when Salvation
   is on you, with its time left and who cast it. In any client language. In combat, Blizzard's
   Cooldown Manager can alert when Righteous Fury drops.
+- **Training reminder** (Combat, on by default): when you level, a toast lists the spells and ranks
+  your class trainer now teaches you, what was already waiting, the talent points you have to
+  spend (Talented's early ones included) and what it costs. Only what you can really learn. Spell
+  tooltips say when the next ranks come. With dual spec, your other spec's waiting talent ranks.
+  Trainer lists from WhatsTraining (thanks, Sveng).
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.
