@@ -274,6 +274,7 @@ local function rowKey(r) return r.kind .. ":" .. r.id .. ">" .. r.best end
 -- force: "button" (asked for: always show, or say there's nothing), "after"
 -- (after an update or Keep: refresh what's shown), nil (only what's new).
 function SR.Check(force)
+    if not SR.enabled then return end   -- switched off: nothing checks, shows or changes
     if API.InCombat() then state.waitCombat = true; return end
     if state.trainerOpen and not force then state.waitTrainer = true; return end
     state.pending = false
@@ -307,6 +308,10 @@ end
 
 -- /gpearls ranks and the panel's Check now.
 function SR.CheckNow()
+    if not SR.enabled then
+        say("Low spell ranks is off: switch it on in /gpearls (Combat).")
+        return
+    end
     if API.InCombat() then
         state.waitCombat, state.reshow = true, true   -- asked for: shown after, even if seen
         say("Spell ranks are checked after combat.")

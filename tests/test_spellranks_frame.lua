@@ -1,6 +1,6 @@
 -- The low spell ranks popup and Configuration Panel (#12): the title and line,
--- each row's text ("Rank 1 > Rank 4", buttons, stance, macro, cast), "+ N
--- more", Keep, Later, the close X, Update all (shown only with bar rows,
+-- each row's text ("Rank 1 > Rank 4", buttons, stance, macro, cast), the
+-- pages (every finding reachable, each with its Keep), Keep, Later, the close X, Update all (shown only with bar rows,
 -- disabled by hand), Esc, the drag position, the tooltip, and the panel's
 -- switches, Check now and kept list. In both looks.
 dofile("tests/wow_stubs.lua")
@@ -31,7 +31,7 @@ eq(row.text:GetText(), "Earth Shock   |cff9d9d9dRank 1|r  >  |cffffd35aRank 4|r 
     "  'Earth Shock  Rank 1 > Rank 4 (2 buttons)'")
 eq(row.icon._file, 136026, "  the spell's icon")
 check(f.rows[2] == nil or not f.rows[2]:IsShown(), "  no second row")
-eq(f.more:GetText(), "", "no '+ N more'")
+eq(f.pageText:GetText(), "", "one page: no paging shown")
 check(f.update:IsShown() and f.update:IsEnabled(), "Update all, enabled")
 check(f.later:IsShown(), "Later")
 check(f.close ~= nil, "the close X")
@@ -53,17 +53,43 @@ eq(F.RowNote(with({ kind = "cast", slots = {} })), "was cast: not on your bars",
 F.Show({ with({ kind = "macro", slots = { 3 } }) })
 check(not f.update:IsShown(), "only a macro row: no Update all")
 eq(f.sub:GetText(), "These spells were used in a lower rank than you know.", "  the line says used")
--- Past MAX_ROWS: "+ N more".
+-- Past MAX_ROWS: pages, so every finding (and its Keep) is reachable (Codex review of #13).
 local many = {}
-for i = 1, F.MAX_ROWS + 3 do many[i] = with({ kind = "bar", slots = { i }, id = 8042 }) end
+for i = 1, F.MAX_ROWS + 3 do many[i] = with({ kind = "macro", slots = { i }, id = 8000 + i }) end
 F.Show(many)
-eq(f.more:GetText(), "+ 3 more", "'+ 3 more' past eight")
-check(f.rows[F.MAX_ROWS]:IsShown(), "  eight rows")
+eq(f.pageText:GetText(), "1/2", "eleven rows: page 1 of 2")
+check(f.rows[F.MAX_ROWS]:IsShown(), "  eight rows on it")
+eq(f.rows[1].entry, many[1], "  starting with the first")
+check(f.prev:IsShown() and not f.prev:IsEnabled(), "  < shown, disabled on page 1")
+check(f.next:IsShown() and f.next:IsEnabled(), "  > enabled")
+local height = f._height
+f.next:GetScript("OnClick")(f.next)
+eq(f.pageText:GetText(), "2/2", "> : page 2")
+eq(f.rows[1].entry, many[9], "  the ninth finding first")
+check(f.rows[3]:IsShown() and not f.rows[4]:IsShown(), "  three rows, the rest hidden")
+check(not f.next:IsEnabled() and f.prev:IsEnabled(), "  > disabled, < enabled")
+eq(f._height, height, "  the popup keeps its height (the buttons don't move)")
+local kept
+local realKeep = SR.Keep
+SR.Keep = function(e) kept = e end
+f.rows[3].keep:GetScript("OnClick")(f.rows[3].keep)
+eq(kept, many[11], "the eleventh finding's Keep is reachable and keeps it")
+SR.Keep = realKeep
+-- A refresh keeps the page, within the pages left.
+F.Show(many)
+eq(f.pageText:GetText(), "2/2", "a refresh stays on page 2")
+local fewer = {}
+for i = 1, F.MAX_ROWS do fewer[i] = many[i] end
+F.Show(fewer)
+eq(f.pageText:GetText(), "", "one page left: no paging shown")
+check(not f.prev:IsShown() and not f.next:IsShown(), "  < and > hidden")
+eq(f.rows[1].entry, many[1], "  back on the only page")
+f.prev:GetScript("OnClick")(f.prev)
+eq(f.rows[1].entry, many[1], "< on the first page stays there")
 F.Show({ many[1] })
 check(not f.rows[2]:IsShown(), "fewer rows again: the rest hidden")
-eq(f.more:GetText(), "", "  no '+ N more'")
 -- By hand: Update all disabled, the line says how.
-F.Show({ many[1] }, { byHand = true })
+F.Show({ with({ kind = "bar", slots = { 1 } }) }, { byHand = true })
 check(f.update:IsShown() and not f.update:IsEnabled(), "by hand: Update all shown, disabled")
 check(f.sub:GetText():find("Drag the highest rank from your spellbook", 1, true), "  the line says how")
 

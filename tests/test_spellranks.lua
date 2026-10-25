@@ -427,6 +427,27 @@ flush()
 check(F.IsShown(), "  and it runs then")
 SR.Later()
 
+-- Switched off, the manual checks refuse too (Codex review of #13).
+P.Set("spellranks", false)
+newChat()
+SlashCmdList.GLASSPEARLS("ranks")
+check(not F.IsShown(), "off: /gpearls ranks shows nothing")
+check(said("Low spell ranks is off"), "  and says it's off")
+SR.CheckNow()
+check(not F.IsShown(), "  nor the panel's Check now")
+SR.Check("button")
+check(not F.IsShown(), "  nor a direct check")
+WoW.combat = true
+WoW.fire("PLAYER_REGEN_DISABLED")
+SlashCmdList.GLASSPEARLS("ranks")
+WoW.combat = false
+WoW.fire("PLAYER_REGEN_ENABLED")
+flush()
+check(not F.IsShown(), "  nor after combat")
+P.Set("spellranks", true)
+flush()
+SR.Later()
+
 -- Switched off: hidden, nothing scheduled, events ignored.
 SlashCmdList.GLASSPEARLS("ranks")
 check(F.IsShown(), "shown before switching off")

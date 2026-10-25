@@ -2,10 +2,10 @@
 -- Panel (#12). The logic is Pearls/SpellRanks.lua; this file draws the rows it
 -- gives and forwards clicks.
 --
--- The popup: "Low spell ranks", a line under it, up to MAX_ROWS rows (the
+-- The popup: "Low spell ranks", a line under it, pages of MAX_ROWS rows (the
 -- spell's icon, its name, "Rank 1 > Rank 4", what it is: "(3 buttons)", "in a
--- macro: edit by hand", "was cast: not on your bars", a Keep button), "+ N
--- more", then Later and Update all. Esc closes it (UISpecialFrames); it drags
+-- macro: edit by hand", "was cast: not on your bars", a Keep button) with
+-- < n/N > past one page, then Later and Update all. Esc closes it (UISpecialFrames); it drags
 -- and remembers where (per character); above the centre otherwise. Each row's
 -- tooltip is the rank it would get.
 
@@ -127,7 +127,13 @@ local function build()
     f.close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -4, -4)
     f.close:SetScript("OnClick", function() SR().Later() end)
     f.rows = {}
-    f.more = GP.UI.Label(f, "", "GameFontDisableSmall")
+    -- Pages of MAX_ROWS: every finding reachable, each with its Keep.
+    f.prev = GP.UI.Button(f, "<", 24, function() Frame.Page(-1) end)
+    f.prev:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 18, 16)
+    f.pageText = GP.UI.Label(f, "", "GameFontHighlightSmall")
+    f.pageText:SetPoint("LEFT", f.prev, "RIGHT", 6, 0)
+    f.next = GP.UI.Button(f, ">", 24, function() Frame.Page(1) end)
+    f.next:SetPoint("LEFT", f.pageText, "RIGHT", 6, 0)
     f.update = GP.UI.Button(f, "Update all", 120, function()
         -- The change runs inside this click (Pearls/SpellRanks.lua).
         SR().Update(f.entries)
@@ -137,15 +143,15 @@ local function build()
         "Puts the highest rank you know on these buttons (same place, same key). Macros aren't changed.")
     f.later = GP.UI.Button(f, "Later", 90, function() SR().Later() end)
     f.later:SetPoint("RIGHT", f.update, "LEFT", -8, 0)
-    f.more:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 20, 22)
     if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, Frame.NAME) end
 end
 
--- Show these rows; opts.byHand: the game refused a change this session.
+-- Show these rows; opts.byHand: the game refused a change this session. The
+-- page shown stays across a refresh (after Keep), within the pages there are.
 function Frame.Show(rows, opts)
     opts = opts or {}
     if not f then build() end
-    f.entries = rows
+    f.entries, f.opts = rows, opts
     local bars, others = 0, 0
     for _, r in ipairs(rows) do
         if r.kind == "bar" then bars = bars + 1 else others = others + 1 end
@@ -157,15 +163,18 @@ function Frame.Show(rows, opts)
     else
         f.sub:SetText("These spells were used in a lower rank than you know.")
     end
-    local shown = math.min(#rows, Frame.MAX_ROWS)
-    for i = 1, math.max(shown, #f.rows) do
+    local per = Frame.MAX_ROWS
+    local pages = math.max(1, math.ceil(#rows / per))
+    f.page = math.min(math.max(f.page or 1, 1), pages)
+    local first = (f.page - 1) * per
+    for i = 1, per do
         local row = f.rows[i]
-        if i <= shown then
+        local e = rows[first + i]
+        if e then
             if not row then
                 row = newRow(i)
                 f.rows[i] = row
             end
-            local e = rows[i]
             row.entry = e
             row.icon:SetTexture(icon(e.best))
             row.text:SetText(Frame.RowText(e))
@@ -175,13 +184,23 @@ function Frame.Show(rows, opts)
             row:Hide()
         end
     end
-    local more = #rows - shown
-    f.more:SetText(more > 0 and ("+ " .. more .. " more") or "")
+    f.pageText:SetText(pages > 1 and (f.page .. "/" .. pages) or "")
+    f.prev:SetShown(pages > 1)
+    f.next:SetShown(pages > 1)
+    f.prev:SetEnabled(f.page > 1)
+    f.next:SetEnabled(f.page < pages)
     f.update:SetShown(bars > 0)
     f.update:SetEnabled(bars > 0 and not opts.byHand)
-    f:SetHeight(TOP + BOTTOM + shown * ROW_H)
+    -- As tall as a full page, so paging doesn't move the buttons.
+    f:SetHeight(TOP + BOTTOM + math.min(#rows, per) * ROW_H)
     place()
     f:Show()
+end
+
+function Frame.Page(delta)
+    if not (f and f.entries) then return end
+    f.page = (f.page or 1) + delta
+    Frame.Show(f.entries, f.opts)
 end
 
 function Frame.Hide()
