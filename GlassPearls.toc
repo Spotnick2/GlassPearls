@@ -18,5 +18,6 @@ Theme.lua
 UI.lua
 AccountSync.lua
 Pearls.lua
+SettingsSync.lua
 Options.lua
 GlassPearls.lua

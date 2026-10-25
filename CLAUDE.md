@@ -16,17 +16,18 @@ independent feature the player switches on or off on its own. It wears WoW Forev
 default and Glass UI's glass when Glass UI is installed (owner). The milestones, the plan and the
 day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 
-**Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) are done; settings
-sync (#4), the day-one probe (#5) and the first pearl, the bags-full helper (#6), follow. Nothing
+**Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
+(#4) are done; the day-one probe (#5) and the first pearl, the bags-full helper (#6), follow. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
 
 ## Layout
 
 TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.0\LibAccountSync-1.0.xml`
-→ `Compat.lua` → `Theme.lua` → `UI.lua` → `AccountSync.lua` → `Pearls.lua` → *(pearl files,
-`Pearls\<Name>.lua`)* → `Options.lua` → `GlassPearls.lua`. Pearls load after everything they may
-use and before the options window and bootstrap.
+→ `Compat.lua` → `Theme.lua` → `UI.lua` → `AccountSync.lua` → `Pearls.lua` → `SettingsSync.lua` →
+*(pearl files, `Pearls\<Name>.lua`)* → `Options.lua` → `GlassPearls.lua`. Pearls load after
+everything they may use (they register sets with settings sync at file scope; test_toc checks the
+order) and before the options window and bootstrap.
 
 - **`Compat.lua`**: `GlassPearls.API`, the only route to client APIs that moved or may be absent:
   `IsSecret`, `RegisterEvents` (reports failures), `NoteCombat` / `InCombat`, `Fail(key, err)` (the
@@ -54,8 +55,21 @@ use and before the options window and bootstrap.
   `AS.Send(kind, body)`, `IsEnabled` / `SetEnabled`, `Lines()` for `/gpearls sync`. Payloads are
   `"<kind>\n<body>"`; handlers validate the body and never run it. The store is
   `GlassPearlsSyncDB`, its own SavedVariable, because it holds the household key: never fold it
-  into `GlassPearlsDB` or anything exported. Its purpose here is keeping settings in sync across
-  the owner's accounts (#4).
+  into `GlassPearlsDB` or anything exported. Asks the library for the 32 KB ceiling
+  (`maxPayload`). Its purpose here is keeping settings in sync across the owner's accounts.
+- **`SettingsSync.lua`**: that sync (#4), automatic. A pure core (`SS.Core`: `Compare`, `Encode`,
+  `Decode` (strict, all or nothing), `Merge`, `Stamp`, `Clean`) over a registry and a store, and
+  a live layer on GlassPearls. **Per-key last-writer-wins**: a local change stamps its key
+  `{ t = GetServerTime(), o = this character's GUID, s = saved counter }`, ordered t, o, s
+  everywhere. What travels: every pearl's on/off (`on.<key>`), each pearl's settings
+  (`<key>.<name>`: booleans, integers with `ranges`, strings with `choices`), `core.glassui`, and
+  sets (`RegisterSet`, `SetAdd`/`SetRemove`/`SetHas`/`SetMembers`/`SetClear`) with per-member
+  stamps and **permanent tombstones**. Keys from a newer version are kept, merged and relayed,
+  never applied, and adopted once known. Sends: change (2 s debounce), login (+5 s), a new peer
+  (60 s check), retries with backoff; replies only when holding something newer. Receiving applies
+  through the same setters with stamping suppressed. A fixed byte budget per part (see the file's
+  header; `test_sync_budget` fills every part). The store is `GlassPearlsDB.sync`; integers are
+  written with `%.0f` (Lua 5.1's `%d` is 32-bit on Windows).
 - **`Options.lua`**: **our own options window**, on Leatrix Plus's layout (the owner's choice;
   `References\Addons\Miscellaneous\LeatrixPlus`, All Rights Reserved: the layout is the model,
   nothing is copied). Left: the name, the version, Home, each category that has pearls, Settings.
@@ -81,7 +95,10 @@ use and before the options window and bootstrap.
    window then shows `*` and Reload.
 4. Options: `defaults` for its settings, read with `Pearls.Setting`, written with
    `Pearls.SetSetting`; `configure(panel, refreshers)` builds its panel from `GP.UI` widgets and
-   adds each control's `refresh`; `help` for the Help button.
+   adds each control's `refresh`; `help` for the Help button. Settings sync picks them up: give a
+   string setting its `choices` and an integer one its `ranges`, or it won't travel. A list (a
+   keep list) is a sync set: `SettingsSync.RegisterSet("<key>.<name>")` at file scope. Mind the
+   budget: `test_sync_budget` fails if the known keys outgrow their 4 KB.
 5. A test file `tests\test_<name>.lua`, and a line in `CHANGELOG.md` under the next version.
 
 ## Forever basics (shared with the siblings)

@@ -26,6 +26,9 @@ GP.AccountSync = AS
 
 AS.TAG = "GlassPearls"
 AS.REPORTS = 20
+-- The wire ceiling (as GlassChat): the settings snapshot's budget is sized
+-- to it (SettingsSync.lua). The library's default is 16 KB.
+AS.MAX = 32768
 
 local handlers = {}
 local reports = {}
@@ -55,7 +58,7 @@ end
 
 local lib = rawget(_G, "LibStub") and LibStub("LibAccountSync-1.0", true)
 if lib then
-    local ok, inst = pcall(lib.New, lib, { addon = AS.TAG, store = store, report = report })
+    local ok, inst = pcall(lib.New, lib, { addon = AS.TAG, store = store, report = report, maxPayload = AS.MAX })
     if ok and inst then
         AS.inst = inst
         inst.OnMessage(dispatch)
