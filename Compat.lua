@@ -68,6 +68,17 @@ function API.Fail(key, err)
     if GP.failures[key] == nil then GP.failures[key] = tostring(err) end
 end
 
+-- A frame from a template, and whether the template really applied: a missing
+-- template doesn't throw, it returns a bare frame, so `proof` names a field
+-- the template makes (GlassMail's and GlassUnitFrames' API.SafeFrame). Read
+-- raw: a parentKey field lives in the frame's own table, while a method name
+-- (capitalised, like most parentKeys) would answer through the metatable.
+function API.SafeFrame(ftype, parent, template, proof, name)
+    local ok, f = pcall(CreateFrame, ftype, name, parent, template)
+    if ok and f then return f, (proof == nil) or rawget(f, proof) ~= nil end
+    return CreateFrame(ftype, name, parent), false
+end
+
 -- An addon's TOC Version, or nil (absent API, error, secret, not a string).
 function API.AddOnVersion(addon)
     local get = C_AddOns and C_AddOns.GetAddOnMetadata

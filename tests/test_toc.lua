@@ -11,6 +11,11 @@ check(toc:find("## SavedVariablesPerCharacter: GlassPearlsCharDB", 1, true), "pe
 -- and CI's wago job uploads to the packaged TOC's X-Wago-ID.
 check(toc:find("## X%-Curse%-Project%-ID: 1764704\r?\n"), "the CurseForge project ID")
 check(toc:find("## X%-Wago%-ID: kGr9LxKy\r?\n"), "the Wago project ID")
+-- Glass UI loads first when it's enabled, so its suite answers at our
+-- ADDON_LOADED (GlassUI docs/SUITE.md); the AddOn list groups the Glass family.
+check(toc:find("## OptionalDeps: GlassUI\r?\n"), "OptionalDeps: GlassUI")
+check(not toc:find("## Dependencies", 1, true), "no hard dependency on another Glass addon")
+check(toc:find("## Category: |cff7fd4ffGlass|r", 1, true), "the Glass category")
 
 -- The LICENSE ships in the zip: ours, with one notice for exactly what's
 -- bundled (RELEASING.md section 1; the copied GlassMail notice was caught in
@@ -72,20 +77,25 @@ if WoW.dumpAvailable then
     eq(missing + extra, 0, "tests/events-70532.txt matches the dump (regenerate it)")
 end
 
--- Every texture the material names ships with the library.
+-- Without Glass UI there is no glass: the WoW Forever look, and no instance.
+eq(GlassPearls.Theme.Active(), "forever", "no Glass UI: the WoW Forever look")
+eq(GlassPearls.Theme.Glass(), nil, "  and no LibGlass instance")
+
+-- The embedded material, as Glass UI's Pearl answer would build it: every
+-- texture it names ships with the library, and MEDIA points into the
+-- embedded copy, where the packager puts it.
+local inst = GlassPearls.Theme.NewGlass("pearl")
+check(inst ~= nil, "the embedded LibGlass builds Pearl (r11+)")
 local root = libGlassRoot()
-for size, S in pairs(GlassPearls.Glass.SIZES) do
+for size, S in pairs(inst.SIZES) do
     for _, key in ipairs({ "mask", "rim", "dark", "shadow" }) do
         local f = root .. "/Media/" .. S[key] .. ".tga"
         check(io.open(f, "rb") ~= nil, size .. " texture exists: " .. f)
     end
 end
--- The Pearl preset (LibGlass r11), and MEDIA points into the embedded copy,
--- where the packager puts it.
-eq(GlassPearls.glassPreset, "pearl", "the Pearl preset (LibGlass r11+)")
-eq(GlassPearls.Glass.MEDIA, "Interface\\AddOns\\GlassPearls\\Libs\\LibGlass-1.0\\Media\\", "MEDIA is the embedded copy's")
-for _, k in ipairs({ "Apply", "MEDIA", "SIZES" }) do
-    check(GlassPearls.Glass[k] ~= nil, "the instance has Glass." .. k)
+eq(inst.MEDIA, "Interface\\AddOns\\GlassPearls\\Libs\\LibGlass-1.0\\Media\\", "MEDIA is the embedded copy's")
+for _, k in ipairs({ "Apply", "Reflect", "SetSurfaceAlpha", "Mask", "MEDIA", "SIZES" }) do
+    check(inst[k] ~= nil, "the instance has Glass." .. k)
 end
 
 done("test_toc")

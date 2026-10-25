@@ -7,20 +7,32 @@
 --       name = "Auto repair",        -- the options page and /gpearls list
 --       desc = "Repairs at a vendor that can.",
 --       default = false,             -- on or off for someone who never chose
+--       category = "Loot & Bags",    -- the options window's page (CATEGORIES below)
+--       section = "Bags",            -- the header it sits under on that page
 --       Enable = function() end,     -- at login when on, and when switched on
 --       Disable = function() end,    -- when switched off (optional: then the change waits for /reload)
+--       defaults = { key = value },  -- optional: its own settings (Pearls.Setting)
+--       configure = function(panel, refreshers) end,  -- optional: builds its Configuration Panel
+--       help = "...",                -- optional: the panel's Help text
+--       onReset = function() end,    -- optional: after Reset put its settings back
 --   })
 --
 -- Only what the player chose is saved (GlassPearlsDB.pearls[key], a boolean,
--- and only when it differs from the pearl's default). Enable and Disable run
--- protected: a pearl that throws is recorded in /gpearls failures and leaves
--- every other pearl running.
+-- and only when it differs from the pearl's default; a pearl's own settings in
+-- GlassPearlsDB.settings[key], likewise only the non-defaults). Enable and
+-- Disable run protected: a pearl that throws is recorded in /gpearls failures
+-- and leaves every other pearl running.
 
 GlassPearls = GlassPearls or {}
 local GP = GlassPearls
 local API = GP.API
 local Pearls = {}
 GP.Pearls = Pearls
+
+-- The options window's pages, in this order; a page shows only once a pearl
+-- is on it. A category not listed here goes after them, alphabetically.
+Pearls.CATEGORIES = { "Loot & Bags", "Interface", "Social", "Chat", "Automation", "System" }
+Pearls.DEFAULT_CATEGORY, Pearls.DEFAULT_SECTION = "Miscellaneous", "General"
 
 local byKey, order = {}, {}
 local live = {}   -- key -> true while enabled
@@ -32,7 +44,12 @@ function Pearls.Register(def)
     assert(not byKey[def.key], "Pearls.Register: duplicate key " .. def.key)
     assert(type(def.name) == "string" and def.name ~= "", "Pearls.Register: a name")
     assert(type(def.Enable) == "function", "Pearls.Register: an Enable function")
+    assert(def.configure == nil or type(def.configure) == "function", "Pearls.Register: configure is a function")
+    assert(def.defaults == nil or type(def.defaults) == "table", "Pearls.Register: defaults is a table")
     def.default = def.default == true
+    def.category = type(def.category) == "string" and def.category ~= "" and def.category or Pearls.DEFAULT_CATEGORY
+    def.section = type(def.section) == "string" and def.section ~= "" and def.section or Pearls.DEFAULT_SECTION
+    def.defaults = def.defaults or {}
     byKey[def.key] = def
     order[#order + 1] = def
     table.sort(order, function(a, b) return a.name:lower() < b.name:lower() end)
@@ -60,6 +77,91 @@ function Pearls.IsOn(key)
 end
 
 function Pearls.IsLive(key) return live[key] == true end
+
+-- Switched off but still running: a pearl without Disable waits for a
+-- /reload (the window's `*` and Reload button).
+function Pearls.NeedsReload(key) return Pearls.IsLive(key) and not Pearls.IsOn(key) end
+
+function Pearls.PendingReload()
+    for _, def in ipairs(order) do
+        if Pearls.NeedsReload(def.key) then return true end
+    end
+    return false
+end
+
+-- The pages that have pearls, in CATEGORIES order, then the rest by name.
+function Pearls.Categories()
+    local present, list, rank = {}, {}, {}
+    for _, def in ipairs(order) do present[def.category] = true end
+    for i, c in ipairs(Pearls.CATEGORIES) do rank[c] = i end
+    for c in pairs(present) do list[#list + 1] = c end
+    table.sort(list, function(a, b)
+        local ra, rb = rank[a] or math.huge, rank[b] or math.huge
+        if ra ~= rb then return ra < rb end
+        return a < b
+    end)
+    return list
+end
+
+-- The pearls on one page, by name.
+function Pearls.InCategory(category)
+    local list = {}
+    for _, def in ipairs(order) do
+        if def.category == category then list[#list + 1] = def end
+    end
+    return list
+end
+
+-- The pearls whose name or description contains `text` (plain, case-insensitive).
+function Pearls.Search(text)
+    local list = {}
+    text = type(text) == "string" and text:lower():match("^%s*(.-)%s*$") or ""
+    if text == "" then return list end
+    for _, def in ipairs(order) do
+        local hay = (def.name .. " " .. (def.desc or "")):lower()
+        if hay:find(text, 1, true) then list[#list + 1] = def end
+    end
+    return list
+end
+
+-- A pearl's own setting: the saved value, else its default.
+function Pearls.Setting(key, name)
+    local def = byKey[key]
+    local t = GP.db and GP.db.settings and GP.db.settings[key]
+    local v = t and t[name]
+    if v == nil and def then return def.defaults[name] end
+    return v
+end
+
+-- Save a pearl's setting; nothing is saved when it equals the default. False
+-- for an unknown pearl or setting.
+function Pearls.SetSetting(key, name, value)
+    local def = byKey[key]
+    if not def or def.defaults[name] == nil or not GP.db then return false end
+    local all = GP.db.settings
+    if value == def.defaults[name] then
+        if all[key] then
+            all[key][name] = nil
+            if next(all[key]) == nil then all[key] = nil end
+        end
+    else
+        all[key] = all[key] or {}
+        all[key][name] = value
+    end
+    return true
+end
+
+-- Reset: every setting of the pearl back to its default, then its onReset.
+function Pearls.ResetSettings(key)
+    local def = byKey[key]
+    if not def or not GP.db then return false end
+    GP.db.settings[key] = nil
+    if def.onReset then
+        local ok, err = pcall(def.onReset)
+        if not ok then API.Fail("pearl " .. key .. " reset", err) end
+    end
+    return true
+end
 
 local function run(def, fnName)
     local fn = def[fnName]
@@ -96,6 +198,24 @@ end
 function Pearls.Clean(t)
     for key, v in pairs(t) do
         if type(v) ~= "boolean" or (byKey[key] and v == byKey[key].default) then t[key] = nil end
+    end
+end
+
+-- The same for the pearls' own settings: a pearl's table that isn't a table
+-- goes; for a known pearl, a setting it doesn't declare, of another type than
+-- its default, or equal to it, goes. An unknown pearl's table stays.
+function Pearls.CleanSettings(all)
+    for key, t in pairs(all) do
+        local def = byKey[key]
+        if type(t) ~= "table" then
+            all[key] = nil
+        elseif def then
+            for name, v in pairs(t) do
+                local d = def.defaults[name]
+                if d == nil or type(v) ~= type(d) or v == d then t[name] = nil end
+            end
+            if next(t) == nil then all[key] = nil end
+        end
     end
 end
 

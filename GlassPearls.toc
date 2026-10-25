@@ -1,18 +1,21 @@
 ## Interface: 16001
 ## Title: |cff7fd4ffGlass|r Pearls
-## Notes: Small quality-of-life touches for WoW: Forever, each one switched on or off on its own. /gpearls help
+## Notes: Small quality-of-life touches for WoW: Forever, each one switched on or off on its own. /gpearls
+## Category: |cff7fd4ffGlass|r
 ## Author: Spotnick
 ## Version: @project-version@
 ## X-License: MIT
 ## X-Curse-Project-ID: 1764704
 ## X-Wago-ID: kGr9LxKy
+## OptionalDeps: GlassUI
 ## SavedVariables: GlassPearlsDB, GlassPearlsSyncDB
 ## SavedVariablesPerCharacter: GlassPearlsCharDB
 
 Libs\LibGlass-1.0\LibGlass-1.0.xml
 Libs\LibAccountSync-1.0\LibAccountSync-1.0.xml
 Compat.lua
-Glass.lua
+Theme.lua
+UI.lua
 AccountSync.lua
 Pearls.lua
 Options.lua

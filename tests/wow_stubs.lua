@@ -89,6 +89,9 @@ function WoW.reset()
     WoW.methodsCalled = {}
     WoW.combat = false
     WoW.timers = {}
+    -- A template named here is missing on the client: CreateFrame returns a
+    -- bare frame without its fields, as the client does.
+    WoW.missingTemplates = WoW.missingTemplates or {}
 end
 
 --------------------------------------------------------------------------------
@@ -129,6 +132,14 @@ function CreateFrame(ftype, name, parent, template)
     if template == "UIPanelScrollFrameTemplate" then w.ScrollBar = newWidget("Slider", w) end
     -- The radio template's own label (CheckButtonTemplates.xml: parentKey "text").
     if template == "UIRadioButtonTemplate" then w.text = Methods.CreateFontString(w) end
+    -- DialogTemplates.xml: the dark dialog border's background (parentKey Bg).
+    if template == "DialogBorderDarkTemplate" and not WoW.missingTemplates[template] then
+        w.Bg = Methods.CreateTexture(w)
+    end
+    -- InputBoxTemplates.xml:209: the search box's instruction text.
+    if template == "SearchBoxTemplate" and not WoW.missingTemplates[template] then
+        w.Instructions = Methods.CreateFontString(w)
+    end
     table.insert(WoW.frames, w)
     if parent then
         parent._children = parent._children or {}
@@ -366,6 +377,60 @@ Settings = {
     OpenToCategory = function(id) WoW.openedCategory = id end,
 }
 
+-- UIParentPanelManager.lua:21: the frames Esc closes (a table; addons insert).
+UISpecialFrames = { "SettingsPanel" }
+WoW.uiSpecialFrames = UISpecialFrames   -- the original table, to prove it was never replaced
+
+-- ReloadUI (dump _G walk): recorded; WoW.reloadForbidden makes it behave as a
+-- protected call from addon code does: nothing happens and
+-- ADDON_ACTION_FORBIDDEN fires (porting guide section 3).
+WoW.reloads = 0
+function ReloadUI()
+    if WoW.reloadForbidden then
+        WoW.fire("ADDON_ACTION_FORBIDDEN", "GlassPearls", "ReloadUI()")
+        return
+    end
+    WoW.reloads = WoW.reloads + 1
+end
+
+-- The player's class (UnitClass, documented) and its colour (C_ClassColor).
+WoW.class = "MAGE"
+function UnitClass(unit) if unit == "player" then return "Mage", WoW.class, 8 end end
+C_ClassColor = { GetClassColor = function(class)
+    if class == "MAGE" then return { r = 0.25, g = 0.78, b = 0.92 } end
+end }
+
+-- GameTooltip: its owner and lines, as text. SetOwner starts it over.
+GameTooltip = newWidget("GameTooltip", UIParent, "GameTooltip")
+GameTooltip._lines = {}
+function Methods.SetOwner(t, owner) t._owner, t._lines = owner, {} end
+function Methods.AddLine(t, text) table.insert(t._lines, text) end
+local plainSetText = Methods.SetText
+function Methods.SetText(w, text, ...)
+    if w._type == "GameTooltip" then w._lines = { text } else plainSetText(w, text, ...) end
+end
+
+-- Glass UI's suite (GlassUI\docs\SUITE.md), scriptable per test:
+-- WoW.installGlassUI({ theme = answer or function, look = {...}, body = {...} })
+-- puts a GlassUI global with Suite API 1; WoW.suiteReports records Report calls.
+WoW.suiteReports = {}
+function WoW.installGlassUI(opts)
+    opts = opts or {}
+    local S = { API = opts.api or 1 }
+    S.Theme = function(addon)
+        WoW.suiteAsked = addon
+        if type(opts.theme) == "function" then return opts.theme(addon) end
+        if opts.theme == nil then return { name = "pearl", preset = "pearl" } end
+        return opts.theme
+    end
+    S.Report = function(addon, state) table.insert(WoW.suiteReports, { addon = addon, state = state }) end
+    if opts.look then S.Look = function() return opts.look end end
+    if opts.body then S.Body = function() return opts.body end end
+    if opts.accent then S.Accent = function() return opts.accent end end
+    rawset(_G, "GlassUI", { Suite = S })
+    return S
+end
+
 -- The client's secure hook replaces t[name] with a wrapper: the sanctioned way
 -- to hook a Blizzard method. WoW.hooked records it, so the "no field written"
 -- checks can tell it from a field the addon wrote.
@@ -538,7 +603,7 @@ ChatThrottleLib = {
 -- Strict globals: any read of an undefined global is an error, except the
 -- addon's own globals that are legitimately nil before first assignment.
 -- LibStub: the embedded libraries' loaders read _G.LibStub before creating it.
-local allowNil = { GlassPearls = true, GlassPearlsDB = true, GlassPearlsCharDB = true, GlassPearlsSyncDB = true,
+local allowNil = { GlassPearls = true, GlassPearlsDB = true, GlassPearlsCharDB = true, GlassPearlsSyncDB = true, GlassUI = true,
     LibStub = true }
 -- Client string alias (in the dump's _G walk); LibStub's version check uses it.
 strmatch = string.match

@@ -81,14 +81,26 @@ check(newChat()[1]:find("Beta off", 1, true), "  confirmed")
 SlashCmdList.GLASSPEARLS("beta")
 check(newChat()[1]:find("Beta is off", 1, true), "/gpearls beta reports its state")
 
--- The options page: one checkbox per pearl, synced on every show.
-local panel = GP.Options._test.panel
-panel:Show()
-local boxes = GP.Options._test.pearls
-check(boxes.alpha and boxes.beta and boxes.gamma and boxes.boom, "a checkbox per pearl")
-check(boxes.alpha:GetChecked() and not boxes.beta:GetChecked(), "the boxes show each pearl's state")
-boxes.beta:SetChecked(true)
-boxes.beta:GetScript("OnClick")(boxes.beta)
-check(P.IsOn("beta") and P.IsLive("beta"), "ticking a box switches the pearl on")
+-- Pending reload: only a pearl switched off that can't stop live.
+check(P.NeedsReload("gamma"), "gamma off but live: needs a reload")
+check(not P.NeedsReload("alpha") and not P.NeedsReload("beta"), "pearls that switch live never do")
+check(not P.NeedsReload("boom"), "a pearl whose Enable failed isn't 'pending reload' (it's a failure)")
+check(P.PendingReload(), "so a reload is pending")
+P.Set("gamma", true)
+check(not P.PendingReload(), "switched back on: nothing pending")
+
+-- Pages: no category given = Miscellaneous, section General.
+eq(P.Get("alpha").category, "Miscellaneous", "the default category")
+eq(P.Get("alpha").section, "General", "the default section")
+eq(table.concat(P.Categories(), ","), "Miscellaneous", "the pages that have pearls")
+eq(#P.InCategory("Miscellaneous"), 4, "all four on it")
+eq(#P.InCategory("Loot & Bags"), 0, "an empty page has none")
+
+-- Search: name or description, plain and case-insensitive; blank finds nothing.
+eq(#P.Search("SECOND"), 1, "search reads descriptions, any case")
+eq(P.Search("second")[1].key, "beta", "  beta")
+eq(#P.Search("a"), 3, "a letter in three names (Alpha, Beta, gamma)")
+eq(#P.Search("   "), 0, "blank finds nothing")
+eq(#P.Search("a."), 0, "a pattern character is plain text ('a.' as a pattern would match Alpha)")
 
 done("test_pearls")
