@@ -79,4 +79,4 @@ Get-ChildItem -LiteralPath $dest -File -Recurse | Where-Object {
 
 Write-Host ""
 Write-Host "Changed or new files, a brand-new addon folder included: /reload is enough (porting guide, 2026-10-09)." -ForegroundColor Yellow
-Write-Host "In game:  /console scriptErrors 1   then   /gpearls help" -ForegroundColor Green
+Write-Host "In game:  /console scriptErrors 1   then   /gpearls (the options window)" -ForegroundColor Green

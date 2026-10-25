@@ -9,10 +9,13 @@ local Pearls = GP.Pearls
 local say = API.Print
 
 -- Account-wide (GlassPearlsDB): settings, the same on every character;
--- pearls[key] holds each pearl's on/off where the player chose.
+-- pearls[key] holds each pearl's on/off where the player chose, settings[key]
+-- a pearl's own settings (Pearls.lua).
 -- Per character (GlassPearlsCharDB): for a pearl that needs it.
 -- Own-account sync (GlassPearlsSyncDB): the library's store (AccountSync.lua).
-local DEFAULTS = {}
+local DEFAULTS = {
+    useGlassUI = true,   -- follow Glass UI's look when it's here (Theme.lua); a /reload applies a change
+}
 GP.DEFAULTS = DEFAULTS
 
 -- Only what the player SET is saved: everything else falls through to
@@ -25,8 +28,11 @@ local function ensureDefaults()
     for k, v in pairs(DEFAULTS) do
         if db[k] == v then db[k] = nil end
     end
+    if db.useGlassUI ~= nil and type(db.useGlassUI) ~= "boolean" then db.useGlassUI = nil end
     if type(db.pearls) ~= "table" then db.pearls = {} end
     Pearls.Clean(db.pearls)
+    if type(db.settings) ~= "table" then db.settings = {} end
+    Pearls.CleanSettings(db.settings)
     setmetatable(db, { __index = DEFAULTS })
     if type(GlassPearlsCharDB) ~= "table" then GlassPearlsCharDB = {} end
     if type(GlassPearlsSyncDB) ~= "table" then GlassPearlsSyncDB = {} end
@@ -67,18 +73,28 @@ local function list()
     if #defs == 0 then return say("no pearls yet") end
     for _, def in ipairs(defs) do
         local state = onoff(Pearls.IsOn(def.key))
-        if Pearls.IsOn(def.key) ~= Pearls.IsLive(def.key) then state = state .. " (after /reload)" end
+        if Pearls.NeedsReload(def.key) then state = state .. " (after /reload)" end
         say(def.key .. " - " .. def.name .. " (" .. state .. ")")
     end
+end
+
+-- Every setting goes through here: /gpearls and the options window.
+local Settings = {}
+GP.Settings = Settings
+
+-- Follow Glass UI's look; applies after a /reload (the look is fixed once a session).
+function Settings.SetUseGlassUI(on)
+    GP.db.useGlassUI = on == true
+    return true
 end
 
 -- The command list: /gpearls help prints it.
 local function helpLines()
     return {
+        "/gpearls - open the options window",
         "/gpearls list - every pearl and whether it is on",
         "/gpearls <pearl> on/off - switch one pearl",
         "/gpearls sync - your other accounts: the link's state (sync on/off to switch it)",
-        "/gpearls options - open the options page",
         "/gpearls failures - what failed to build or register",
         "/gpearls version - client build vs the measured one",
     }
@@ -89,30 +105,34 @@ local ONOFF = { on = true, off = false }
 
 local function slash(msg)
     local cmd, arg = (msg or ""):lower():match("^%s*(%S*)%s*(.-)%s*$")
-    if cmd == "list" then
+    if cmd == "" then
+        GP.Options.Toggle()
+    elseif cmd == "options" then
+        GP.Options.Open()
+    elseif cmd == "list" then
         list()
     elseif cmd == "sync" then
         if ONOFF[arg] ~= nil then
             if GP.AccountSync.SetEnabled(ONOFF[arg]) then say("account sync " .. arg)
             else say("account sync is not available") end
+            GP.Options.Refresh()
             return
         end
         for _, line in ipairs(GP.AccountSync.Lines()) do say(line) end
-    elseif cmd == "options" then
-        if not GP.Options.Open() then say("Esc > Options > AddOns > Glass Pearls") end
     elseif cmd == "failures" then
         failures()
     elseif cmd == "version" then
         say("version " .. GP.VersionText() .. ", client " .. API.ClientBuild()
-            .. ", measured on " .. GP.MEASURED_ON_BUILD)
+            .. ", measured on " .. GP.MEASURED_ON_BUILD .. ", look " .. GP.Theme.Active())
     elseif Pearls.Get(cmd) then
         local def = Pearls.Get(cmd)
         if ONOFF[arg] == nil then
             return say(def.name .. " is " .. onoff(Pearls.IsOn(cmd)) .. ". /gpearls " .. cmd .. " on/off")
         end
         Pearls.Set(cmd, ONOFF[arg])
-        local note = (Pearls.IsOn(cmd) ~= Pearls.IsLive(cmd)) and " (after /reload)" or ""
+        local note = Pearls.NeedsReload(cmd) and " (after /reload)" or ""
         say(def.name .. " " .. arg .. note)
+        GP.Options.Refresh()
     else
         for _, line in ipairs(helpLines()) do say(line) end
     end
@@ -127,15 +147,22 @@ local function start(key, fn)
     if not ok then API.Fail(key, err) end
 end
 
+-- The look is fixed once, at our ADDON_LOADED: `## OptionalDeps: GlassUI` has
+-- Glass UI ready by then, and nothing has been drawn yet.
+local function load()
+    GP.db, GP.charDB = ensureDefaults()
+    start("theme", function()
+        GP.Theme.Init(GP.db.useGlassUI ~= false, function() return GP.Options.Open() end)
+    end)
+end
+
 local boot = CreateFrame("Frame")
 boot:SetScript("OnEvent", function(_, event, arg1)
     if event == "ADDON_LOADED" then
-        if arg1 == ADDON then
-            GP.db, GP.charDB = ensureDefaults()
-        end
+        if arg1 == ADDON then load() end
     elseif event == "PLAYER_LOGIN" then
         -- SavedVariables are read here at the latest (porting guide: not at file scope).
-        if not GP.db then GP.db, GP.charDB = ensureDefaults() end
+        if not GP.db then load() end
         start("options", GP.Options.Register)
         start("pearls", Pearls.StartAll)
     elseif event == "PLAYER_ENTERING_WORLD" then

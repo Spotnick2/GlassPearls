@@ -12,55 +12,77 @@ shape). When this file doesn't cover something, check how those handle it before
 idiom.
 
 **Goal:** many small quality-of-life touches in one addon, each one a **pearl**: a small,
-independent feature the player switches on or off on its own, in the Glass look where it draws
-anything. The candidate list and the milestones are [docs/PLAN.md](docs/PLAN.md).
+independent feature the player switches on or off on its own. It wears WoW Forever's own look by
+default and Glass UI's glass when Glass UI is installed (owner). The milestones, the plan and the
+day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 
-**Status: scaffold.** The registry, the options page, the own-account link and the tooling are in
-place; there are no pearls yet. Nothing has been measured in game for this addon.
+**Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) are done; settings
+sync (#4), the day-one probe (#5) and the first pearl, the bags-full helper (#6), follow. Nothing
+has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
+client claim is on the day-one checklist in docs/PLAN.md.
 
 ## Layout
 
 TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.0\LibAccountSync-1.0.xml`
-→ `Compat.lua` → `Glass.lua` → `AccountSync.lua` → `Pearls.lua` → *(pearl files,
+→ `Compat.lua` → `Theme.lua` → `UI.lua` → `AccountSync.lua` → `Pearls.lua` → *(pearl files,
 `Pearls\<Name>.lua`)* → `Options.lua` → `GlassPearls.lua`. Pearls load after everything they may
-use and before the options page and bootstrap.
+use and before the options window and bootstrap.
 
 - **`Compat.lua`**: `GlassPearls.API`, the only route to client APIs that moved or may be absent:
   `IsSecret`, `RegisterEvents` (reports failures), `NoteCombat` / `InCombat`, `Fail(key, err)` (the
-  **one** failure recorder, read by `/gpearls failures`), `AddOnVersion`, `ClientBuild`;
-  `MEASURED_ON_BUILD`. A subset of GlassMail's; lift more from there when a pearl needs it.
-- **`Glass.lua`**: `GlassPearls.Glass`, this addon's instance of LibGlass-1.0 with the suite's
-  `"pearl"` preset (r11; an older dev copy falls back to its default material).
-- **`Pearls.lua`**: the registry. `Pearls.Register{ key, name, desc, default, Enable, Disable }`,
-  `IsOn`, `IsLive`, `Set`, `List`, `StartAll` (at login). Choices are saved in
-  `GlassPearlsDB.pearls[key]`, only when they differ from the pearl's default. `Enable` / `Disable`
-  run under `pcall`: a pearl that throws is recorded and the others keep running.
+  **one** failure recorder, read by `/gpearls failures`), `AddOnVersion`, `ClientBuild`,
+  `SafeFrame` (a template and whether it applied, read raw); `MEASURED_ON_BUILD`. A subset of
+  GlassMail's; lift more from there when a pearl needs it.
+- **`Theme.lua`**: the look, fixed once at `ADDON_LOADED`. **WoW Forever by default**
+  (`DialogBorderDarkTemplate`, Blizzard's fonts and widgets); **glass only from Glass UI**: with
+  `## OptionalDeps: GlassUI`, when its suite speaks API 1 and "Use Glass UI appearance" is on, it
+  builds the answered preset and the suite's body and accent, and reports (`live = false`,
+  `declined` when turned off, `reason` on a failed build). The model is `..\Stakeout\Theme.lua`;
+  the contract is `..\GlassUI\docs\SUITE.md`. No glass of our own choosing (owner). Helpers:
+  `Window`, `Reading`, `Control`, `Accent`, `NewGlass`; `Active`, `Following`, `Glass`.
+- **`UI.lua`**: the shared widgets (`Label`, `Header`, `Tooltip`, `Button`, `Check`, `Gear`,
+  `Radios`, `Search`), Blizzard templates in both looks; a value control returns a `refresh`.
+- **`Pearls.lua`**: the registry. `Pearls.Register{ key, name, desc, default, category, section,
+  Enable, Disable, defaults, configure, help, onReset }`; `IsOn`, `IsLive`, `NeedsReload`,
+  `PendingReload`, `Set`, `List`, `Categories` (in `CATEGORIES` order), `InCategory`, `Search`,
+  `Setting` / `SetSetting` / `ResetSettings` (a pearl's own settings in
+  `GlassPearlsDB.settings[key]`), `StartAll` (at login). Only what differs from a default is saved.
+  `Enable` / `Disable` / `configure` / `onReset` run under `pcall`: a pearl that throws is recorded
+  and the others keep running.
 - **`AccountSync.lua`**: `GlassPearls.AccountSync`, one LibAccountSync-1.0 snapshot instance on
   the wire tag `"GlassPearls"` (**permanent: never change it**). `AS.On(kind, fn)`,
   `AS.Send(kind, body)`, `IsEnabled` / `SetEnabled`, `Lines()` for `/gpearls sync`. Payloads are
   `"<kind>\n<body>"`; handlers validate the body and never run it. The store is
   `GlassPearlsSyncDB`, its own SavedVariable, because it holds the household key: never fold it
-  into `GlassPearlsDB` or anything exported. A pearl needing a second snapshot kind or the
-  messages mode gets its own instance on its own tag over the same store (GlassChat's
-  `GlassChatST`, LibAccountSync#17).
-- **`Options.lua`**: Esc > Options > AddOns > Glass Pearls, the porting guide's measured recipe
-  (hidden at creation, built on the first `OnShow`, re-read on every show, registered once at
-  `PLAYER_LOGIN`). One checkbox per pearl, then the own-account switch.
-- **`GlassPearls.lua`**: bootstrap (saved settings, login build warning) and `/gpearls`
-  (`/glasspearls`). Loads last.
+  into `GlassPearlsDB` or anything exported. Its purpose here is keeping settings in sync across
+  the owner's accounts (#4).
+- **`Options.lua`**: **our own options window**, on Leatrix Plus's layout (the owner's choice;
+  `References\Addons\Miscellaneous\LeatrixPlus`, All Rights Reserved: the layout is the model,
+  nothing is copied). Left: the name, the version, Home, each category that has pearls, Settings.
+  Right: two columns of sections, a checkbox per pearl, a gear opening its Configuration Panel in
+  the same window (Reset, Help, Back to Main Menu), `*` after a pearl without `Disable`, Reload
+  while a change waits, a search box. Built on first open, re-read on every show; Esc through
+  `table.insert(UISpecialFrames, ...)` (never reassign it). Reload calls `ReloadUI()` from its own
+  click (unmeasured: if `ADDON_ACTION_FORBIDDEN` names it, "Type /reload" replaces the button).
+  Plus a small Esc > Options > AddOns page with an "Open Glass Pearls" button.
+- **`GlassPearls.lua`**: bootstrap (saved settings, the look at `ADDON_LOADED`, login build
+  warning), `GP.Settings`, and `/gpearls` (`/glasspearls`): no argument toggles the window. Loads last.
 
 ### Adding a pearl
 
 1. `Pearls\<Name>.lua`, starting `GlassPearls = GlassPearls or {}`, calling
    `GlassPearls.Pearls.Register{...}` at file scope and doing **nothing else until `Enable`**
    (no frames registered for events, no hooks). The key is the saved key: lower-case letters or
-   digits, permanent.
+   digits, permanent. Give it a `category` from `Pearls.CATEGORIES` and a `section`.
 2. List it in the TOC after `Pearls.lua` (test_toc checks the order); the deploy script follows
    the TOC.
 3. Give it a `Disable` that undoes `Enable` where the client allows it. Where it can't (a
    `hooksecurefunc` can't be removed), omit `Disable` or make the hook check `Pearls.IsOn`; the
-   registry then reports "after /reload".
-4. A test file `tests\test_<name>.lua`, and a line in `CHANGELOG.md` under Unreleased.
+   window then shows `*` and Reload.
+4. Options: `defaults` for its settings, read with `Pearls.Setting`, written with
+   `Pearls.SetSetting`; `configure(panel, refreshers)` builds its panel from `GP.UI` widgets and
+   adds each control's `refresh`; `help` for the Help button.
+5. A test file `tests\test_<name>.lua`, and a line in `CHANGELOG.md` under the next version.
 
 ## Forever basics (shared with the siblings)
 
@@ -119,10 +141,16 @@ pwsh Tools\deploy.ps1                                                # copy the 
 GlassMail's harness, plus GlassChat's Battle.net stubs: `tests\wow_stubs.lua` (strict globals as
 an allowlist of APIs verified in the dump, secrets as throwing `newproxy` values, event names
 validated against the dump or `tests\events-70532.txt`, every widget method recorded, Battle.net
-and ChatThrottleLib for LibAccountSync), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an
-`opts.before` hook for registering test pearls, `newChat`, `chatHas`). **Mutation-test every new
-test**: break the behaviour, confirm it goes red. Offline tests can't cover taint, real secrets or
-rendering; that's a ForeverProbe module (`References\Docs\PROBES.md`) and an in-game check.
+and ChatThrottleLib for LibAccountSync, `WoW.installGlassUI` for a scriptable Glass UI suite,
+`WoW.missingTemplates` for a template the client lacks, `WoW.reloadForbidden` for a refused
+`ReloadUI`), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
+registering test pearls, `newChat`, `chatHas`). A stub is added only for something in the 70532
+dump (documented functions or the `_G` walk) or Blizzard's source, and its comment says which.
+
+**The unit tests are the main proof until 2026-11-04** (owner): one test file per concern, every
+new assertion mutation-tested (break the behaviour, confirm it goes red; list them in the PR).
+Offline tests can't cover taint, real secrets or rendering; that's PearlsProbe (#5) and the
+day-one checklist.
 
 ## Workflow and releasing
 
