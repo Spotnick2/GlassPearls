@@ -32,10 +32,15 @@ local function plain(v)
     return v
 end
 
--- The facts of one bag slot, or nil and why (empty, secret, unreadable).
+-- The facts of one bag slot, or nil and why: "empty" only when the client
+-- says the slot holds nothing (GetContainerItemInfo returns nil), else
+-- "unreadable" (an error, a secret, a field missing). The difference matters:
+-- only a confirmed empty slot proves a delete happened (Codex review of #9).
 function Bags.Slot(bag, slot)
     local ok, info = pcall(C_Container.GetContainerItemInfo, bag, slot)
-    if not ok or type(info) ~= "table" then return nil, "empty" end
+    if not ok then return nil, "unreadable" end
+    if info == nil then return nil, "empty" end
+    if type(info) ~= "table" then return nil, "unreadable" end
     local id, count, link = plain(info.itemID), plain(info.stackCount), plain(info.hyperlink)
     if type(id) ~= "number" or type(count) ~= "number" or type(link) ~= "string" then return nil, "unreadable" end
     return {

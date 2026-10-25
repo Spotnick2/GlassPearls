@@ -89,6 +89,12 @@ tick()
 check(Frame.IsShown(), "  shown once GET_ITEM_INFO_RECEIVED says it's cached")
 WoW.closeLoot(); tick()
 
+-- A loot row whose quantity can't be read is left out (known data only; Codex review of #9).
+WoW.openLoot({ { id = 10, qty = WoW.Secret("qty") } })
+tick()
+check(not Frame.IsShown(), "a row with an unreadable quantity: no prompt")
+WoW.closeLoot(); tick()
+
 -- Not worth it: the loot is worth less than every candidate; "choose anyway".
 WoW.bags[0].items = { [1] = { id = 2 }, [2] = { id = 2 }, [3] = { id = 2 }, [4] = { id = 2 } }   -- Old Boots, 30c each
 WoW.openLoot({ { id = 13, qty = 1 } })   -- a 1c tooth

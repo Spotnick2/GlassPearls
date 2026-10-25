@@ -92,6 +92,24 @@ setup()
 WoW.bags[0].items[1] = { id = 3 }   -- another item in that slot now
 eq(BF.Destroy(), "changed", "another item in the slot: refused")
 
+-- The window is a frame old: the loot changed between display and click
+-- (the re-evaluation queued, not run yet). Nothing is deleted (Codex review of #9).
+local function stale(change, label)
+    setup()
+    change()
+    local before = WoW.calledCount("DeleteCursorItem")
+    eq(BF.Destroy(), "changed", label .. ": refused")
+    eq(WoW.calledCount("DeleteCursorItem"), before, "  nothing deleted")
+    eq(WoW.calledCount("PickupContainerItem"), 0, "  nothing picked up")
+    check(WoW.bags[0].items[1] ~= nil, "  the item is still there")
+end
+stale(function() WoW.closeLoot() end, "the loot window closed before the click")
+stale(function() WoW.takeLoot(1) end, "the target row was looted before the click")
+stale(function() WoW.bags[1] = { size = 1, items = {} } end, "room appeared before the click (the loot fits now)")
+stale(function() WoW.loot[1].qty = 2 end, "the row's quantity changed before the click")
+stale(function() WoW.loot[1].id = 11 end, "the row holds another item before the click")
+stale(function() WoW.bags[0].items[1] = { id = 1, count = 1, locked = true } end, "the stack got locked before the click")
+
 -- The pickup didn't take: the cursor is cleared, nothing deleted.
 setup()
 WoW.pickupFails = true
@@ -130,6 +148,15 @@ BF.Destroy()
 WoW.bags[0].items[1] = { id = 3 }   -- something moved into the slot
 WoW.fire("BAG_UPDATE_DELAYED")
 eq(WoW.calledCount("LootSlot"), 0, "the slot isn't empty (an item moved in): no loot")
+-- An unreadable slot isn't an empty one: the loot waits for a confirmed empty slot (Codex review of #9).
+setup()
+BF.Destroy()
+WoW.bags[0].items[1] = { id = 3, count = WoW.Secret("count") }   -- something there, unreadable
+WoW.fire("BAG_UPDATE_DELAYED")
+eq(WoW.calledCount("LootSlot"), 0, "an unreadable item in the slot: no loot")
+WoW.bags[0].items[1] = nil
+WoW.fire("BAG_UPDATE_DELAYED")
+eq(WoW.calledCount("LootSlot"), 1, "  the slot confirmed empty on the next update: the loot follows")
 setup()
 BF.Destroy()
 WoW.closeLoot()

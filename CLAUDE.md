@@ -91,10 +91,12 @@ order) and before the options window and bootstrap.
   Offers grey (default) or grey and white items, never quest items, tools, equipment-set items,
   containers, reagents, ammunition, recipes, quivers, keys, fishing poles, white consumables or
   white items with a use, nor the never-suggest list (the sync set `bagsfull.keep`). The action runs
-  inside the window button's click: the stack checked again, grey in one click, white armed by a
+  inside the window button's click: the whole decision made again at the click (a stale window never
+  deletes: loot closed, row looted, room appeared), grey in one click, white armed by a
   second within 3 s, the cursor and slot lock confirmed, `DeleteCursorItem`; refused (the cursor
   still holds it, or `ADDON_ACTION_FORBIDDEN`) puts the item back and switches to **by hand** for
-  the session; the loot (`LootSlot`) only once the slot is empty, with the row still holding that
+  the session; the loot (`LootSlot`) only once the slot is confirmed empty (`Bags.Slot` says
+  "empty", never "unreadable"), with the row still holding that
   item (`LOOT_CLOSED` cancels it). Unmeasured until day one: the delete and the loot path (probe).
 - **`Pearls\BagsFullFrame.lua`**: its window (beside the loot window, or where the player dragged it,
   per character) and its Configuration Panel (quality scope, greys first, the never-suggest list).

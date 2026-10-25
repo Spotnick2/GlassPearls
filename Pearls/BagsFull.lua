@@ -82,8 +82,10 @@ function BF.LootRows(snap)
             local link = select(2, pcall(GetLootSlotLink, i))
             if okI and type(link) == "string" and not API.IsSecret(link) then
                 local id = select(2, pcall(C_Item.GetItemInfoInstant, link))
-                if type(id) == "number" and not API.IsSecret(id) then
-                    qty = (type(qty) == "number" and not API.IsSecret(qty)) and qty or 1
+                -- Known data only: a row whose quantity can't be read is left
+                -- out until it can (Codex review of #9).
+                if type(id) == "number" and not API.IsSecret(id)
+                    and not API.IsSecret(qty) and type(qty) == "number" and qty >= 1 then
                     local f = Bags.ItemFacts(id)
                     rows[#rows + 1] = {
                         slot = i, link = link, id = id, qty = qty, icon = icon,
@@ -229,22 +231,32 @@ local forbidden = false
 
 local function armKey(c) return c.bag .. ":" .. c.slot .. ":" .. c.id .. ":" .. c.count end
 
--- Is `cand` still exactly what's in that slot, and still a candidate?
-local function stillThere(cand)
-    local s = Bags.Slot(cand.bag, cand.slot)
-    if not s or s.id ~= cand.id or s.count ~= cand.count or s.link ~= cand.link then return nil end
-    local opts = options()
-    opts.setItems = Bags.SetItems()
-    local again = Bags.Eligible(s, opts)
-    if not again or again.value ~= cand.value then return nil end
-    return again
+local function sameStack(a, b)
+    return a.bag == b.bag and a.slot == b.slot and a.id == b.id and a.count == b.count
+        and a.link == b.link and a.value == b.value
+end
+
+-- The shown window may be a frame old: LOOT_CLOSED, a looted row, room that
+-- appeared, a moved stack all queue a re-evaluation that hasn't run yet. So
+-- decide again now, and go on only if the fresh decision still has the same
+-- target row (slot, link, quantity, still not fitting) and the same stack
+-- (Codex review of #9). Returns the fresh view and its candidate, or nil.
+local function confirm(shown, cand)
+    local ok, fresh = pcall(BF.Decide)
+    if not ok or not fresh or fresh.mode ~= shown.mode or fresh.notWorth or fresh.byHand then return nil end
+    local a, b = shown.target, fresh.target
+    if (a == nil) ~= (b == nil) then return nil end
+    if a and not (a.slot == b.slot and a.link == b.link and a.qty == b.qty) then return nil end
+    for _, c in ipairs(fresh.candidates) do
+        if sameStack(c, cand) then return fresh, c end
+    end
 end
 
 -- Returns what happened: "combat", "cursor", "changed", "armed", "pickup",
 -- "refused", "destroyed".
 function BF.Destroy()
-    local v = BF.view
-    local cand = v and v.candidate
+    local shown = BF.view
+    local cand = shown and shown.candidate
     if not cand or state.byHand then return "changed" end
     if API.InCombat() then
         say("Not in combat.")
@@ -254,10 +266,13 @@ function BF.Destroy()
         say("Put down what's on your cursor first.")
         return "cursor"
     end
-    if not stillThere(cand) then
+    local v
+    v, cand = confirm(shown, cand)
+    if not v then
         BF.Evaluate()
         return "changed"
     end
+    BF.view = v
     -- White and better: a second click on the same stack, within 3 s.
     if cand.quality >= 1 then
         local key = armKey(cand)
@@ -308,7 +323,10 @@ end
 local function lootPending()
     local p = state.pending
     if not p then return end
-    if Bags.Slot(p.bag, p.slot) then return end   -- not deleted yet (or something else is there: a move)
+    -- Only a confirmed empty slot proves the delete: an item there (not deleted
+    -- yet, or something moved in) or an unreadable slot waits (then times out).
+    local s, why = Bags.Slot(p.bag, p.slot)
+    if s or why ~= "empty" then return end
     state.pending = nil
     -- The same loot window: LOOT_CLOSED clears `pending`, and a new window
     -- only opens after a close.

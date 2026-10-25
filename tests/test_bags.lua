@@ -113,7 +113,17 @@ WoW.questUnreadable = false
 eq(select(2, B.Eligible(B.Slot(0, 1), { scope = "grey", tools = {}, setItems = nil })), "equipment sets unreadable",
     "unreadable equipment sets: ineligible")
 WoW.bags[0].items[1] = { id = 1, count = WoW.Secret("count") }
-eq(B.Slot(0, 1), nil, "a secret stack count: unreadable")
+local s, w = B.Slot(0, 1)
+eq(s, nil, "a secret stack count: no facts")
+eq(w, "unreadable", "  and it says unreadable, not empty")
+WoW.bags[0].items[1] = nil
+s, w = B.Slot(0, 1)
+eq(w, "empty", "a slot the client says is empty: empty")
+local realInfo = C_Container.GetContainerItemInfo
+C_Container.GetContainerItemInfo = function() error("boom") end
+eq(select(2, B.Slot(0, 1)), "unreadable", "an error reading the slot: unreadable, not empty")
+C_Container.GetContainerItemInfo = realInfo
+WoW.bags[0].items[1] = { id = 1 }
 
 -- Order: cheapest first by price x count; greys first when asked.
 items({ [40] = { name = "Cheap White", price = 1, quality = 1, maxStack = 20 },
