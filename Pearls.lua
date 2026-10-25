@@ -60,6 +60,26 @@ end
 
 function Pearls.Get(key) return byKey[key] end
 
+-- A pearl's slash command (def.commands[name] = { help, run(arg) }) by name.
+function Pearls.Command(name)
+    for _, def in ipairs(order) do
+        local c = type(def.commands) == "table" and def.commands[name]
+        if type(c) == "table" and type(c.run) == "function" then return c, def end
+    end
+end
+
+-- Every pearl command, by name: { { name, help }, ... }.
+function Pearls.Commands()
+    local list = {}
+    for _, def in ipairs(order) do
+        for name, c in pairs(type(def.commands) == "table" and def.commands or {}) do
+            list[#list + 1] = { name = name, help = c.help or "" }
+        end
+    end
+    table.sort(list, function(a, b) return a.name < b.name end)
+    return list
+end
+
 -- The registered pearls, by name.
 function Pearls.List()
     local list = {}

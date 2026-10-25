@@ -344,7 +344,8 @@ function print(...)
 end
 
 SlashCmdList = {}
-Enum = { UITextureSliceMode = { Stretched = 0, Tiled = 1 } }
+Enum = { UITextureSliceMode = { Stretched = 0, Tiled = 1 },
+         LootSlotType = { None = 0, Item = 1, Money = 2, Currency = 3 } }   -- LootConstantsDocumentation.lua:41
 function CreateColor(r, g, b, a) return { r = r, g = g, b = b, a = a } end
 date = os.date
 time = os.time
@@ -599,6 +600,196 @@ ChatThrottleLib = {
         if callbackFn then securecallfunction(callbackFn, callbackArg, r == 0, r) end
     end,
 }
+
+--------------------------------------------------------------------------------
+-- Bags, items, the cursor and the loot window, for the bags-full helper (#6).
+-- Every function below is in the 70532 dump (documented, or its _G walk:
+-- LootSlot, GetLootSlotInfo, DeleteCursorItem, ...); shapes follow the dump's
+-- structures (ContainerItemInfo, ItemQuestInfo) and Blizzard's callers
+-- (LootFrame.lua:228 for GetLootSlotInfo's returns).
+--
+--   WoW.bags[bag] = { size = n, family = 0, items = { [slot] = { id, count } } }
+--   WoW.items[id] = { name, price, quality, classID, subclassID, maxStack,
+--                     family, spell, icon }    -- nil: not in the item cache
+--   WoW.quest["bag:slot"] = { isQuestItem, questID }   (WoW.questUnreadable)
+--   WoW.loot = { { id, qty, isQuest, questID } }        WoW.openLoot / closeLoot
+--   WoW.sets[setID] = { itemIDs }
+-- Calls are recorded in WoW.calls (PickupContainerItem, DeleteCursorItem,
+-- ClearCursor, LootSlot). WoW.deleteForbidden: DeleteCursorItem raises
+-- ADDON_ACTION_FORBIDDEN at once and deletes nothing; WoW.deleteSilent:
+-- nothing happens (the item stays on the cursor); WoW.pickupFails: the pickup
+-- does nothing.
+--------------------------------------------------------------------------------
+
+function WoW.resetBags()
+    WoW.bags, WoW.items, WoW.quest, WoW.loot, WoW.sets = {}, {}, {}, {}, {}
+    WoW.cursor, WoW.calls, WoW.lootOpen = nil, {}, false
+    WoW.deleteForbidden, WoW.deleteSilent, WoW.pickupFails, WoW.questUnreadable = false, false, false, false
+end
+WoW.resetBags()
+
+local function itemLink(id)
+    local it = WoW.items[id]
+    return "|cffffffff|Hitem:" .. id .. "::::::::16:::::|h[" .. (it and it.name or ("item " .. id)) .. "]|h|r"
+end
+WoW.itemLink = itemLink
+local function idOf(x)
+    if type(x) == "number" then return x end
+    if type(x) == "string" then return tonumber(x:match("item:(%d+)")) end
+end
+local function call(name, ...) table.insert(WoW.calls, { name, ... }) end
+
+C_Container = {}
+function C_Container.GetContainerNumSlots(bag) return WoW.bags[bag] and WoW.bags[bag].size or 0 end
+function C_Container.GetContainerNumFreeSlots(bag)
+    local b = WoW.bags[bag]
+    if not b then return 0, 0 end
+    local used = 0
+    for _ in pairs(b.items) do used = used + 1 end
+    return b.size - used, b.family or 0
+end
+function C_Container.GetContainerItemInfo(bag, slot)
+    local b = WoW.bags[bag]
+    local s = b and b.items[slot]
+    if not s then return nil end
+    local it = WoW.items[s.id]
+    local onCursor = WoW.cursor and WoW.cursor.bag == bag and WoW.cursor.slot == slot
+    return { iconFileID = it and it.icon or 134400, stackCount = s.count or 1, isLocked = onCursor or s.locked == true,
+             quality = s.quality or (it and it.quality), isReadable = false, hasLoot = false,
+             hyperlink = itemLink(s.id), isFiltered = false, hasNoValue = s.noValue == true or (it and it.price == 0) or false,
+             itemID = s.id, isBound = false, itemName = it and it.name or "" }
+end
+function C_Container.GetContainerItemQuestInfo(bag, slot)
+    if WoW.questUnreadable then return nil end
+    local q = WoW.quest[bag .. ":" .. slot] or {}
+    return { isQuestItem = q.isQuestItem == true, questID = q.questID, isActive = false }
+end
+function C_Container.PickupContainerItem(bag, slot)
+    call("PickupContainerItem", bag, slot)
+    if WoW.pickupFails then return end
+    local s = WoW.bags[bag] and WoW.bags[bag].items[slot]
+    if s and not WoW.cursor then WoW.cursor = { bag = bag, slot = slot, id = s.id } end
+end
+function GetCursorInfo()
+    if WoW.cursor then return "item", WoW.cursor.id, itemLink(WoW.cursor.id) end
+end
+function CursorHasItem() return WoW.cursor ~= nil end
+function ClearCursor() call("ClearCursor"); WoW.cursor = nil end
+function DeleteCursorItem()
+    call("DeleteCursorItem")
+    if WoW.deleteForbidden then
+        WoW.fire("ADDON_ACTION_FORBIDDEN", "GlassPearls", "DeleteCursorItem()")
+        return
+    end
+    if WoW.deleteSilent or not WoW.cursor then return end
+    WoW.bags[WoW.cursor.bag].items[WoW.cursor.slot] = nil
+    WoW.cursor = nil
+end
+
+C_Item = {}
+function C_Item.GetItemInfo(x)
+    local id = idOf(x)
+    local it = id and WoW.items[id]
+    if not it then return end   -- a cache miss returns nothing (porting guide)
+    return it.name, itemLink(id), it.quality, 10, 1, "Type", "Subtype", it.maxStack or 20, "", it.icon or 134400,
+        it.price or 0, it.classID or 15, it.subclassID or 0, 0, 0, nil, false, ""
+end
+function C_Item.GetItemInfoInstant(x)
+    local id = idOf(x)
+    if not id then return end
+    local it = WoW.items[id] or {}
+    return id, "Type", "Subtype", "", it.icon or 134400, it.classID or 15, it.subclassID or 0
+end
+function C_Item.GetItemSpell(x)
+    local it = WoW.items[idOf(x)]
+    if it and it.spell then return "Use", 1234 end
+end
+function C_Item.GetItemMaxStackSizeByID(x)
+    local it = WoW.items[idOf(x)]
+    return it and (it.maxStack or 20)
+end
+function C_Item.GetItemFamily(x)
+    local it = WoW.items[idOf(x)]
+    return it and (it.family or 0)
+end
+function C_Item.GetItemQualityColor(q) return 1, 1, 1, "ffffffff" end
+function C_Item.GetItemNameByID(x)
+    local it = WoW.items[idOf(x)]
+    return it and it.name
+end
+function C_Item.RequestLoadItemDataByID(x) call("RequestLoadItemDataByID", idOf(x)) end
+
+C_EquipmentSet = {
+    GetEquipmentSetIDs = function()
+        local ids = {}
+        for id in pairs(WoW.sets) do ids[#ids + 1] = id end
+        return ids
+    end,
+    GetItemIDs = function(setID) return WoW.sets[setID] or {} end,
+}
+C_CurrencyInfo = { GetCoinTextureString = function(c) return tostring(c) .. "c" end }
+-- The client's bit library (Lua 5.1 has none): band over non-negative ints.
+bit = { band = function(a, b)
+    local r, p = 0, 1
+    while a > 0 and b > 0 do
+        if a % 2 == 1 and b % 2 == 1 then r = r + p end
+        a, b, p = math.floor(a / 2), math.floor(b / 2), p * 2
+    end
+    return r
+end }
+
+-- GlobalStrings: the client's own text for a full inventory.
+ERR_INV_FULL = "Inventory is full."
+-- GetGameMessageInfo(errorType) -> errorName (GameErrorDocumentation.lua:10).
+WoW.errorNames = { [3] = "ERR_INV_FULL", [50] = "ERR_SPELL_COOLDOWN" }
+function GetGameMessageInfo(errorType) return WoW.errorNames[errorType] end
+
+-- Blizzard's loot window (Blizzard_UIPanels_Game, LootFrame.xml:116).
+LootFrame = newWidget("Frame", UIParent, "LootFrame")
+LootFrame._shown = false
+function WoW.openLoot(rows)
+    WoW.loot = rows or WoW.loot
+    WoW.lootOpen = true
+    LootFrame._shown = true
+    WoW.fire("LOOT_READY", false)
+    WoW.fire("LOOT_OPENED", false, false)
+end
+function WoW.closeLoot()
+    WoW.lootOpen = false
+    LootFrame._shown = false
+    WoW.fire("LOOT_CLOSED")
+end
+function GetNumLootItems() return WoW.lootOpen and #WoW.loot or 0 end
+function GetLootSlotType(i)
+    local r = WoW.lootOpen and WoW.loot[i]
+    if not r then return Enum.LootSlotType.None end
+    return r.kind or Enum.LootSlotType.Item
+end
+function LootSlotHasItem(i)
+    local r = WoW.lootOpen and WoW.loot[i]
+    return r ~= nil and not r.taken
+end
+function GetLootSlotInfo(i)
+    local r = WoW.lootOpen and WoW.loot[i]
+    if not r or r.taken then return end
+    local it = WoW.items[r.id] or {}
+    return it.icon or 134400, it.name or "", r.qty or 1, nil, it.quality or 1, false, r.isQuest == true, r.questID, false, false
+end
+function GetLootSlotLink(i)
+    local r = WoW.lootOpen and WoW.loot[i]
+    if r and not r.taken then return itemLink(r.id) end
+end
+-- Recorded; WoW.takeLoot(i) applies it (the row empties: LOOT_SLOT_CLEARED).
+function LootSlot(i) call("LootSlot", i) end
+function WoW.takeLoot(i)
+    WoW.loot[i].taken = true
+    WoW.fire("LOOT_SLOT_CLEARED", i)
+end
+function WoW.calledCount(name)
+    local n = 0
+    for _, c in ipairs(WoW.calls) do if c[1] == name then n = n + 1 end end
+    return n
+end
 
 -- Strict globals: any read of an undefined global is an error, except the
 -- addon's own globals that are legitimately nil before first assignment.

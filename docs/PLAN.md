@@ -18,8 +18,8 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 |---|---|---|
 | #3 | The options window (Leatrix Plus's layout) and the look: WoW Forever by default, Glass UI's when present | done |
 | #4 | Settings follow you across your accounts (automatic, per-key last-writer-wins) | done |
-| #5 | PearlsProbe: what the client must confirm on day one | next |
-| #6 | Bags full helper (pearl `bagsfull`) | after #5 |
+| #5 | PearlsProbe: what the client must confirm on day one | next (built after #6, owner 2026-10-25) |
+| #6 | Bags full helper (pearl `bagsfull`) | built; its action waits for the probe |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -50,7 +50,23 @@ Each line is a claim the code relies on that only the live client can settle.
 - [ ] Sharing off on one (Settings): nothing is sent or applied either way.
 - [ ] A near-full snapshot (a long keep list, #6) sends without a hitch (hashing ~130 ms, LibAccountSync README).
 
-**The probe (#5) and the bags-full helper (#6):** their checks are added here by their PRs.
+**The bags-full helper (#6)** (fill your bags with a few grey and white items first)
+- [ ] **`DeleteCursorItem` from the window's button deletes the grey item** (one click), or
+      `ADDON_ACTION_FORBIDDEN` names it: then "by hand" mode must show and the item stay in the bag.
+      The reference addons call it from their own clicks; probe step 1 measures it first.
+- [ ] **The loot follows** (`LootSlot` after `BAG_UPDATE_DELAYED`): the ring lands in the freed slot.
+      If refused, the loot window stays and the player clicks the row (change it to "highlight the row").
+- [ ] The full-bags error names (`GetGameMessageInfo`) for a corpse, a herb or ore node, a quest
+      object and a quest reward; add them to `BF.FULL_ERRORS` (only `ERR_INV_FULL` is in so far).
+- [ ] Loot that fits on a partial stack or in a herb / mining bag: no prompt.
+- [ ] A white item: the first click says "Click again to destroy", the second destroys.
+- [ ] The window sits right of the loot window; dragged, it stays where it was put after a /reload.
+- [ ] Tooltips on both cards (Blizzard's bag and loot tooltips).
+- [ ] The X: the item isn't offered again, on another character, and after a sync on another account.
+- [ ] Auto-loot on: the helper still shows for the rows that didn't fit.
+- [ ] Combat: it hides and comes back after.
+
+**The probe (#5):** its steps are added here by its PR.
 
 ## Candidate pearls after M1
 

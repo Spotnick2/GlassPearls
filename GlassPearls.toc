@@ -19,5 +19,9 @@ UI.lua
 AccountSync.lua
 Pearls.lua
 SettingsSync.lua
+Core\ToolItems.lua
+Core\Bags.lua
+Pearls\BagsFullFrame.lua
+Pearls\BagsFull.lua
 Options.lua
 GlassPearls.lua

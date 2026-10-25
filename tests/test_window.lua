@@ -6,7 +6,7 @@ dofile("tests/harness.lua")
 
 local configured, configureArgs = 0, nil
 local resets = 0
-local GP = loadAddon({
+local GP = loadAddon({ pearls = false,   -- only the pearls this test registers
     before = function(GP)
         local R = GP.Pearls.Register
         R({ key = "baghelp", name = "Bag helper", desc = "Makes room in full bags.", category = "Loot & Bags",

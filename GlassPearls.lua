@@ -95,7 +95,7 @@ end
 
 -- The command list: /gpearls help prints it.
 local function helpLines()
-    return {
+    local lines = {
         "/gpearls - open the options window",
         "/gpearls list - every pearl and whether it is on",
         "/gpearls <pearl> on/off - switch one pearl",
@@ -103,6 +103,9 @@ local function helpLines()
         "/gpearls failures - what failed to build or register",
         "/gpearls version - client build vs the measured one",
     }
+    -- The pearls' own commands (def.commands).
+    for _, c in ipairs(Pearls.Commands()) do lines[#lines + 1] = "/gpearls " .. c.name .. " - " .. c.help end
+    return lines
 end
 GP.HelpLines = helpLines
 
@@ -139,6 +142,10 @@ local function slash(msg)
         local note = Pearls.NeedsReload(cmd) and " (after /reload)" or ""
         say(def.name .. " " .. arg .. note)
         GP.Options.Refresh()
+    elseif Pearls.Command(cmd) then
+        local c, def = Pearls.Command(cmd)
+        local ok, err = pcall(c.run, arg)
+        if not ok then API.Fail("pearl " .. def.key .. " command " .. cmd, err) end
     else
         for _, line in ipairs(helpLines()) do say(line) end
     end
