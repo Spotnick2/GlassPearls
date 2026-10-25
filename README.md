@@ -47,6 +47,10 @@ repairs, guild funds first when your guild allows it.
 client language: the alert shows the spell's name in your game's language, its icon and a
 countdown. `/gpearls fixate test` shows it so you can place it.
 
+**Uncrushable** (Combat, on by default). A line at the bottom of the character panel's stats says
+whether a boss three levels above you can crush you; its tooltip shows miss, dodge, parry and block
+against it. Shown when you carry a shield. `/gpearls uncrushable` prints it in chat.
+
 ## Using it
 
 - `/gpearls` opens the options window: each feature's checkbox, and a gear for its own options.
@@ -57,6 +61,7 @@ countdown. `/gpearls fixate test` shows it so you can place it.
 - `/gpearls sell`: what would be sold at a merchant; `/gpearls sell <item>`, `keep <item>`,
   `forget <item>` manage the lists.
 - `/gpearls fixate`: what the game allowed the fixate alert; `/gpearls fixate test` to place it.
+- `/gpearls uncrushable`: whether you are uncrushable, and the numbers.
 - `/gpearls sync`: your settings follow you across your own WoW accounts on the same Battle.net
   account, automatically (Settings in the window turns it off).
 - `/gpearls help` for the rest.

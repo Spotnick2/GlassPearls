@@ -1112,6 +1112,31 @@ function Methods.RegisterUnitEvent(w, e, ...)
     return true
 end
 
+--------------------------------------------------------------------------------
+-- The character panel's stats, for "Uncrushable" (#19). In the 70532 dump:
+-- UnitDefenseSkill, GetDodgeChance, GetParryChance, GetBlockChance,
+-- GetCombatRatingBonus, C_PaperDollInfo.OffhandHasShield. Blizzard's Camelot
+-- paper doll: CharacterStatsPaneScrollBox (CharacterFrame.xml:463),
+-- PaperDollFrame_UpdateStats (PaperDollFrame.lua:2403), CR_DEFENSE_SKILL = 2
+-- (PaperDollFrame.lua:5); MISS / STAT_DODGE / ... are GlobalStrings.
+--   WoW.stats = { defense = { base, mod }, dodge, parry, block, shield, rating }
+--------------------------------------------------------------------------------
+
+WoW.stats = { defense = { 300, 0 }, dodge = 5, parry = 5, block = 5, shield = false, rating = 0 }
+CR_DEFENSE_SKILL = 2
+MISS, STAT_DODGE, STAT_PARRY, STAT_BLOCK, DEFENSE = "Miss", "Dodge", "Parry", "Block", "Defense"
+function UnitDefenseSkill(unit) return WoW.stats.defense[1], WoW.stats.defense[2] end
+function GetDodgeChance() return WoW.stats.dodge end
+function GetParryChance() return WoW.stats.parry end
+function GetBlockChance() return WoW.stats.block end
+function GetCombatRatingBonus() return WoW.stats.rating end
+C_PaperDollInfo = { OffhandHasShield = function() return WoW.stats.shield end }
+CharacterStatsPaneScrollBox = newWidget("Frame", UIParent, "CharacterStatsPaneScrollBox")
+CharacterStatsPaneScrollBox._shown = false
+WoW.statsUpdates = 0
+function PaperDollFrame_UpdateStats() WoW.statsUpdates = WoW.statsUpdates + 1 end
+function Methods.AddDoubleLine(t, l, r) table.insert(t._lines, tostring(l) .. "|" .. tostring(r)) end
+
 function WoW.calledCount(name)
     local n = 0
     for _, c in ipairs(WoW.calls) do if c[1] == name then n = n + 1 end end

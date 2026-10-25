@@ -36,5 +36,6 @@ Pearls\JunkFrame.lua
 Pearls\Junk.lua
 Pearls\FixateFrame.lua
 Pearls\Fixate.lua
+Pearls\Uncrushable.lua
 Options.lua
 GlassPearls.lua

@@ -24,6 +24,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #12 | Low spell ranks (pearl `spellranks`): the bar scan, the cast warning, Update all | built; the update path waits for day one |
 | #15 | Sell junk & repair (pearl `junk`), guild funds first | built; selling and guild repair wait for day one |
 | #17 | Fixate alert (pearl `fixate`), any client language | built; both paths wait for day one |
+| #19 | Uncrushable (pearl `uncrushable`): the character panel line and `/gpearls uncrushable` | built; the numbers and placement wait for day one |
 | #14 | Restock food and water | backlog |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
@@ -144,6 +145,17 @@ Each line is a claim the code relies on that only the live client can settle.
 - [ ] On a non-English client (or with the game's language switched): the alert's headline is the
       local spell name.
 - [ ] The alert in both looks (screenshot); `/gpearls fixate test` drags and remembers.
+
+**Uncrushable (#19)** (a warrior or paladin with a shield; ideally a known uncrushable set)
+- [ ] `UnitDefenseSkill`, `GetDodgeChance`, `GetParryChance`, `GetBlockChance` match the
+      character sheet; the line's total matches a hand calculation (miss + dodge + parry + block
+      against a +3 boss); a known uncrushable tank reads Uncrushable.
+- [ ] Are stats secret in combat (`C_Secrets.ShouldUnitStatsBeSecret`)? The line says "stats
+      unavailable in combat" then, never a number.
+- [ ] The line in the stats pane's footer (screenshot, both looks): readable, not over the
+      scroll bar, hidden on the pet pane; its tooltip.
+- [ ] What `C_SpecializationInfo.GetSpecialization()` / `GetSpecializationRoleEnum` return (for a
+      tank-spec option later).
 
 **The probe (#5):** its steps are added here by its PR.
 

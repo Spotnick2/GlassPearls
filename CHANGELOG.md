@@ -55,4 +55,8 @@
   language, its icon and a countdown. The game hides most aura details in combat, so the sound is
   played by the game itself when it allows it; `/gpearls fixate` tells what it allowed, and
   `/gpearls fixate test` shows the alert to place it.
+- **Uncrushable** (Combat, on by default): a line at the bottom of the character panel's stats
+  says whether a boss three levels above you can crush you, with miss, dodge, parry and block
+  against it in its tooltip (they must reach 100%: the usual 102.4% rule). Shown when you carry a
+  shield, or always. `/gpearls uncrushable` prints it in chat.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.
