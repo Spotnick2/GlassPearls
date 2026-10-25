@@ -172,6 +172,39 @@ drain()
 eq(table.concat(sold(), ","), "8,2", "a stack swapped since the queue: skipped, the next sold")
 WoW.salesAsync = false
 reset()
+-- The slot still holds the stack but its GUID can't be read: not a sale
+-- (Codex review of #16). It waits; the timeout stops the run.
+WoW.salesAsync = true
+local realGUID = C_Item.GetItemGUID
+newChat()
+WoW.openMerchant()
+WoW.flushTimers(J.OPEN_DELAY)
+C_Item.GetItemGUID = function() return nil end
+WoW.fire("BAG_UPDATE_DELAYED")
+eq(J.state.run and J.state.run.stacks, 0, "an unreadable GUID with the stack still there: not counted as sold")
+check(J.state.run and J.state.run.inFlight ~= nil, "  still waiting for that sale")
+eq(#sold(), 1, "  and no second sale started")
+drain()
+C_Item.GetItemGUID = realGUID
+check(has(newChat(), "A sale wasn't confirmed: stopped selling."), "  the timeout stops it")
+eq(#sold(), 1, "  one sale tried in all")
+WoW.salesAsync, WoW.pendingSales = false, {}
+reset()
+-- Another stack (a readable, different GUID) in the slot: the sale went through.
+WoW.salesAsync = true
+newChat()
+WoW.openMerchant()
+WoW.flushTimers(J.OPEN_DELAY)
+WoW.bags[0].items[8] = { id = 103, count = 1, guid = "Item-moved-in" }
+WoW.pendingSales = {}
+WoW.fire("BAG_UPDATE_DELAYED")
+eq(J.state.run and J.state.run.stacks, 1, "another stack in the slot: the sale counts")
+WoW.flushTimers(0)
+eq(#sold(), 2, "  and the next one starts")
+WoW.salesAsync, WoW.pendingSales = false, {}
+WoW.closeMerchant()
+drain()
+reset()
 -- An unconfirmed sale stops the run.
 WoW.salesAsync = true
 lines = visit()
@@ -296,6 +329,20 @@ WoW.bags = { [0] = { size = 1, items = {} } }
 visit()
 eq(WoW.guild.allowance, 500, "unreadable guild info: the guild is never charged")
 GetGuildInfoText = realInfoText
+reset()
+-- No guild info at all (nil): can't be checked, so the guild is never charged (Codex review of #16).
+WoW.guild = { member = true, mayRepair = true, info = nil, allowance = 500 }
+WoW.repairCost = 300
+WoW.bags = { [0] = { size = 1, items = {} } }
+visit()
+eq(WoW.guild.allowance, 500, "nil guild info: the guild is never charged")
+eq(WoW.money, 700, "  my money paid")
+reset()
+WoW.guild = { member = true, mayRepair = true, info = "", allowance = 500 }
+WoW.repairCost = 300
+WoW.bags = { [0] = { size = 1, items = {} } }
+visit()
+eq(WoW.guild.allowance, 200, "an empty guild info (no marker): the guild pays")
 reset()
 -- Not allowed by the guild, not in a guild, or "my money only".
 for _, g in ipairs({ { member = true, mayRepair = false }, { member = false, mayRepair = false } }) do

@@ -236,8 +236,9 @@ end
 
 local function noAutoRepair()
     local ok, text = pcall(GetGuildInfoText)
-    if not ok or API.IsSecret(text) then return true end   -- can't tell: never charge the guild
-    return type(text) == "string" and text:lower():find("[noautorepair]", 1, true) ~= nil
+    -- Can't tell (an error, a secret, nil or anything not a string): never charge the guild.
+    if not ok or API.IsSecret(text) or type(text) ~= "string" then return true end
+    return text:lower():find("[noautorepair]", 1, true) ~= nil
 end
 
 local function repairCost()
@@ -378,7 +379,14 @@ local function confirm(r)
     local e = r.inFlight
     if not e then return end
     local s, why = Bags.Slot(e.bag, e.slot)
-    local gone = (s == nil and why == "empty") or (s and guidOf(e.bag, e.slot) ~= e.guid)
+    -- Sold: the slot reads empty, or holds another stack (a GUID read and
+    -- different). An unreadable GUID proves nothing: keep waiting (the
+    -- timeout stops the run).
+    local gone = s == nil and why == "empty"
+    if s and not gone then
+        local now = guidOf(e.bag, e.slot)
+        gone = now ~= nil and now ~= e.guid
+    end
     local n = buybackCount()
     local grew = n and e.buybackBefore and n > e.buybackBefore
     if not (gone or grew) then return end
