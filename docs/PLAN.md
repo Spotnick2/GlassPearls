@@ -25,6 +25,8 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #15 | Sell junk & repair (pearl `junk`), guild funds first | built; selling and guild repair wait for day one |
 | #17 | Fixate alert (pearl `fixate`), any client language | built; both paths wait for day one |
 | #19 | Uncrushable (pearl `uncrushable`): the character panel line and `/gpearls uncrushable` | built; the numbers and placement wait for day one |
+| #21 | Buff alerts (pearl `buffs`): Clearcasting, Innervate, Power Infusion, the Blessings, with time left | built; the overlay and combat paths wait for day one |
+| #22 | Paladin tank reminders (pearl `paladintank`) | planned (reviewed) |
 | #14 | Restock food and water | backlog |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
@@ -156,6 +158,20 @@ Each line is a claim the code relies on that only the live client can settle.
       scroll bar, hidden on the pet pane; its tooltip.
 - [ ] What `C_SpecializationInfo.GetSpecialization()` / `GetSpecializationRoleEnum` return (for a
       tank-spec option later).
+
+**Buff alerts (#21)** (a druid, mage or shaman for Clearcasting; a friend to Innervate, Power Infusion and Bless you)
+- [ ] `/gpearls buffs` per ID: the aura's secrecy in and out of combat, whether
+      `IsSpellOverlayed` answers, and the client's sound registered or refused.
+- [ ] **Blizzard's proc overlay**: does `SPELL_ACTIVATION_OVERLAY_SHOW` / `_HIDE` fire for
+      Clearcasting (and the others), with a plain spell ID, and is it the aura's ID? Its timing
+      against the proc being consumed.
+- [ ] A buff from another player: "from <name>"; self-cast: none. The times: exact when read,
+      `~` when overlay-only, matching the buff.
+- [ ] Which ID an item or set proc gives (Wit's End, the T2 / Scarlet Enclave sets).
+- [ ] `AddAuraSound` for a helpful aura plays (in combat too).
+- [ ] The buff row and the fixate alert together on screen (screenshot), both looks.
+- [ ] **Blizzard's Cooldown Manager** (Edit Mode): what it tracks of these for your class, and
+      whether it makes some entries redundant (the owner hasn't used it before: adjust as we go).
 
 **The probe (#5):** its steps are added here by its PR.
 

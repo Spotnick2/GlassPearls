@@ -10,6 +10,9 @@ dofile("tests/harness.lua")
 -- A German client: the client's own names for the four spells.
 for _, id in ipairs({ 12021, 463171, 1222688, 1315448 }) do WoW.spells[id] = { name = "Fixierung", icon = 136129 } end
 local GP = loadAddon()
+-- Only the fixate spells' sounds count here (other pearls register their own).
+FIXATE = {}
+for _, id in ipairs(GP.Fixate.SPELLS) do FIXATE[id] = true end
 local F, P, FR = GP.Fixate, GP.Pearls, GP.FixateFrame
 local function drain() for _ = 1, 20 do if #WoW.timers == 0 then return end WoW.flushTimers() end end
 local function aura(exp) return { expirationTime = exp, duration = 10, icon = 136129, spellId = 12021 } end
@@ -20,7 +23,7 @@ eq(P.Get("fixate").category, "Combat", "on the Combat page")
 
 -- The client's sound: one per spell, the documented structure, registered at login.
 local n, sample = 0, nil
-for _, s in pairs(WoW.auraSounds) do n = n + 1; sample = s end
+for _, s in pairs(WoW.auraSounds) do if FIXATE[s.info.spellID] then n = n + 1; sample = s end end
 eq(n, 4, "a sound registered for each of the four spells")
 eq(sample.trigger, Enum.UnitAuraSoundTrigger.Added, "  on Added")
 eq(sample.info.unitToken, "player", "  for the player")
@@ -118,7 +121,7 @@ WoW.auras[12021] = nil
 -- The client's sound refused: recorded, said, and our own sound instead.
 P.SetSetting("fixate", "sound", false)
 local left = 0
-for _ in pairs(WoW.auraSounds) do left = left + 1 end
+for _, s in pairs(WoW.auraSounds) do if FIXATE[s.info.spellID] then left = left + 1 end end
 eq(left, 0, "sound off: the client's sounds removed")
 eq(F.state.soundStatus[12021], "off", "  status off")
 WoW.auraSoundRefused = true
@@ -145,12 +148,12 @@ WoW.combat = true
 WoW.fire("PLAYER_REGEN_DISABLED")
 P.SetSetting("fixate", "sound", true)
 left = 0
-for _ in pairs(WoW.auraSounds) do left = left + 1 end
+for _, s in pairs(WoW.auraSounds) do if FIXATE[s.info.spellID] then left = left + 1 end end
 eq(left, 0, "switched on in combat: not registered yet")
 WoW.combat = false
 WoW.fire("PLAYER_REGEN_ENABLED")
 left = 0
-for _ in pairs(WoW.auraSounds) do left = left + 1 end
+for _, s in pairs(WoW.auraSounds) do if FIXATE[s.info.spellID] then left = left + 1 end end
 eq(left, 4, "  registered once combat ends")
 P.ResetSettings("fixate")
 
@@ -223,7 +226,7 @@ check(not alertShown(), "  it ends after its seconds")
 SlashCmdList.GLASSPEARLS("fixate off")
 check(not P.IsLive("fixate"), "/gpearls fixate off switches the pearl")
 left = 0
-for _ in pairs(WoW.auraSounds) do left = left + 1 end
+for _, s in pairs(WoW.auraSounds) do if FIXATE[s.info.spellID] then left = left + 1 end end
 eq(left, 0, "  its sounds removed")
 WoW.auras[12021] = aura(510)
 WoW.fire("UNIT_AURA")

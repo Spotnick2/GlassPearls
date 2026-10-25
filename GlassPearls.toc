@@ -25,8 +25,10 @@ SettingsSync.lua
 Core\ToolItems.lua
 Core\Bags.lua
 Core\Merchant.lua
+Core\AuraAlert.lua
 Data\Landmarks.lua
 Data\SpellRanks.lua
+Data\AuraDurations.lua
 Pearls\BagsFullFrame.lua
 Pearls\BagsFull.lua
 Pearls\Landmarks.lua
@@ -37,5 +39,7 @@ Pearls\Junk.lua
 Pearls\FixateFrame.lua
 Pearls\Fixate.lua
 Pearls\Uncrushable.lua
+Pearls\BuffsFrame.lua
+Pearls\Buffs.lua
 Options.lua
 GlassPearls.lua
