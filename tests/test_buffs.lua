@@ -111,6 +111,23 @@ WoW.spellAuraSecret[1044] = nil
 WoW.auras[1044] = { expirationTime = 310, duration = 10 }
 fireAura()
 check(B._test.events._units and B._test.events._units.UNIT_AURA[1] == "player", "UNIT_AURA registered for the player only")
+-- A sound switched off in combat goes at once; one switched on waits for the end of combat.
+local function soundsFor(id)
+    for _, x in pairs(WoW.auraSounds) do if x.info.spellID == id then return true end end
+    return false
+end
+WoW.combat = true
+WoW.fire("PLAYER_REGEN_DISABLED")
+P.SetSetting("buffs", "innervateSound", false)
+check(not soundsFor(29166) and not soundsFor(456195), "a sound switched off in combat: removed at once")
+check(soundsFor(10060), "  the others untouched")
+P.SetSetting("buffs", "clearcastingSound", true)
+check(not soundsFor(12536), "a sound switched on in combat: waits")
+WoW.combat = false
+WoW.fire("PLAYER_REGEN_ENABLED")
+check(soundsFor(12536), "  registered once combat ends")
+check(not soundsFor(29166), "  and the one switched off stays off")
+P.ResetSettings("buffs")
 -- A sound switch alone.
 P.SetSetting("buffs", "clearcastingSound", true)
 registered = {}
