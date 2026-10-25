@@ -154,6 +154,16 @@ local function hasUse(itemID)
     if API.IsSecret(spellName) or API.IsSecret(spellID) then return nil end
     return spellName ~= nil or spellID ~= nil
 end
+Bags.HasUse = hasUse
+
+-- Is the stack in this slot a quest item (or starts one)? true, false, or nil
+-- when it can't be told.
+function Bags.IsQuestItem(bag, slot)
+    local ok, q = pcall(C_Container.GetContainerItemQuestInfo, bag, slot)
+    if not ok or type(q) ~= "table" then return nil end
+    if API.IsSecret(q.isQuestItem) or API.IsSecret(q.questID) then return nil end
+    return (q.isQuestItem or q.questID) and true or false
+end
 
 -- One stack as a destroy candidate, or nil and why not.
 -- opts: scope ("grey" | "white"), keep(itemID) -> bool, tools ({ [id] = true }),
@@ -169,10 +179,9 @@ function Bags.Eligible(s, opts)
     if opts.tools and opts.tools[s.id] then return nil, "a tool" end
     if opts.setItems == nil then return nil, "equipment sets unreadable" end
     if opts.setItems[s.id] then return nil, "in an equipment set" end
-    local okQ, q = pcall(C_Container.GetContainerItemQuestInfo, s.bag, s.slot)
-    if not okQ or type(q) ~= "table" then return nil, "unknown quest info" end
-    if API.IsSecret(q.isQuestItem) or API.IsSecret(q.questID) then return nil, "unknown quest info" end
-    if q.isQuestItem or q.questID then return nil, "a quest item" end
+    local quest = Bags.IsQuestItem(s.bag, s.slot)
+    if quest == nil then return nil, "unknown quest info" end
+    if quest then return nil, "a quest item" end
     local f = Bags.ItemFacts(s.id)
     if not f then return nil, "not cached" end
     if f.price <= 0 then return nil, "no value" end

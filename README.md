@@ -35,6 +35,14 @@ is a lower rank than one you know, it lists it after combat and updates the butt
 - The rank data comes from the game's own tables, by spell ID, on the model of
   [RankSentinel](https://www.curseforge.com/wow/addons/ranksentinel) (MIT).
 
+**Sell junk & repair** (Loot & Bags, on by default). At a merchant, it sells your junk, then
+repairs, guild funds first when your guild allows it.
+- Grey items with a price, and anything you list with `/gpearls sell` (shift-click the item).
+  Never what you list with `/gpearls keep`, quest items, tools, equipment-set items or refundable
+  purchases; not unbound grey gear or greys with a use unless listed.
+- Cheapest first, so the ones you can still buy back are the most valuable; buyback-safe in the
+  gear sells only what the buyback page can hold. Hold Shift as you open the merchant to skip.
+
 ## Using it
 
 - `/gpearls` opens the options window: each feature's checkbox, and a gear for its own options.
@@ -42,6 +50,8 @@ is a lower rank than one you know, it lists it after combat and updates the butt
 - `/gpearls <pearl> on/off` switches one; `/gpearls list` lists them.
 - `/gpearls cheapest`: the item the bags full helper would suggest right now.
 - `/gpearls ranks`: check your action bars for low spell ranks now.
+- `/gpearls sell`: what would be sold at a merchant; `/gpearls sell <item>`, `keep <item>`,
+  `forget <item>` manage the lists.
 - `/gpearls sync`: your settings follow you across your own WoW accounts on the same Battle.net
   account, automatically (Settings in the window turns it off).
 - `/gpearls help` for the rest.

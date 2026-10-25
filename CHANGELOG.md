@@ -41,4 +41,13 @@
   - It checks at login, after you learn a spell (once the trainer window closes) and after a
     dual-spec swap; `/gpearls ranks` any time. Spells in macros are listed, never edited.
   - The gear: when it checks, whether casts and macros are listed, and the kept ranks.
+- **Sell junk & repair** (Loot & Bags, on by default): at a merchant, sells your junk, then
+  repairs, guild funds first when your guild allows it.
+  - Grey items with a price, and anything on your sell list (`/gpearls sell`, shift-click the
+    item). Never your keep list (`/gpearls keep`), quest items, tools, equipment-set items or
+    refundable purchases; not unbound grey gear or greys with a use unless you list them.
+  - Cheapest first, one at a time, each checked just before it goes. Buyback-safe in the gear sells
+    only what the buyback page can still hold. Hold Shift as you open the merchant to skip a visit.
+  - Repair: guild funds first, then your money (like Blizzard's guild repair button), or your money
+    only. A guild that says `[noautorepair]` is never charged.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.

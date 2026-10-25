@@ -18,7 +18,8 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
-third, low spell ranks (#12); the day-one probe (#5) follows. Nothing
+third, low spell ranks (#12), and the fourth, junk selling and repair (#15); the day-one probe (#5)
+follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
 
@@ -28,9 +29,11 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 → `Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua` → `Libs\HereBeDragons-2.0\HereBeDragons-2.0.lua` →
 `Libs\HereBeDragons-2.0\HereBeDragons-Pins-2.0.lua` → `Compat.lua` → `Theme.lua` → `UI.lua` →
 `AccountSync.lua` → `Pearls.lua` → `SettingsSync.lua` → `Core\ToolItems.lua` → `Core\Bags.lua` →
+`Core\Merchant.lua` →
 `Data\Landmarks.lua` → `Data\SpellRanks.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
 `Pearls\BagsFull.lua` → `Pearls\Landmarks.lua` → `Pearls\SpellRanksFrame.lua` →
-`Pearls\SpellRanks.lua`)* → `Options.lua` → `GlassPearls.lua`. Pearls load after
+`Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua`)* → `Options.lua` →
+`GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
 
@@ -84,7 +87,9 @@ order) and before the options window and bootstrap.
   so its next appearance sends again; turning sharing back on sends at once. Replies only when
   holding something newer. Receiving applies
   through the same setters with stamping suppressed. A fixed byte budget per part (see the file's
-  header; `test_sync_budget` fills every part). The store is `GlassPearlsDB.sync`; integers are
+  header; `test_sync_budget` fills every part). Up to `SETS_MAX` (8) sets share the 300 entries
+  (raised from 4 before v0.1.0, #15: the format's decoder rejects more, so raise it only before a
+  release or with a format change). The store is `GlassPearlsDB.sync`; integers are
   written with `%.0f` (Lua 5.1's `%d` is 32-bit on Windows).
 - **`Core\ToolItems.lua`**: **generated** by `Tools\gen_tools.py` from the client's ItemSparse and
   TotemCategory tables (`References\Forever\db`, the `wago-tools` skill): every item the client
@@ -96,6 +101,29 @@ order) and before the options window and bootstrap.
   `ItemFacts`, `Eligible(slot, opts)` and `Candidates(opts)`: what may be destroyed, on **known data
   only** (anything uncached, unread or secret makes a stack ineligible), cheapest first by
   `sellPrice × stackCount`, greys first when asked.
+- **`Core\Merchant.lua`**: the merchant session for any pearl (#15; #14 may reuse it): `IsOpen`,
+  `Session` (a counter per visit), `On(key, fn)` (registers `MERCHANT_SHOW` / `MERCHANT_CLOSED` when
+  the first pearl listens; a repeated close is told once), `Current(s)`, `After(delay, s, fn)` (only
+  if visit `s` is still open). Deliberately small: what a pearl does at a merchant stays in it.
+- **`Pearls\Junk.lua`**: sell junk & repair (#15, pearl `junk`, Loot & Bags > Merchant, on by
+  default). Junk, on known data only (bags 0-4): greys with a price, and the sell list (sync set
+  `junk.sell`) up to rare. Never: the keep list (`junk.keep`), quest items, tools, equipment-set
+  items, the Hearthstone, refundable purchases (`C_Item.CanBeRefunded`, even listed); the grey rule
+  skips unbound grey gear and greys with a use. At `MERCHANT_SHOW` (+0.2 s; Shift skips the visit;
+  never in combat): cheapest first, **one sale in flight**, each re-read just before (same GUID, ID,
+  count, link, still junk) and confirmed after (slot empty or the buyback page grew; 1 s without
+  stops). Refusals by `GetGameMessageInfo` name (`ERR_VENDOR_DOESNT_BUY`, `ERR_TOO_MUCH_GOLD`;
+  localized text as fallback), only while one of ours is in flight. Buyback-safe: the room left on
+  the page, a promise conditioned on the player selling nothing meanwhile, and a best-effort link
+  check before each sale and at the end. Money is reported as the change observed per phase,
+  never attributed. Repair after selling settles: guild funds first (`RepairAllItems(true)`, which
+  can take the player's money for what the allowance doesn't cover), then the player's money for
+  what's left once the first settled (the cost read again changed, on
+  `UPDATE_INVENTORY_DURABILITY`, within 2 s), or "my money only"; `[noautorepair]` in the guild
+  info, or an unreadable one, never charges the guild. Commands `/gpearls sell [item]`, `keep`,
+  `forget` (the pearl key `junk` is its on/off). Unmeasured until day one.
+- **`Pearls\JunkFrame.lua`**: its Configuration Panel (four switches, the two repair choices, the
+  sell and keep lists).
 - **`Pearls\BagsFull.lua`**: the bags-full helper (#6, pearl `bagsfull`, on by default). Shows when a
   loot row really doesn't fit, or after a full-bags error with no loot window ("make room").
   Offers grey (default) or grey and white items, never quest items, tools, equipment-set items,
@@ -247,7 +275,9 @@ and ChatThrottleLib for LibAccountSync, `WoW.installGlassUI` for a scriptable Gl
 `ReloadUI`, the world map, `C_Map` / `C_TaxiMap` / `C_Texture` and a recording HereBeDragons fake,
 `WoW.installFakeHBD`, which the harness installs in place of the vendored copy, action slots,
 macros, known spells, overrides and a spell on the cursor (`WoW.actions`, `WoW.known`,
-`WoW.placeHook`, ...)), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
+`WoW.placeHook`, ...), and a merchant: selling, the buyback page, repair and guild funds
+(`WoW.openMerchant`, `WoW.money`, `WoW.buyback`, `WoW.repairCost`, `WoW.guild`, `WoW.salesAsync`,
+...)), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
 registering test pearls, `opts.pearls = false` to leave the shipped pearls out of a framework
 test, `newChat`, `chatHas`). Bags, items, the cursor and the loot window are modelled too
 (`WoW.bags`, `WoW.items`, `WoW.openLoot`, `WoW.deleteForbidden`, ...; the block's header lists them). A stub is added only for something in the 70532
