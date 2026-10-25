@@ -427,6 +427,35 @@ flush()
 check(F.IsShown(), "  and it runs then")
 SR.Later()
 
+-- Closed on page 2, a new finding on page 1: it opens on page 1 (Codex follow-up on #13).
+local realMax = F.MAX_ROWS
+F.MAX_ROWS = 2
+SR.state.seen = {}
+SlashCmdList.GLASSPEARLS("ranks")
+local pf = F._test.frame()
+eq(pf.pageText:GetText(), "1/2", "three findings at two a page: page 1 of 2")
+pf.next:GetScript("OnClick")(pf.next)
+eq(pf.rows[1].entry.id, 403, "  page 2: Lightning Bolt")
+SR.Later()
+WoW.actions[14] = { kind = "spell", id = 8044 }
+WoW.fire("SPELLS_CHANGED")
+flush()
+check(F.IsShown(), "a new finding pops up")
+eq(pf.pageText:GetText(), "1/2", "  on page 1, where it sorts (four findings, two pages)")
+eq(pf.rows[2].entry.id, 8044, "  and it is shown")
+eq(pf.rows[2].entry.kind, "bar", "  (the new bar row)")
+SR.Later()
+-- A new finding that sorts onto page 2: it opens there, not on page 1.
+WoW.macros[8] = { name = "Bolt", spell = 403 }
+WoW.actions[15] = { kind = "macro", id = 8 }
+WoW.fire("SPELLS_CHANGED")
+flush()
+eq(pf.pageText:GetText(), "3/3", "a new finding fifth: the popup opens on its page")
+eq(pf.rows[1].entry.kind .. ":" .. pf.rows[1].entry.id, "macro:403", "  showing it")
+WoW.actions[14], WoW.actions[15], WoW.macros[8] = nil, nil, nil
+F.MAX_ROWS = realMax
+SR.Later()
+
 -- Switched off, the manual checks refuse too (Codex review of #13).
 P.Set("spellranks", false)
 newChat()

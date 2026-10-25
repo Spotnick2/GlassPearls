@@ -288,11 +288,17 @@ function SR.Check(force)
     end
     local new = state.reshow   -- hidden by combat: back after it
     state.reshow = false
-    for _, r in ipairs(rows) do if not state.seen[rowKey(r)] then new = true end end
+    local focus                -- the first new finding: the popup shows its page
+    for i, r in ipairs(rows) do
+        if not state.seen[rowKey(r)] then
+            new = true
+            focus = focus or i
+        end
+    end
     if not new and not force and not shown then return rows end
     if force == "after" and not shown then return rows end
     for _, r in ipairs(rows) do state.seen[rowKey(r)] = true end
-    Frame().Show(rows, { byHand = state.byHand })
+    Frame().Show(rows, { byHand = state.byHand, focus = focus })
     return rows
 end
 

@@ -146,12 +146,12 @@ local function build()
     if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, Frame.NAME) end
 end
 
--- Show these rows; opts.byHand: the game refused a change this session. The
--- page shown stays across a refresh (after Keep), within the pages there are.
+-- Show these rows. opts.byHand: the game refused a change this session;
+-- opts.focus: the index of the first new finding, whose page is shown.
 function Frame.Show(rows, opts)
     opts = opts or {}
     if not f then build() end
-    f.entries, f.opts = rows, opts
+    f.entries, f.opts = rows, { byHand = opts.byHand }   -- a page click re-shows without focus
     local bars, others = 0, 0
     for _, r in ipairs(rows) do
         if r.kind == "bar" then bars = bars + 1 else others = others + 1 end
@@ -165,6 +165,13 @@ function Frame.Show(rows, opts)
     end
     local per = Frame.MAX_ROWS
     local pages = math.max(1, math.ceil(#rows / per))
+    -- A new finding: its page. Opening afresh: page 1. A refresh of the open
+    -- popup (after Keep, a page click): the page it was on.
+    if opts.focus then
+        f.page = math.ceil(opts.focus / per)
+    elseif not f:IsShown() then
+        f.page = 1
+    end
     f.page = math.min(math.max(f.page or 1, 1), pages)
     local first = (f.page - 1) * per
     for i = 1, per do
