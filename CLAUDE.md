@@ -18,8 +18,8 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
-third, low spell ranks (#12), the fourth, junk selling and repair (#15), and the fifth, the fixate alert (#17); the day-one
-probe (#5) follows. Nothing
+third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
+uncrushable (#19); the day-one probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
 
@@ -33,7 +33,7 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 `Data\Landmarks.lua` → `Data\SpellRanks.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
 `Pearls\BagsFull.lua` → `Pearls\Landmarks.lua` → `Pearls\SpellRanksFrame.lua` →
 `Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua` → `Pearls\FixateFrame.lua` →
-`Pearls\Fixate.lua`)* → `Options.lua` → `GlassPearls.lua`. Pearls load after
+`Pearls\Fixate.lua` → `Pearls\Uncrushable.lua`)* → `Options.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
 
@@ -136,6 +136,17 @@ order) and before the options window and bootstrap.
   places the alert. Unverified in combat until day one.
 - **`Pearls\FixateFrame.lua`**: the alert (icon, the client's spell name, a countdown; click-through,
   draggable during a test, position per character) and its panel.
+- **`Pearls\Uncrushable.lua`**: uncrushable (#19, pearl `uncrushable`, Combat > Tanking, on by default),
+  the "Uncrush" macro's replacement. Blizzard's own Forever paper-doll math
+  (`Camelot/PaperDollFrameStats.lua`): against a +3 boss, miss = `5 - ((level+3)*5 - defense) *
+  0.04` clamped 0-100, dodge/parry/block each 0.6 lower and never below 0, block 0 without a
+  shield; uncrushable at 100% (the 102.4% rule on equal-level numbers). Defense =
+  `UnitDefenseSkill` base + modifier (combat ratings are always 0 here, which is why the macro was
+  wrong). No crushing percentage is claimed, only the shortfall. An addon-owned line in the footer
+  of `CharacterStatsPaneScrollBox` (Forever's stats pane), refreshed by a `hooksecurefunc` on
+  `PaperDollFrame_UpdateStats` and the stat events (payloads untouched); shown with a shield
+  (Blizzard's rule for its Block row; no measured spec), or always by option. `/gpearls
+  uncrushable` prints it. Every value checked for secrecy.
 - **`Pearls\JunkFrame.lua`**: its Configuration Panel (four switches, the two repair choices, the
   sell and keep lists).
 - **`Pearls\BagsFull.lua`**: the bags-full helper (#6, pearl `bagsfull`, on by default). Shows when a
@@ -295,7 +306,8 @@ macros, known spells, overrides and a spell on the cursor (`WoW.actions`, `WoW.k
 (`WoW.openMerchant`, `WoW.money`, `WoW.buyback`, `WoW.repairCost`, `WoW.guild`, `WoW.salesAsync`,
 ...), and player auras with the client's aura sounds and per-spell secrecy (`WoW.auras`,
 `WoW.spellAuraSecret`, `WoW.auraSounds`; `GetAuraDataBySpellName` throws, so no name lookup
-survives a test)), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
+survives a test), and the character panel's stats (`WoW.stats`, `CharacterStatsPaneScrollBox`,
+`PaperDollFrame_UpdateStats`)), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
 registering test pearls, `opts.pearls = false` to leave the shipped pearls out of a framework
 test, `newChat`, `chatHas`). Bags, items, the cursor and the loot window are modelled too
 (`WoW.bags`, `WoW.items`, `WoW.openLoot`, `WoW.deleteForbidden`, ...; the block's header lists them). A stub is added only for something in the 70532
