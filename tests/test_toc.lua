@@ -11,6 +11,25 @@ check(toc:find("## SavedVariablesPerCharacter: GlassPearlsCharDB", 1, true), "pe
 -- and CI's wago job uploads to the packaged TOC's X-Wago-ID.
 check(toc:find("## X%-Curse%-Project%-ID: 1764704\r?\n"), "the CurseForge project ID")
 check(toc:find("## X%-Wago%-ID: kGr9LxKy\r?\n"), "the Wago project ID")
+
+-- The LICENSE ships in the zip: ours, with one notice for exactly what's
+-- bundled (RELEASING.md section 1; the copied GlassMail notice was caught in
+-- the Codex review of #2).
+local license = io.open("LICENSE"):read("*a")
+check(license:find("^MIT License"), "LICENSE is MIT")
+check(license:find("Glass Pearls' own code", 1, true), "its notice names Glass Pearls")
+for _, other in ipairs({ "Glass Mail", "GlassMail", "Glass Chat", "GlassChat" }) do
+    check(not license:find(other, 1, true), "no other addon named in LICENSE: " .. other)
+end
+local _, sections = license:lower():gsub("third%-party", "")
+eq(sections, 1, "one third-party notice (any case)")
+for line in pairs(LIBS) do
+    local dir = line:match("^(Libs\\[^\\]+)\\"):gsub("\\", "/")
+    check(license:find(dir, 1, true), "LICENSE lists " .. dir)
+end
+for _, bundled in ipairs({ "LibStub", "ChatThrottleLib" }) do
+    check(license:find(bundled, 1, true), "LICENSE credits the bundled " .. bundled)
+end
 for _, f in ipairs(tocFiles()) do
     check(io.open(f, "r") ~= nil, "TOC file exists: " .. f)
 end
