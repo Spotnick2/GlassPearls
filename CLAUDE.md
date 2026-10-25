@@ -70,7 +70,8 @@ order) and before the options window and bootstrap.
   change (2 s debounce), login (+5 s), a new or returning peer (60 s check), retries with backoff.
   Delivery is per peer through `onResult`: only "sent" ends the backoff; a pending handshake
   (`Send` returns 0) or a later "failed" retries once per attempt, and a failed peer is forgotten
-  so its next appearance sends again. Replies only when holding something newer. Receiving applies
+  so its next appearance sends again; turning sharing back on sends at once. Replies only when
+  holding something newer. Receiving applies
   through the same setters with stamping suppressed. A fixed byte budget per part (see the file's
   header; `test_sync_budget` fills every part). The store is `GlassPearlsDB.sync`; integers are
   written with `%.0f` (Lua 5.1's `%d` is 32-bit on Windows).

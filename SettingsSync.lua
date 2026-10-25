@@ -664,6 +664,14 @@ local function checkPeers()
     if fresh then schedule(1) end
 end
 
+-- Sharing turned back on (AccountSync.SetEnabled): every peer counts as new
+-- again, and the current snapshot goes out after the debounce, carrying what
+-- changed while sharing was off.
+function SS.SharingResumed()
+    for g in pairs(knownPeers) do knownPeers[g] = nil end
+    if store() then schedule(SS.DEBOUNCE) end
+end
+
 -- At PLAYER_LOGIN, from GlassPearls.lua: every pearl is registered by now.
 function SS.Start()
     local st = store()

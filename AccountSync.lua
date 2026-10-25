@@ -85,9 +85,16 @@ end
 
 function AS.IsEnabled() return AS.inst ~= nil and AS.inst.IsEnabled() end
 
+-- The one switch, from Settings and /gpearls sync. Turned back on, settings
+-- sync sends what changed while it was off (Codex review of #8: the library
+-- only rescans, and the peers it finds may be ones the peer check already knew).
 function AS.SetEnabled(on)
     if not AS.inst then return false end
+    local was = AS.IsEnabled()
     AS.inst.SetEnabled(on == true)
+    if on == true and not was and GP.SettingsSync and GP.SettingsSync.SharingResumed then
+        GP.SettingsSync.SharingResumed()
+    end
     return true
 end
 

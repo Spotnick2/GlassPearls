@@ -172,8 +172,34 @@ P.SetSetting("beta", "size", 3)
 WoW.flushTimers(SS.DEBOUNCE)
 WoW.flushTimers()
 eq(#sends, 1, "sharing off: tried once, never retried")
-AS.SetEnabled(true)
 nextResult = { 1 }
+sends = {}
+
+-- Sharing back on sends what changed while it was off, even to a peer the
+-- peer check already knew (Codex review of #8).
+AS.SetEnabled(true)
+WoW.flushTimers()
+sends = {}
+AS.inst.Peers = function() return { { guid = "Player-1-CCC", name = "Third" } } end
+SS._test.checkPeers()
+WoW.flushTimers()
+sends = {}
+SS._test.checkPeers()
+WoW.flushTimers()
+eq(#sends, 0, "a known peer: nothing (the setup)")
+AS.SetEnabled(false)
+P.SetSetting("beta", "size", 2)
+WoW.flushTimers()
+sends = {}
+AS.SetEnabled(true)
+WoW.flushTimers(SS.DEBOUNCE)
+eq(#sends, 1, "sharing back on: a snapshot, without waiting for a peer to leave and return")
+check(sends[1] and sends[1].body:find("V\tbeta.size\t[^\n]*\ti2"), "  carrying the change made while it was off")
+AS.SetEnabled(true)
+WoW.flushTimers()
+eq(#sends, 1, "  switching on when already on sends nothing more")
+AS.inst.Peers = function() return {} end
+SS._test.checkPeers()
 sends = {}
 
 -- A new peer gets our snapshot (the 60 s check).
