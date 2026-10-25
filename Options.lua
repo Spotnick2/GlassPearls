@@ -59,6 +59,7 @@ end
 -- Pages
 
 local function newPage(name, title, build, sub)
+    assert(body, "Options: a page made before the window's body")
     local f = CreateFrame("Frame", nil, body)
     f:SetAllPoints(body)
     f:Hide()
@@ -364,12 +365,20 @@ local function build()
     local close = CreateFrame("Button", nil, win, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", win, "TOPRIGHT", -4, -4)
 
-    -- Left: the name, the version, the pages.
+    -- The two columns: the nav on the left, `body` (every page's parent) on
+    -- the right. Both before any page: a page is a child of `body` and
+    -- anchored to it, and a nil parent would leave it loose on the screen,
+    -- outliving the window (Codex review of #7).
     local nav = CreateFrame("Frame", nil, win)
     nav:SetPoint("TOPLEFT", win, "TOPLEFT", 12, -12)
     nav:SetPoint("BOTTOMLEFT", win, "BOTTOMLEFT", 12, 12)
     nav:SetWidth(NAV_W)
     GP.Theme.Reading(win, nav)
+    body = CreateFrame("Frame", nil, win)
+    body:SetPoint("TOPLEFT", nav, "TOPRIGHT", 24, -84)
+    body:SetPoint("BOTTOMRIGHT", win, "BOTTOMRIGHT", -24, 48)
+
+    -- Left: the name, the version, the pages.
     local title = GP.UI.Header(nav, "Glass Pearls", "GameFontNormalHuge")
     title:SetPoint("TOPLEFT", nav, "TOPLEFT", 14, -16)
     local version = GP.UI.Label(nav, "Version " .. GP.VersionText())
@@ -381,16 +390,13 @@ local function build()
     end
     navButton(nav, "settings", "Settings", anchor, 18)
 
-    -- Right: the page's title, the search box, the page, the Reload button.
+    -- Right: the page's title, the search box, the Reload button.
     pageTitle = GP.UI.Header(win, "", "GameFontNormalHuge")
     pageTitle:SetPoint("TOPLEFT", nav, "TOPRIGHT", 24, -16)
     pageSub = GP.UI.Label(win, "")
     pageSub:SetPoint("TOPLEFT", pageTitle, "BOTTOMLEFT", 0, -6)
     search = GP.UI.Search(win, 220, "Search options", onSearch)
     search:SetPoint("TOPRIGHT", win, "TOPRIGHT", -44, -18)
-    body = CreateFrame("Frame", nil, win)
-    body:SetPoint("TOPLEFT", nav, "TOPRIGHT", 24, -84)
-    body:SetPoint("BOTTOMRIGHT", win, "BOTTOMRIGHT", -24, 48)
     reloadButton = GP.UI.Button(win, "Reload", 100, function()
         -- From this click only (a hardware event); refused -> ADDON_ACTION_FORBIDDEN below.
         ReloadUI()
@@ -479,7 +485,7 @@ end
 
 Options._test = {
     panel = panel, pages = pages, navItems = navItems,
-    win = function() return win end, search = function() return search end,
+    win = function() return win end, body = function() return body end, search = function() return search end,
     reloadButton = function() return reloadButton end, reloadText = function() return reloadText end,
     current = function() return current end, forbidden = function() return reloadForbidden end,
     reset = function()

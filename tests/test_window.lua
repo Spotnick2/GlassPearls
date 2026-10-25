@@ -40,6 +40,26 @@ for _, key in ipairs({ "home", "cat:Loot & Bags", "cat:Automation", "cat:Weird",
 end
 eq(T.current(), "home", "it opens on Home")
 
+-- Every page is a child of the window's content area and fills it, so it
+-- sits in the page area and hides with the window (Codex review of #7: the
+-- category pages were made before that area existed, with no parent).
+local function checkPages(when)
+    local body = T.body()
+    check(body ~= nil and body:GetParent() == win, when .. ": the content area is the window's")
+    for name, page in pairs(T.pages) do
+        eq(page.frame:GetParent(), body, when .. ": page " .. name .. " is the content area's child")
+        local anchored = false
+        for _, p in ipairs(page.frame._points) do
+            if p[1] == "ALL" and p[2] == body then anchored = true end
+        end
+        check(anchored, when .. ": page " .. name .. " fills the content area")
+    end
+end
+checkPages("at open")
+for _, key in ipairs({ "cat:Loot & Bags", "cat:Automation", "cat:Weird" }) do
+    check(T.pages[key] ~= nil, "a page for " .. key)
+end
+
 -- Esc: our name appended to Blizzard's table, which is never replaced.
 check(UISpecialFrames == WoW.uiSpecialFrames, "UISpecialFrames is the same table")
 local n = 0
@@ -168,6 +188,15 @@ local ar = T.pages["cat:Automation"].placed[1].row.check
 check(not ar:GetChecked(), "Auto repair off")
 SlashCmdList.GLASSPEARLS("autorepair on")
 check(ar:GetChecked(), "a slash command's change shows at once")
+
+-- The panels and search made since: the same rule; and closing the window
+-- hides whatever page was showing.
+checkPages("after the panels and search")
+local shownPage = T.pages[T.current()].frame
+check(shownPage:IsVisible(), "the current page is visible")
+win:Hide()
+check(not shownPage:IsVisible(), "  and hides with the window")
+O.Open()
 
 -- Settings without Glass UI: no Glass switch; the sharing switch works.
 click(T.navItems.settings)
