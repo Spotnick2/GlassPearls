@@ -1137,6 +1137,21 @@ WoW.statsUpdates = 0
 function PaperDollFrame_UpdateStats() WoW.statsUpdates = WoW.statsUpdates + 1 end
 function Methods.AddDoubleLine(t, l, r) table.insert(t._lines, tostring(l) .. "|" .. tostring(r)) end
 
+--------------------------------------------------------------------------------
+-- Buff alerts (#21): Blizzard's proc overlay and other units' names. In the
+-- 70532 dump: C_SpellActivationOverlay.IsSpellOverlayed,
+-- SPELL_ACTIVATION_OVERLAY_SHOW(spellID, ...) / _HIDE(optional spellID).
+--   WoW.overlayed[spellID] = true; WoW.unitNames[unit] = "name" (or a secret)
+--------------------------------------------------------------------------------
+
+WoW.overlayed, WoW.unitNames = {}, {}
+C_SpellActivationOverlay = { IsSpellOverlayed = function(id) return WoW.overlayed[id] == true end }
+local playerUnitName = UnitName
+function UnitName(unit)
+    if WoW.unitNames[unit] ~= nil then return WoW.unitNames[unit] end
+    return playerUnitName(unit)
+end
+
 function WoW.calledCount(name)
     local n = 0
     for _, c in ipairs(WoW.calls) do if c[1] == name then n = n + 1 end end

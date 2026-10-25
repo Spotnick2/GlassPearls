@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19); the day-one probe (#5) follows. Nothing
+uncrushable (#19), and the seventh, buff alerts (#21); the day-one probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
 
@@ -29,11 +29,12 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 → `Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua` → `Libs\HereBeDragons-2.0\HereBeDragons-2.0.lua` →
 `Libs\HereBeDragons-2.0\HereBeDragons-Pins-2.0.lua` → `Compat.lua` → `Theme.lua` → `UI.lua` →
 `AccountSync.lua` → `Pearls.lua` → `SettingsSync.lua` → `Core\ToolItems.lua` → `Core\Bags.lua` →
-`Core\Merchant.lua` →
-`Data\Landmarks.lua` → `Data\SpellRanks.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
+`Core\Merchant.lua` → `Core\AuraAlert.lua` →
+`Data\Landmarks.lua` → `Data\SpellRanks.lua` → `Data\AuraDurations.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
 `Pearls\BagsFull.lua` → `Pearls\Landmarks.lua` → `Pearls\SpellRanksFrame.lua` →
 `Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua` → `Pearls\FixateFrame.lua` →
-`Pearls\Fixate.lua` → `Pearls\Uncrushable.lua`)* → `Options.lua` → `GlassPearls.lua`. Pearls load after
+`Pearls\Fixate.lua` → `Pearls\Uncrushable.lua` → `Pearls\BuffsFrame.lua` → `Pearls\Buffs.lua`)* →
+`Options.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
 
@@ -122,6 +123,27 @@ order) and before the options window and bootstrap.
   `UPDATE_INVENTORY_DURABILITY`, within 2 s), or "my money only"; `[noautorepair]` in the guild
   info, or an unreadable one, never charges the guild. Commands `/gpearls sell [item]`, `keep`,
   `forget` (the pearl key `junk` is its on/off). Unmeasured until day one.
+- **`Core\AuraAlert.lua`**: what the aura-alert pearls share (#21). `AA.Read(id)`: one player aura by
+  ID inside one pcall, answering present (plain table and fields, with its source unit), absent (nil
+  AND `C_Secrets.ShouldSpellAuraBeSecret(id)` plainly false) or unknown. `AA.Sounds.New(failKey)`:
+  the client's aura sounds (register out of combat or held, remove some or all, refusals recorded).
+  `AA.Source(unit)`: a plain, non-empty name or nil. `AA.Entry.New(ids)`: one alert's evidence,
+  per ID an aura answer and an overlay answer kept apart; an ID is present (aura present or overlay
+  shown), gone, or unknown; the entry shows while any ID is present and clears once every ID that
+  made it show is gone; an unknown read keeps a known expiration (the countdown runs on); expiry is
+  evidence, never a forced clear. Fixate uses its read and sounds.
+- **`Data\AuraDurations.lua`**: **generated** by `Tools\gen_durations.py` (SpellMisc → SpellDuration):
+  each watched aura's full duration in seconds, for the approximate (`~`) timer.
+- **`Pearls\Buffs.lua`**: buff alerts (#21, pearl `buffs`, Combat > Alerts, on by default):
+  Clearcasting, Innervate, Power Infusion and the Blessings of Protection, Sacrifice and Freedom
+  (`B.ENTRIES`, by ID, each with its own switch and sound). Evidence from `AA.Read` and from
+  Blizzard's proc overlay (`SPELL_ACTIVATION_OVERLAY_SHOW` / `_HIDE` with a plain listed ID; a
+  HIDE without one hides every overlay). Time left exact from a plain read, `~` from
+  `AuraDurations` when only an overlay says so; "from <name>" when the aura names its source (not
+  for self). `/gpearls buffs` reports, `buffs test` places. Unverified in combat until day one.
+  Blizzard's Cooldown Manager tracks some of these for your own class: compare on day one.
+- **`Pearls\BuffsFrame.lua`**: its frame (a row of slots, icon, client name, time, from, pulse;
+  below the fixate alert, never overlapping) and its panel.
 - **`Pearls\Fixate.lua`**: the fixate alert (#17, pearl `fixate`, Combat > Alerts, on by default).
   **Every client language: spell IDs only, never a name**; the alert's words are the client's
   (`C_Spell.GetSpellName` / `GetSpellTexture`). The IDs are the client's four spells named

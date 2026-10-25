@@ -59,4 +59,9 @@
   says whether a boss three levels above you can crush you, with miss, dodge, parry and block
   against it in its tooltip (they must reach 100%: the usual 102.4% rule). Shown when you carry a
   shield, or always. `/gpearls uncrushable` prints it in chat.
+- **Buff alerts** (Combat, on by default): an alert when Clearcasting, Innervate, Power Infusion
+  or a paladin's Blessing of Protection, Sacrifice or Freedom lands on you, from yourself or another
+  player: its icon, its name in your game's language, who gave it, and its time left ("~" when
+  only estimated). Each buff has its own switch and sound (Clearcasting's sound off by default).
+  `/gpearls buffs test` shows them to place them.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.

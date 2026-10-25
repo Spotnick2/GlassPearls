@@ -51,6 +51,10 @@ countdown. `/gpearls fixate test` shows it so you can place it.
 whether a boss three levels above you can crush you; its tooltip shows miss, dodge, parry and block
 against it. Shown when you carry a shield. `/gpearls uncrushable` prints it in chat.
 
+**Buff alerts** (Combat, on by default). An alert when Clearcasting, Innervate, Power Infusion or a
+paladin's Blessing of Protection, Sacrifice or Freedom lands on you: its icon and name, who gave
+it, and its time left. Each buff has its own switch and sound.
+
 ## Using it
 
 - `/gpearls` opens the options window: each feature's checkbox, and a gear for its own options.
@@ -62,6 +66,7 @@ against it. Shown when you carry a shield. `/gpearls uncrushable` prints it in c
   `forget <item>` manage the lists.
 - `/gpearls fixate`: what the game allowed the fixate alert; `/gpearls fixate test` to place it.
 - `/gpearls uncrushable`: whether you are uncrushable, and the numbers.
+- `/gpearls buffs`: what the game allowed the buff alerts; `/gpearls buffs test` to place them.
 - `/gpearls sync`: your settings follow you across your own WoW accounts on the same Battle.net
   account, automatically (Settings in the window turns it off).
 - `/gpearls help` for the rest.

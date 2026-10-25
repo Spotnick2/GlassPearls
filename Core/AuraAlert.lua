@@ -109,3 +109,108 @@ function SoundsMT.__index:Remove(ids, status)
     self.pending = false
 end
 
+--------------------------------------------------------------------------------
+-- The evidence of one entry
+
+AA.Entry = {}
+local EntryMT = { __index = {} }
+
+function AA.Entry.New(ids)
+    local e = setmetatable({ ids = ids, aura = {}, exp = {}, src = {}, overlay = {}, active = {}, shown = false,
+                             since = nil }, EntryMT)
+    for _, id in ipairs(ids) do e.aura[id], e.overlay[id] = "unknown", "none" end
+    return e
+end
+
+-- An aura answer for one ID (AA.Read's). Unknown keeps what was known: a plain
+-- expiration read before keeps the countdown running by arithmetic.
+function EntryMT.__index:SetAura(id, result, exp, src)
+    self.aura[id] = result
+    if result == "present" then
+        self.exp[id] = exp or 0
+        self.src[id] = src
+    elseif result == "absent" then
+        self.exp[id], self.src[id] = nil, nil
+    end
+end
+
+-- The IDs whose known plain expiration has passed (now >= it).
+function EntryMT.__index:ExpiredIDs(now)
+    local out = {}
+    for id, exp in pairs(self.exp) do
+        if exp > 0 and now >= exp then out[#out + 1] = id end
+    end
+    return out
+end
+
+-- An overlay answer for one ID: "shown" | "hidden".
+function EntryMT.__index:SetOverlay(id, state) self.overlay[id] = state end
+
+-- A HIDE with no ID: every overlay shown is now hidden; aura answers stay.
+function EntryMT.__index:HideAllOverlays()
+    for id, s in pairs(self.overlay) do if s == "shown" then self.overlay[id] = "hidden" end end
+end
+
+-- An ID's own plain expiration passed: its aura is absent (expired), whether
+-- the last read was present or unknown. Its overlay, if shown, still holds it.
+function EntryMT.__index:Expire(id)
+    if self.exp[id] then
+        self.aura[id] = "absent"
+        self.exp[id], self.src[id] = nil, nil
+    end
+end
+
+-- present / gone / unknown for one ID.
+function EntryMT.__index:Resolve(id)
+    local a, o = self.aura[id], self.overlay[id]
+    if a == "present" or o == "shown" then return "present" end
+    if (a == "absent" and o ~= "shown") or (o == "hidden" and a ~= "present") then return "gone" end
+    return "unknown"
+end
+
+-- Reconcile: "show" (newly shown), "keep", "clear" (newly cleared) or "hidden".
+function EntryMT.__index:Update(now)
+    local anyPresent = false
+    for _, id in ipairs(self.ids) do
+        if self:Resolve(id) == "present" then
+            anyPresent = true
+            self.active[id] = true
+        end
+    end
+    if anyPresent then
+        if self.shown then return "keep" end
+        self.shown, self.since = true, now
+        return "show"
+    end
+    if not self.shown then return "hidden" end
+    for id in pairs(self.active) do
+        if self:Resolve(id) ~= "gone" then return "keep" end
+    end
+    self.shown, self.active, self.since = false, {}, nil
+    return "clear"
+end
+
+-- The latest plain expiration among the present IDs (0: none), and whether
+-- any present ID rests on the overlay alone (no aura read).
+function EntryMT.__index:Expiration()
+    local latest, overlayOnly = 0, false
+    for _, id in ipairs(self.ids) do
+        local known = self.exp[id]
+        if known and known > latest then latest = known end
+        if self.overlay[id] == "shown" and not known then overlayOnly = true end
+    end
+    return latest, overlayOnly and latest == 0
+end
+
+-- Who applied it: the first present ID's source unit.
+function EntryMT.__index:SourceUnit()
+    for _, id in ipairs(self.ids) do
+        if self.aura[id] == "present" and self.src[id] then return self.src[id] end
+    end
+end
+
+-- Forget everything (switched off, death).
+function EntryMT.__index:Reset()
+    for _, id in ipairs(self.ids) do self.aura[id], self.overlay[id] = "unknown", "none" end
+    self.exp, self.src, self.active, self.shown, self.since = {}, {}, {}, false, nil
+end
