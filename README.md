@@ -43,6 +43,10 @@ repairs, guild funds first when your guild allows it.
 - Cheapest first, so the ones you can still buy back are the most valuable; buyback-safe in the
   gear sells only what the buyback page can hold. Hold Shift as you open the merchant to skip.
 
+**Fixate alert** (Combat, on by default). A sound and an alert when a mob fixates on you, in any
+client language: the alert shows the spell's name in your game's language, its icon and a
+countdown. `/gpearls fixate test` shows it so you can place it.
+
 ## Using it
 
 - `/gpearls` opens the options window: each feature's checkbox, and a gear for its own options.
@@ -52,6 +56,7 @@ repairs, guild funds first when your guild allows it.
 - `/gpearls ranks`: check your action bars for low spell ranks now.
 - `/gpearls sell`: what would be sold at a merchant; `/gpearls sell <item>`, `keep <item>`,
   `forget <item>` manage the lists.
+- `/gpearls fixate`: what the game allowed the fixate alert; `/gpearls fixate test` to place it.
 - `/gpearls sync`: your settings follow you across your own WoW accounts on the same Battle.net
   account, automatically (Settings in the window turns it off).
 - `/gpearls help` for the rest.

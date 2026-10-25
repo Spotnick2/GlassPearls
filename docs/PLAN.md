@@ -23,6 +23,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #10 | Map landmarks (pearl `landmarks`): entrances, boats, zeppelins, the tram, flight points, zone levels | built; its positions and icons wait for day one |
 | #12 | Low spell ranks (pearl `spellranks`): the bar scan, the cast warning, Update all | built; the update path waits for day one |
 | #15 | Sell junk & repair (pearl `junk`), guild funds first | built; selling and guild repair wait for day one |
+| #17 | Fixate alert (pearl `fixate`), any client language | built; both paths wait for day one |
 | #14 | Restock food and water | backlog |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
@@ -130,6 +131,19 @@ Each line is a claim the code relies on that only the live client can settle.
       `GetGuildBankWithdrawMoney` / `GetGuildBankMoney` read before the bank is opened.
 - [ ] `UPDATE_INVENTORY_DURABILITY` after a repair, and the cost read again (the settle rule).
 - [ ] Shift held as the merchant opens skips both; the money lines match what the money did.
+
+**Fixate alert (#17)** (somewhere a mob fixates: find one; `/gpearls fixate` before and after)
+- [ ] **`AddAuraSound` from addon code**: `/gpearls fixate` says "the client plays it" for the four
+      spells (an ID back), and the raid-warning sound (file 567397) **plays in combat** when a
+      fixate lands. Refused: the status says so and the alert plays Glass Pearls' own sound.
+- [ ] `ShouldSpellAuraBeSecret` for the four, in and out of combat (`/gpearls fixate` shows it);
+      `GetPlayerAuraBySpellID` in combat: present, or unknown?
+- [ ] For each fixate met: the aura's actual ID on the player (add any other to `F.SPELLS`), its
+      caster (`GetAuraCasterGUID` when readable), and the mob's threat and target values
+      alongside (to judge a targeting fallback later).
+- [ ] On a non-English client (or with the game's language switched): the alert's headline is the
+      local spell name.
+- [ ] The alert in both looks (screenshot); `/gpearls fixate test` drags and remembers.
 
 **The probe (#5):** its steps are added here by its PR.
 
