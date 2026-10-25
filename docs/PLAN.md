@@ -26,7 +26,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #17 | Fixate alert (pearl `fixate`), any client language | built; both paths wait for day one |
 | #19 | Uncrushable (pearl `uncrushable`): the character panel line and `/gpearls uncrushable` | built; the numbers and placement wait for day one |
 | #21 | Buff alerts (pearl `buffs`): Clearcasting, Innervate, Power Infusion, the Blessings, with time left | built; the overlay and combat paths wait for day one |
-| #22 | Paladin tank reminders (pearl `paladintank`) | planned (reviewed) |
+| #22 | Paladin tank reminders (pearl `paladintank`): Righteous Fury off, Salvation on you | built; the IDs and the Cooldown Manager wait for day one |
 | #14 | Restock food and water | backlog |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
@@ -172,6 +172,16 @@ Each line is a claim the code relies on that only the live client can settle.
 - [ ] The buff row and the fixate alert together on screen (screenshot), both looks.
 - [ ] **Blizzard's Cooldown Manager** (Edit Mode): what it tracks of these for your class, and
       whether it makes some entries redundant (the owner hasn't used it before: adjust as we go).
+
+**Paladin tank reminders (#22)** (a paladin with a shield; another paladin to cast Salvation)
+- [ ] The IDs a paladin really has: Righteous Fury 25780 or the rune 407627; Salvation 1038, Mass
+      Salvation 25895 (`/gpearls paladintank` shows the last reads).
+- [ ] Out of combat: "is off" when Fury is off, gone when it's on; "ends in" under a minute (does
+      Fury have a duration here?); Salvation's time left and its caster.
+- [ ] Hidden in combat, back after; after a death it waits for a proven read.
+- [ ] **The Cooldown Manager** (Edit Mode): Righteous Fury and Salvation tracked, an On Aura Removed
+      alert for Fury that fires in combat. Adjust the pearl's pointer to what it really offers.
+- [ ] Placement with the other alerts (screenshot), both looks.
 
 **The probe (#5):** its steps are added here by its PR.
 

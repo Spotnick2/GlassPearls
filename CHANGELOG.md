@@ -64,4 +64,8 @@
   player: its icon, its name in your game's language, who gave it, and its time left ("~" when
   only estimated). Each buff has its own switch and sound (Clearcasting's sound off by default).
   `/gpearls buffs test` shows them to place them.
+- **Paladin tank reminders** (Combat, on by default, paladins only): out of combat, with a shield, a
+  reminder when Righteous Fury is off (and a heads-up a minute before it ends), and when Salvation
+  is on you, with its time left and who cast it. In any client language. In combat, Blizzard's
+  Cooldown Manager can alert when Righteous Fury drops.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.
