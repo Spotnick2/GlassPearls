@@ -97,7 +97,8 @@ end
 local function show(id, exp, dur, test)
     local fresh = state.alert == nil or state.alert.id ~= id
     state.alert = { id = id, expiration = exp, duration = dur, test = test }
-    if setting("alert") then Frame().Show(state.alert) end
+    -- A test always shows (to place the alert), whatever the display switch.
+    if setting("alert") or test then Frame().Show(state.alert) end
     recheck()
     -- Our own sound only when the client's isn't registered (and not for a test).
     if fresh and not test and setting("sound") and state.soundStatus[id] ~= "registered" then
@@ -222,8 +223,10 @@ end)
 
 local function enable()
     F.enabled = true
-    local ok, err = pcall(events.RegisterUnitEvent, events, "UNIT_AURA", "player")
-    if not ok then API.Fail("pearl fixate UNIT_AURA", err) end
+    -- RegisterUnitEvent returns false for a refusal (as RegisterEvent does).
+    local ok, registered = pcall(events.RegisterUnitEvent, events, "UNIT_AURA", "player")
+    if not ok then API.Fail("pearl fixate UNIT_AURA", registered)
+    elseif registered == false then API.Fail("pearl fixate UNIT_AURA", "refused") end
     API.RegisterEvents(events, { "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED" })
     registerSounds()
     F.Evaluate()

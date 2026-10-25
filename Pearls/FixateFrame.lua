@@ -106,6 +106,8 @@ function Frame.Show(alert)
     f.countdown:SetPoint("BOTTOMLEFT", f.icon, "BOTTOMRIGHT", 12, 4)
     f.alert = alert
     onUpdate(f)
+    -- Already expired (onUpdate ended it): never show an empty frame.
+    if f.alert == nil then return end
     place()
     f:Show()
 end

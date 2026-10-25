@@ -181,6 +181,28 @@ WoW.fire("UNIT_AURA")
 drain()
 P.ResetSettings("fixate")
 
+-- An alert already expired when shown: no empty frame (Codex review of #18).
+P.SetSetting("fixate", "alert", false)
+WoW.now = 450
+WoW.auras[12021] = aura(452)
+WoW.fire("UNIT_AURA")
+drain()
+WoW.now = 460                 -- expired while hidden
+P.SetSetting("fixate", "alert", true)
+check(not FR.IsShown(), "switched back on after it expired: no empty frame shown")
+eq(F.state.alert, nil, "  and the alert is over")
+WoW.auras[12021] = nil
+WoW.fire("UNIT_AURA")
+drain()
+-- Test shows even with the display switched off (to place it).
+P.SetSetting("fixate", "alert", false)
+WoW.now = 470
+F.Test()
+check(FR.IsShown(), "Test with the alert switched off: still shown, to place it")
+eq(FR._test.frame()._mouse, true, "  and draggable")
+F.Clear()
+P.ResetSettings("fixate")
+
 -- Commands, and the dispatcher: the key switches it, other arguments are its command.
 newChat()
 SlashCmdList.GLASSPEARLS("fixate")
@@ -218,5 +240,14 @@ check(alertShown(), "  back on: it reads at once and shows")
 newChat()
 SlashCmdList.GLASSPEARLS("junk")
 check(table.concat(newChat(), "\n"):find("is on. /gpearls junk on/off", 1, true), "a pearl without its own command: on/off as before")
+
+-- A refused UNIT_AURA registration is recorded (Codex review of #18).
+P.Set("fixate", false)
+local realReg = GP.Fixate._test.events.RegisterUnitEvent
+GP.Fixate._test.events.RegisterUnitEvent = function() return false end
+GP.failures["pearl fixate UNIT_AURA"] = nil
+P.Set("fixate", true)
+eq(GP.failures["pearl fixate UNIT_AURA"], "refused", "RegisterUnitEvent returning false: recorded as refused")
+GP.Fixate._test.events.RegisterUnitEvent = realReg
 
 done("test_fixate")
