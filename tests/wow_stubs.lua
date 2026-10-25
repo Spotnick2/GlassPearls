@@ -214,6 +214,7 @@ function Methods.RegisterEvent(w, e)
     return true
 end
 function Methods.UnregisterEvent(w, e) w._events[e] = nil end
+function Methods.UnregisterAllEvents(w) w._events = {} end
 function Methods.IsEventRegistered(w, e) return w._events[e] == true end
 
 -- Regions: listed in creation order for GetRegions, as the client lists a
@@ -246,8 +247,11 @@ for _, state in ipairs({ "Normal", "Pushed", "Highlight", "Checked", "Disabled" 
     end
     Methods["Get" .. state .. "Texture"] = function(b) return b[key] end
 end
-function Methods.SetTexture(t, file) t._file = file; return true end
+function Methods.SetTexture(t, file) t._file, t._atlas = file, nil; return true end
 function Methods.SetDesaturated(t, on) t._desaturated = on == true end
+function Methods.SetAtlas(t, name) t._atlas, t._file = name, nil; return true end
+function Methods.SetMouseClickEnabled(w, on) w._clicks = on == true end
+function Methods.SetMouseMotionEnabled(w, on) w._motion = on == true end
 function Methods.SetColorTexture(t, r, g, b, a) t._color = { r, g, b, a } end
 function Methods.SetVertexColor(t, r, g, b, a) t._vertex = { r, g, b, a } end
 function Methods.AddMaskTexture(t, m) t._masks = t._masks or {}; table.insert(t._masks, m) end
@@ -785,6 +789,85 @@ function WoW.takeLoot(i)
     WoW.loot[i].taken = true
     WoW.fire("LOOT_SLOT_CLEARED", i)
 end
+--------------------------------------------------------------------------------
+-- Maps, for the map landmarks (#10). C_Map / C_TaxiMap / C_Texture /
+-- GetLFGDungeonInfo / UnitLevel are in the 70532 dump; WorldMapFrame, its
+-- dataProviders and the area label provider's Label are Blizzard's
+-- (Blizzard_MapCanvas.lua:191, AreaLabelDataProvider.lua:8);
+-- GetQuestDifficultyColor (DifficultyUtil.lua:68) and QuestDifficultyColors
+-- (Constants.lua:195) are FrameXML's.
+--   WoW.cursorMap = { mapID, x, y, focus } where the world map's cursor is
+--   WoW.mapAt[mapID] = { mapID, name }  (C_Map.GetMapInfoAtPosition, any x/y)
+--   WoW.mapLevels[mapID] = { lo, hi }   (C_Map.GetMapLevels; absent = 0, 0)
+--   WoW.taxi[uiMapID] = { nodes }; WoW.taxiShown[uiMapID] = true (Blizzard draws them)
+--   WoW.atlases[name] = true            (C_Texture.GetAtlasInfo)
+--   WoW.lfgNames[id] = "name"           (GetLFGDungeonInfo)
+--------------------------------------------------------------------------------
+
+WoW.cursorMap = { mapID = 1414, x = 0.5, y = 0.5, focus = true }
+WoW.mapAt, WoW.mapLevels, WoW.taxi, WoW.taxiShown, WoW.atlases, WoW.lfgNames = {}, {}, {}, {}, {}, {}
+WoW.playerLevel = 30
+WorldMapFrame = newWidget("Frame", UIParent, "WorldMapFrame")
+WorldMapFrame._shown = false
+local areaLabelProvider = { Label = newWidget("Frame", WorldMapFrame) }
+WorldMapFrame.dataProviders = { [{ other = true }] = true, [areaLabelProvider] = true }
+WoW.areaLabel = areaLabelProvider.Label
+function Methods.IsCanvasMouseFocus(w) return WoW.cursorMap.focus == true end
+function Methods.GetMapID(w) return WoW.cursorMap.mapID end
+function Methods.GetNormalizedCursorPosition(w) return WoW.cursorMap.x, WoW.cursorMap.y end
+C_Map = C_Map or {}
+function C_Map.GetMapInfoAtPosition(mapID, x, y) return WoW.mapAt[mapID] end
+function C_Map.GetMapLevels(mapID)
+    local l = WoW.mapLevels[mapID]
+    if l then return l[1], l[2], 0, 0 end
+    return 0, 0, 0, 0
+end
+C_TaxiMap = {
+    GetTaxiNodesForMap = function(uiMapID) return WoW.taxi[uiMapID] or {} end,
+    ShouldMapShowTaxiNodes = function(uiMapID) return WoW.taxiShown[uiMapID] == true end,
+}
+C_Texture = { GetAtlasInfo = function(name) if WoW.atlases[name] then return { width = 16, height = 16 } end end }
+function GetLFGDungeonInfo(id) return WoW.lfgNames[id] end
+function UnitLevel(unit) if unit == "player" then return WoW.playerLevel end end
+QuestDifficultyColors = { difficult = { r = 1, g = 0.5, b = 0.25 }, standard = { r = 1, g = 0.82, b = 0 } }
+function GetQuestDifficultyColor(level)
+    if level > WoW.playerLevel + 4 then return { r = 1, g = 0.1, b = 0.1 } end
+    if level < WoW.playerLevel - 4 then return { r = 0.5, g = 0.5, b = 0.5 } end
+    return QuestDifficultyColors.standard
+end
+
+-- HereBeDragons-2.0 + Pins as a recording fake (the vendored copy needs the
+-- client's whole map system). It keeps the API our code calls:
+-- Add{WorldMap,Minimap}Icon{World,Map}, RemoveAll{WorldMap,Minimap}Icons.
+-- WoW.hbd.calls records each; WoW.hbdFail makes the adds return false.
+function WoW.installFakeHBD()
+    local stub = rawget(_G, "LibStub")
+    if not stub or stub("HereBeDragons-Pins-2.0", true) then return end
+    stub:NewLibrary("HereBeDragons-2.0", 35)
+    local P = stub:NewLibrary("HereBeDragons-Pins-2.0", 17)
+    WoW.hbd = { calls = {}, world = {}, mini = {} }
+    local function add(display, kind)
+        return function(self, ref, icon, ...)
+            table.insert(WoW.hbd.calls, { display = display, kind = kind, ref = ref, icon = icon, args = { ... } })
+            WoW.hbd[display][icon] = { ref = ref, kind = kind, args = { ... } }
+            return not WoW.hbdFail
+        end
+    end
+    P.AddWorldMapIconWorld, P.AddWorldMapIconMap = add("world", "World"), add("world", "Map")
+    P.AddMinimapIconWorld, P.AddMinimapIconMap = add("mini", "World"), add("mini", "Map")
+    function P:RemoveAllWorldMapIcons(ref)
+        for icon, r in pairs(WoW.hbd.world) do if r.ref == ref then WoW.hbd.world[icon] = nil end end
+    end
+    function P:RemoveAllMinimapIcons(ref)
+        for icon, r in pairs(WoW.hbd.mini) do if r.ref == ref then WoW.hbd.mini[icon] = nil end end
+    end
+end
+function WoW.hbdCount(display)
+    local n = 0
+    for _ in pairs(WoW.hbd[display]) do n = n + 1 end
+    return n
+end
+
 function WoW.calledCount(name)
     local n = 0
     for _, c in ipairs(WoW.calls) do if c[1] == name then n = n + 1 end end

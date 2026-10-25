@@ -17,19 +17,27 @@ default and Glass UI's glass when Glass UI is installed (owner). The milestones,
 day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
-(#4) and the first pearl, the bags-full helper (#6), are built; the day-one probe (#5) follows. Nothing
+(#4) and the first pearl, the bags-full helper (#6), are built, and the second, map landmarks (#10);
+the day-one probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
 
 ## Layout
 
 TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.0\LibAccountSync-1.0.xml`
-→ `Compat.lua` → `Theme.lua` → `UI.lua` → `AccountSync.lua` → `Pearls.lua` → `SettingsSync.lua` →
-`Core\ToolItems.lua` → `Core\Bags.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
-`Pearls\BagsFull.lua`)* → `Options.lua` → `GlassPearls.lua`. Pearls load after
+→ `Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua` → `Libs\HereBeDragons-2.0\HereBeDragons-2.0.lua` →
+`Libs\HereBeDragons-2.0\HereBeDragons-Pins-2.0.lua` → `Compat.lua` → `Theme.lua` → `UI.lua` →
+`AccountSync.lua` → `Pearls.lua` → `SettingsSync.lua` → `Core\ToolItems.lua` → `Core\Bags.lua` →
+`Data\Landmarks.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` → `Pearls\BagsFull.lua` →
+`Pearls\Landmarks.lua`)* → `Options.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
 
+- **`Libs\`**: two kinds. **Externals** (LibGlass-1.0, LibAccountSync-1.0): `.pkgmeta` pins,
+  gitignored, never committed. **Vendored** (HereBeDragons-2.0 + Pins 2.18-release, CallbackHandler-1.0
+  minor 8): committed **unmodified** with their notices, for the map landmarks' pins. Update one only
+  by copying the new release over it whole (`References\Addons\Libraries\HereBeDragons`); test_toc
+  checks the versions, the notices and that nothing is both.
 - **`Compat.lua`**: `GlassPearls.API`, the only route to client APIs that moved or may be absent:
   `IsSecret`, `RegisterEvents` (reports failures), `NoteCombat` / `InCombat`, `Fail(key, err)` (the
   **one** failure recorder, read by `/gpearls failures`), `AddOnVersion`, `ClientBuild`,
@@ -45,7 +53,8 @@ order) and before the options window and bootstrap.
 - **`UI.lua`**: the shared widgets (`Label`, `Header`, `Tooltip`, `Button`, `Check`, `Gear`,
   `Radios`, `Search`), Blizzard templates in both looks; a value control returns a `refresh`.
 - **`Pearls.lua`**: the registry. `Pearls.Register{ key, name, desc, default, category, section,
-  Enable, Disable, defaults, configure, help, onReset }`; `IsOn`, `IsLive`, `NeedsReload`,
+  Enable, Disable, defaults, configure, help, onReset, onSettingChanged }` (the last after any
+  change of its settings, from any route, sync included: for a pearl that must rebuild); `IsOn`, `IsLive`, `NeedsReload`,
   `PendingReload`, `Set`, `List`, `Categories` (in `CATEGORIES` order), `InCategory`, `Search`,
   `Setting` / `SetSetting` / `ResetSettings` (a pearl's own settings in
   `GlassPearlsDB.settings[key]`), `StartAll` (at login). Only what differs from a default is saved.
@@ -98,6 +107,23 @@ order) and before the options window and bootstrap.
   the session; the loot (`LootSlot`) only once the slot is confirmed empty (`Bags.Slot` says
   "empty", never "unreadable"), with the row still holding that
   item (`LOOT_CLOSED` cancels it). Unmeasured until day one: the delete and the loot path (probe).
+- **`Data\Landmarks.lua`**: **generated** by `Tools\gen_landmarks.py` (never edit it): dungeon and
+  raid entrances (doors shared by several are one entry), boat, zeppelin and tram stops, zone level
+  ranges, and every zone map ID. Sources: the client's tables (`References\Forever\db`: AreaTrigger,
+  TaxiPath / TaxiPathNode, UiMap*, LFGDungeons) where they have the answer, `Tools\landmarks\*.csv`
+  (our verified list, with a confidence per entrance) otherwise, and the cached Wowhead zone pages
+  for levels. Positions are **world coordinates in the client tables' order: x north, y west**.
+  `Tools\landmarks\report.txt` lists what came from where.
+- **`Pearls\Landmarks.lua`**: map landmarks (#10, pearl `landmarks`, Interface > Maps, on by
+  default). Pins through the vendored HereBeDragons-Pins on the world map (zone and continent) and
+  the minimap, a frame per display, **tooltip only** (clicks pass through: a waypoint would fight
+  NodeRadar's). HereBeDragons' world x is west, y north: every world call passes our `(y, x)`.
+  Flight points come from `C_TaxiMap.GetTaxiNodesForMap` per zone, with Blizzard's faction and
+  undiscovered rules, and none on a world map where `ShouldMapShowTaxiNodes` says Blizzard draws
+  them. The zone level line sits under Blizzard's area label (read for its position, never
+  written), only when `C_Map.GetMapLevels` gives no range. Any setting change rebuilds.
+  Unmeasured until day one: the icons, the positions marked "hand", the taxi API away from a
+  flight master, Blizzard's label.
 - **`Pearls\BagsFullFrame.lua`**: its window (beside the loot window, or where the player dragged it,
   per character) and its Configuration Panel (quality scope, greys first, the never-suggest list).
 - **`Options.lua`**: **our own options window**, on Leatrix Plus's layout (the owner's choice;
@@ -193,7 +219,8 @@ an allowlist of APIs verified in the dump, secrets as throwing `newproxy` values
 validated against the dump or `tests\events-70532.txt`, every widget method recorded, Battle.net
 and ChatThrottleLib for LibAccountSync, `WoW.installGlassUI` for a scriptable Glass UI suite,
 `WoW.missingTemplates` for a template the client lacks, `WoW.reloadForbidden` for a refused
-`ReloadUI`), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
+`ReloadUI`, the world map, `C_Map` / `C_TaxiMap` / `C_Texture` and a recording HereBeDragons fake,
+`WoW.installFakeHBD`, which the harness installs in place of the vendored copy), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
 registering test pearls, `opts.pearls = false` to leave the shipped pearls out of a framework
 test, `newChat`, `chatHas`). Bags, items, the cursor and the loot window are modelled too
 (`WoW.bags`, `WoW.items`, `WoW.openLoot`, `WoW.deleteForbidden`, ...; the block's header lists them). A stub is added only for something in the 70532

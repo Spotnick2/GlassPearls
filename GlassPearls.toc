@@ -13,6 +13,9 @@
 
 Libs\LibGlass-1.0\LibGlass-1.0.xml
 Libs\LibAccountSync-1.0\LibAccountSync-1.0.xml
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Libs\HereBeDragons-2.0\HereBeDragons-2.0.lua
+Libs\HereBeDragons-2.0\HereBeDragons-Pins-2.0.lua
 Compat.lua
 Theme.lua
 UI.lua
@@ -21,7 +24,9 @@ Pearls.lua
 SettingsSync.lua
 Core\ToolItems.lua
 Core\Bags.lua
+Data\Landmarks.lua
 Pearls\BagsFullFrame.lua
 Pearls\BagsFull.lua
+Pearls\Landmarks.lua
 Options.lua
 GlassPearls.lua

@@ -64,6 +64,16 @@ function libRoot(line)
 end
 function libGlassRoot() return libRoot(LIBGLASS_XML) end
 
+-- The third-party libraries committed in Libs/ (not .pkgmeta externals),
+-- with the notice each folder ships. HereBeDragons needs the client's whole map
+-- system to load, so the tests replace it with a recording fake (fake = true);
+-- test_toc checks the vendored files themselves.
+VENDORED = {
+    ["Libs\\CallbackHandler-1.0\\CallbackHandler-1.0.lua"] = { notice = "Libs/CallbackHandler-1.0/LICENSE.txt", fake = true },
+    ["Libs\\HereBeDragons-2.0\\HereBeDragons-2.0.lua"] = { notice = "Libs/HereBeDragons-2.0/NOTICE.txt", fake = true },
+    ["Libs\\HereBeDragons-2.0\\HereBeDragons-Pins-2.0.lua"] = { notice = "Libs/HereBeDragons-2.0/NOTICE.txt", fake = true },
+}
+
 -- The Lua files a library's XML loads, as paths, in order: what the client
 -- runs for that TOC line. A listed file that is missing fails here.
 function libScripts(line)
@@ -101,11 +111,14 @@ function loadAddon(opts)
             error("the harness can't load TOC line " .. line, 0)
         elseif opts.pearls == false and line:match("^Pearls\\") then
             files = {}
+        elseif VENDORED[line] and VENDORED[line].fake then
+            files = {}   -- replaced by its recording fake (wow_stubs: WoW.installFakeHBD)
         end
         for _, file in ipairs(files) do
             assert(loadfile((file:gsub("\\", "/"))))("GlassPearls", ns)
         end
     end
+    WoW.installFakeHBD()
     if opts.before then opts.before(GlassPearls) end
     if opts.db then GlassPearlsDB = opts.db end
     if opts.charDB then GlassPearlsCharDB = opts.charDB end
