@@ -42,7 +42,18 @@ end
 -- AccountSync.lua call LibStub at file scope.
 eq(tocLines()[1], LIBGLASS_XML, "LibGlass-1.0 loads first")
 eq(tocLines()[2], LIBACCOUNTSYNC_XML, "LibAccountSync-1.0 loads second")
-eq(tocFiles()[1], "Compat.lua", "Compat is the first of our own files")
+local own = {}
+for _, f in ipairs(tocFiles()) do if not f:match("^Libs/") then own[#own + 1] = f end end
+eq(own[1], "Compat.lua", "Compat is the first of our own files")
+-- Every library loads before our own files.
+local seenOwn = false
+for _, line in ipairs(tocLines()) do
+    if line:match("^Libs\\") then
+        check(not seenOwn, "a library before our own files: " .. line)
+    else
+        seenOwn = true
+    end
+end
 eq(tocFiles()[#tocFiles()], "GlassPearls.lua", "the bootstrap loads last")
 local seen, pearlsAt, syncAt = {}, nil, nil
 for i, f in ipairs(tocFiles()) do
@@ -64,6 +75,38 @@ for line in pairs(LIBS) do
     local dir = line:match("^(Libs\\[^\\]+)\\"):gsub("\\", "/")
     check(pkgmeta:find("\n  " .. dir .. ":", 1, true), ".pkgmeta pins " .. dir)
 end
+
+-- Every Libs\ line is an external (.pkgmeta, gitignored) or vendored
+-- (committed, unmodified, with its notice), and every vendored file is loaded.
+local inToc = {}
+for _, line in ipairs(tocLines()) do
+    if line:match("^Libs\\") then
+        inToc[line] = true
+        check(LIBS[line] or VENDORED[line], "a known library: " .. line)
+    end
+end
+for line, v in pairs(VENDORED) do
+    check(inToc[line], "the vendored file is loaded: " .. line)
+    check(io.open((line:gsub("\\", "/")), "rb") ~= nil, "  and committed: " .. line)
+    check(io.open(v.notice, "rb") ~= nil, "  with its notice: " .. v.notice)
+    local dir = line:match("^(Libs\\[^\\]+)\\"):gsub("\\", "/")
+    check(not pkgmeta:find("\n  " .. dir .. ":", 1, true), "  not also an external: " .. dir)
+    check(license:find(dir, 1, true), "  and LICENSE lists it: " .. dir)
+end
+-- The vendored versions, and their order: CallbackHandler, HereBeDragons, Pins.
+local function minor(path, major)
+    local src = io.open(path, "rb"):read("*a")
+    return tonumber(src:match('MAJOR, MINOR = "' .. major:gsub("%-", "%%-") .. '", (%d+)'))
+end
+eq(minor("Libs/CallbackHandler-1.0/CallbackHandler-1.0.lua", "CallbackHandler-1.0"), 8, "CallbackHandler-1.0 minor 8")
+eq(minor("Libs/HereBeDragons-2.0/HereBeDragons-2.0.lua", "HereBeDragons-2.0"), 35, "HereBeDragons-2.0 minor 35 (2.18-release)")
+eq(minor("Libs/HereBeDragons-2.0/HereBeDragons-Pins-2.0.lua", "HereBeDragons-Pins-2.0"), 17, "HereBeDragons-Pins-2.0 minor 17")
+local at = {}
+for i, line in ipairs(tocLines()) do at[line] = i end
+check(at["Libs\\CallbackHandler-1.0\\CallbackHandler-1.0.lua"] < at["Libs\\HereBeDragons-2.0\\HereBeDragons-2.0.lua"]
+    and at["Libs\\HereBeDragons-2.0\\HereBeDragons-2.0.lua"] < at["Libs\\HereBeDragons-2.0\\HereBeDragons-Pins-2.0.lua"],
+    "CallbackHandler, then HereBeDragons, then its Pins")
+check(at["Data\\Landmarks.lua"] < at["Pearls\\Landmarks.lua"], "the landmark data before its pearl")
 
 -- Two places that must agree, never derived from each other (porting guide section 0).
 loadAddon()

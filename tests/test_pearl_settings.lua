@@ -5,7 +5,7 @@
 dofile("tests/wow_stubs.lua")
 dofile("tests/harness.lua")
 
-local resets = 0
+local resets, changes = 0, {}
 local GP = loadAddon({
     db = { settings = {
         demo = { mode = "white", greys = true, size = "big", stale = 1 },   -- greys = default, size = wrong type, stale = unknown
@@ -17,6 +17,12 @@ local GP = loadAddon({
             key = "demo", name = "Demo", Enable = function() end,
             defaults = { mode = "grey", greys = true, size = 3 },
             onReset = function() resets = resets + 1 end,
+            onSettingChanged = function(name, value) changes[#changes + 1] = name .. "=" .. tostring(value) end,
+        })
+        GP.Pearls.Register({
+            key = "throws", name = "Throws", Enable = function() end,
+            defaults = { on = true },
+            onSettingChanged = function() error("boom") end,
         })
     end,
 })
@@ -54,5 +60,25 @@ eq(saved.demo, nil, "  clears the saved settings")
 eq(P.Setting("demo", "mode"), "grey", "  defaults again")
 eq(resets, 1, "  and calls onReset once")
 check(not P.ResetSettings("ghost"), "an unknown pearl can't be reset")
+
+-- onSettingChanged: after each real change, with the new value; Reset reports
+-- only what it changed; a throwing hook is recorded and the value still saved.
+changes = {}
+P.SetSetting("demo", "size", 5)
+P.SetSetting("demo", "size", 5)
+eq(table.concat(changes, ","), "size=5", "a change is reported once, a repeat not at all")
+P.SetSetting("demo", "greys", false)
+changes = {}
+P.ResetSettings("demo")
+table.sort(changes)
+eq(table.concat(changes, ","), "greys=true,size=3", "Reset reports each changed setting, with its default")
+changes = {}
+P.ResetSettings("demo")
+eq(#changes, 0, "a Reset that changes nothing reports nothing")
+check(not P.SetSetting("demo", "nope", 1) and #changes == 0, "a refused write reports nothing")
+GP.failures["pearl throws setting"] = nil
+check(P.SetSetting("throws", "on", false), "a throwing hook doesn't fail the write")
+eq(P.Setting("throws", "on"), false, "  the value is saved")
+check(GP.failures["pearl throws setting"] ~= nil, "  and the error recorded")
 
 done("test_pearl_settings")

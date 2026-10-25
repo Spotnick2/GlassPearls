@@ -20,6 +20,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #4 | Settings follow you across your accounts (automatic, per-key last-writer-wins) | done |
 | #5 | PearlsProbe: what the client must confirm on day one | next (built after #6, owner 2026-10-25) |
 | #6 | Bags full helper (pearl `bagsfull`) | built; its action waits for the probe |
+| #10 | Map landmarks (pearl `landmarks`): entrances, boats, zeppelins, the tram, flight points, zone levels | built; its positions and icons wait for day one |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -65,6 +66,29 @@ Each line is a claim the code relies on that only the live client can settle.
 - [ ] The X: the item isn't offered again, on another character, and after a sync on another account.
 - [ ] Auto-loot on: the helper still shows for the rows that didn't fit.
 - [ ] Combat: it hides and comes back after.
+
+**Map landmarks (#10)** (`Tools\landmarks\report.txt` lists each position's source and confidence)
+- [ ] HereBeDragons-Pins loads from our copy (no Lua error; `/gpearls failures` names no `pearl landmarks`).
+- [ ] **The icons sit where they belong** on the zone and the continent maps, and the minimap: walk
+      or fly past a few "hand" entrances first (Blackrock Mountain, Dire Maul, Zul'Gurub, Onyxia's
+      Lair, the four new Forever dungeons) and a few "client" ones; correct `entrances.csv` and
+      regenerate. A swapped axis would put everything mirrored across the zone: check one first.
+- [ ] Docks: Menethil, Auberdine's three piers, Ratchet, Booty Bay, the zeppelin towers, the
+      Deeprun Tram ends, Stormwind Harbor, Tanaris and the Riverglades.
+- [ ] The icons: which of the atlases (`Dungeon`, `Raid`, `TransportShip`, `TransportZeppelin`,
+      `TransportTram`, `TaxiNode_Neutral`) the client has, and how the file fallback looks (screenshot).
+- [ ] Tooltips: names (localized from `GetLFGDungeonInfo` when it gives them), level colours like
+      Blizzard's zone label, "(Horde only)" on the other faction's zeppelins, the destinations.
+- [ ] Clicks pass through to the map (zoom out with a right-click on an icon still works);
+      NodeRadar's waypoints untouched.
+- [ ] **Flight points away from a flight master:** does `C_TaxiMap.GetTaxiNodesForMap` answer
+      in the open world? Where `ShouldMapShowTaxiNodes` is true, Blizzard's own pins must show and
+      ours not (no doubles). Undiscovered ones greyed; `TAXI_NODE_STATUS_CHANGED` after learning one.
+- [ ] **The zone level line:** hover a zone on the Kalimdor and Eastern Kingdoms maps: its range
+      just under Blizzard's name (or its description line), only when Blizzard shows none
+      (`C_Map.GetMapLevels`). Check where the
+      area label provider's `Label` really is (`WorldMapFrame.dataProviders`).
+- [ ] Switching it off in the window removes every pin at once; on again brings them back.
 
 **The probe (#5):** its steps are added here by its PR.
 

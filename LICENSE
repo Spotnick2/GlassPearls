@@ -27,8 +27,9 @@ THIRD-PARTY COMPONENTS
 The MIT terms above cover Glass Pearls' own code. They do NOT relicense the
 libraries bundled under Libs/, which are redistributed unmodified under their
 own terms and remain the work of their authors. Each library's own notice
-ships in its folder. They are fetched at build time, not kept in this
-repository.
+ships in its folder. LibGlass-1.0 and LibAccountSync-1.0 are fetched at
+build time; HereBeDragons-2.0 and CallbackHandler-1.0 are vendored in this
+repository, unmodified.
 
   Libs/LibGlass-1.0          LibGlass-1.0, copyright (c) 2026 Spotnick2.
                              MIT License; its LICENSE ships beside it.
@@ -38,3 +39,12 @@ repository.
                              MIT License; its LICENSE ships beside it.
                              Bundles LibStub (public domain, as above) and
                              ChatThrottleLib v32 (Mikk; public domain).
+  Libs/HereBeDragons-2.0     HereBeDragons-2.0 and HereBeDragons-Pins-2.0,
+                             Hendrik "Nevcairiel" Leppkes, 2.18-release,
+                             vendored unmodified. Declared BSD in its TOC; no
+                             licence text is published with it (see its
+                             NOTICE.txt). The map pins of the map landmarks.
+  Libs/CallbackHandler-1.0   CallbackHandler-1.0, Nevcairiel and the Ace3
+                             Development Team, vendored unmodified (minor 8).
+                             BSD licence; its LICENSE.txt ships beside it.
+                             Needed by HereBeDragons.

@@ -1,0 +1,7 @@
+HereBeDragons-2.0 and HereBeDragons-Pins-2.0 (Hendrik "Nevcairiel" Leppkes), shipped unmodified
+inside Glass Pearls, from the 2.18-release package (CurseForge project 94348, file 9049435;
+source github.com/Nevcairiel/HereBeDragons, tag 2.18-release).
+
+Licence: its TOC declares "## X-License: BSD". No licence text is published with it: neither the
+release package nor the source repository carries one (checked 2026-10-25). It ships here
+embedded, as HereBeDragons is meant to be, under the BSD terms its author declares.

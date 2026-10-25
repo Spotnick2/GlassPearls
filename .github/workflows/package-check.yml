@@ -115,6 +115,10 @@ jobs:
             echo GlassPearls/GlassPearls.toc
             echo GlassPearls/LICENSE
             tr -d '\r' < GlassPearls.toc | grep -v '^#' | grep '\.lua$' | tr '\\' '/' | sed 's|^|GlassPearls/|'
+            # The vendored libraries (committed, their .lua files are TOC
+            # lines above) ship their notices.
+            echo GlassPearls/Libs/HereBeDragons-2.0/NOTICE.txt
+            echo GlassPearls/Libs/CallbackHandler-1.0/LICENSE.txt
             echo "$lib/LibGlass-1.0.xml"
             echo "$lib/LICENSE"
             # Comments stripped non-greedily, as the test harness does (a sed

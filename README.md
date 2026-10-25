@@ -19,6 +19,13 @@ cheapest item in your bags and loot in one click.
   accounts; quest loot is picked first. When the loot is worth less than anything in your bags it
   says so, and "Choose anyway" is there.
 
+**Map landmarks** (Interface, on by default). Dungeon and raid entrances, boats, zeppelins, the
+Deeprun Tram and flight points on the world map (zone and continent) and the minimap.
+- Hover an icon: a dungeon's name and suggested levels, a boat's or zeppelin's destinations (the
+  other faction's are marked), a flight master's name. Clicks go through to the map.
+- Hover a zone on a continent map to see its level range, when the game shows none.
+- Its gear switches each kind on the world map and minimap, and sets the icon size.
+
 ## Using it
 
 - `/gpearls` opens the options window: each feature's checkbox, and a gear for its own options.
@@ -36,8 +43,10 @@ It wears WoW Forever's own look; with Glass UI installed, it follows Glass UI's 
 - [LibGlass-1.0](https://github.com/Spotnick2/LibGlass): the Glass suite's material.
 - [LibAccountSync-1.0](https://github.com/Spotnick2/LibAccountSync): messages between your own
   accounts, with ownership proven before anything is sent or accepted.
+- [HereBeDragons](https://github.com/Nevcairiel/HereBeDragons) (BSD) and CallbackHandler-1.0
+  (BSD): the map pins.
 
-Both are embedded; nothing to install separately.
+All are embedded; nothing to install separately.
 
 ## Licence
 

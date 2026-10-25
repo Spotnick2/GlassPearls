@@ -1,0 +1,55 @@
+Map landmarks evidence, client build 1.60.1.70532
+
+Entrances (door: nearest client trigger, confidence)
+  lfg1     The Barrens            754 yd (trigger 742) hand    Wailing Caverns 17-27
+  lfg2     Western Plaguelands    499 yd (trigger 2252) hand    Scholomance 55-60
+  lfg3     Orgrimmar              519 yd (trigger 4027) hand    Ragefire Chasm 15-25
+  lfg5     Westfall               545 yd (trigger 3552) hand    The Deadmines 15-25
+  lfg7     Silverpine Forest      747 yd (trigger 720) hand    Shadowfang Keep 22-30
+  lfg9     Ashenvale              618 yd (trigger 225) hand    Blackfathom Deeps 22-32
+  lfg11    Stormwind City         180 yd (trigger 2746) near    The Stockade 22-32
+  lfg13    Dun Morogh             169 yd (trigger 1104) near    Gnomeregan 26-36
+  lfg15    The Barrens            469 yd (trigger 246) hand    Razorfen Kraul 32-42
+  lfg17    Tirisfal Glades        841 yd (trigger 3366) hand    Scarlet Monastery 26-45
+  lfg19    The Barrens            750 yd (trigger 942) hand    Razorfen Downs 37-47
+  lfg21    Badlands               738 yd (trigger 712) hand    Uldaman 42-52
+  lfg23    Tanaris                906 yd (trigger 1726) hand    Zul'Farrak 46-56
+  lfg25    Desolace               281 yd (trigger 2267) hand    Maraudon 42-52
+  lfg27    Swamp of Sorrows        10 yd (trigger 362) client  The Temple of Atal'Hakkar 50-60
+  brm      Searing Gorge          156 yd (trigger 3528) near    Blackrock Depths 52-60, Lower Blackrock Spire 55-60, Upper Blackrock Spire 55-60, Molten Core 60-60, Blackwing Lair 60-60
+  dm       Feralas               1085 yd (trigger 1025) hand    Dire Maul: East 44-54, Dire Maul: West 44-54, Dire Maul: North 44-54
+  lfg39    Eastern Plaguelands    423 yd (trigger 4055) hand    Stratholme 48-58
+  lfg41    Stranglethorn Vale      18 yd (trigger 3928) client  Zul'Gurub 60-60
+  lfg45    Dustwallow Marsh        50 yd (trigger 2848) near    Onyxia's Lair 60-60 [csv]
+  lfg3271  Alterac Mountains      568 yd (trigger 83) hand    City of Dalaran 28+ [csv]
+  lfg3272  Undercity               35 yd (trigger 4189) client  Ruins of Lordaeron 15+ [csv]
+  lfg3273  Ironforge              254 yd (trigger 4026) hand    Hall of Thanes 13+ [csv]
+  lfg3274  Wetlands               461 yd (trigger 175) hand    Excavation Site: Wetlands 26+ [csv]
+
+Transports (client positions: taxi path stops, tram triggers)
+  ship      Ratchet                AH  near Durotar 35.5,79.8  -> Booty Bay
+  ship      Booty Bay              AH  near Stranglethorn Vale 25.7,73.1  -> Ratchet
+  zeppelin  Grom'gol Base Camp     H   near Stranglethorn Vale 31.2,30.4  -> Orgrimmar
+  zeppelin  Orgrimmar              H   near Orgrimmar 67.8,97.6  -> Grom'gol Base Camp
+  ship      Menethil Harbor        A   near Wetlands 4.7,63.8  -> Theramore Isle
+  ship      Theramore Isle         A   near Thousand Needles 97.9,1.7  -> Menethil Harbor
+  ship      Rut'theran Village     A   near Teldrassil 54.8,97.2  -> Auberdine
+  ship      Auberdine              A   near Felwood 15.3,14.1  -> Rut'theran Village
+  ship      Menethil Harbor        A   near Wetlands 4.5,56.7  -> Auberdine, Southshore
+  ship      Auberdine              A   near Felwood 14.2,19.0  -> Menethil Harbor, Southshore
+  zeppelin  Grom'gol Base Camp     H   near Stranglethorn Vale 31.5,29.1  -> Undercity
+  zeppelin  Undercity              H   near Western Plaguelands 4.2,45.5  -> Grom'gol Base Camp
+  zeppelin  Orgrimmar              H   near Durotar 51.0,13.9  -> Undercity
+  zeppelin  Undercity              H   near Western Plaguelands 2.9,45.5  -> Orgrimmar
+  ship      Feathermoon Stronghold A   near Feralas 31.0,39.5  -> Feralas coast
+  ship      Feralas coast          A   near Feralas 43.1,42.8  -> Feathermoon Stronghold
+  ship      Southshore             A   near Hillsbrad Foothills 50.7,70.4  -> Menethil Harbor, Auberdine
+  ship      Tanaris                AH  near Tanaris 68.6,23.0  -> Riverglades
+  ship      Riverglades            AH  near Riverglades 80.6,54.6  -> Tanaris
+  ship      Auberdine              A   near Felwood 12.2,15.3  -> Stormwind Harbor
+  ship      Stormwind Harbor       A   near Stormwind City 21.8,56.9  -> Auberdine
+  tram      Stormwind City         AH  near Stormwind City 69.6,30.3  -> Ironforge
+  tram      Ironforge              AH  near Ironforge 78.0,51.4  -> Stormwind City
+
+Zone levels: 42 zones
+  Durotar 1-10, Mulgore 1-10, The Barrens 10-33, Alterac Mountains 27-39, Arathi Highlands 30-40, Badlands 36-45, Blasted Lands 46-63, Tirisfal Glades 1-12, Silverpine Forest 10-20, Western Plaguelands 46-57, Eastern Plaguelands 54-59, Hillsbrad Foothills 20-31, The Hinterlands 41-56, Dun Morogh 1-56, Searing Gorge 43-56, Burning Steppes 50-59, Elwynn Forest 1-10, Deadwind Pass 50-60, Duskwood 10-30, Loch Modan 10-18, Redridge Mountains 15-25, Stranglethorn Vale 30-50, Swamp of Sorrows 36-43, Westfall 9-18, Wetlands 20-30, Teldrassil 1-11, Darkshore 11-19, Ashenvale 19-30, Thousand Needles 6-35, Stonetalon Mountains 15-25, Desolace 30-39, Feralas 41-60, Dustwallow Marsh 36-61, Tanaris 40-50, Azshara 42-55, Felwood 47-54, Un'Goro Crater 48-55, Moonglade 15-15, Silithus 55-59, Winterspring 55-60, Zephras Isle 1-12, Riverglades 36-44

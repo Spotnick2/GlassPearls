@@ -16,8 +16,10 @@ __pycache__/
 
 # The embedded LibGlass-1.0 and LibAccountSync-1.0: fetched by the packager
 # (.pkgmeta externals), copied from ..\LibGlass and ..\LibAccountSync by
-# Tools/deploy.ps1. Never commit a copy.
-Libs/
+# Tools/deploy.ps1. Never commit a copy. The third-party libraries in Libs/
+# (HereBeDragons-2.0, CallbackHandler-1.0) are vendored: committed, unmodified.
+Libs/LibGlass-1.0/
+Libs/LibAccountSync-1.0/
 
 # The CurseForge description: kept beside README.md, pasted into CurseForge by hand.
 README.curseforge.md

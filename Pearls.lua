@@ -17,6 +17,8 @@
 --       configure = function(panel, refreshers) end,  -- optional: builds its Configuration Panel
 --       help = "...",                -- optional: the panel's Help text
 --       onReset = function() end,    -- optional: after Reset put its settings back
+--       onSettingChanged = function(name, value) end,  -- optional: after any change of its settings,
+--                                    -- local or from settings sync (a pearl that must rebuild)
 --   })
 --
 -- Only what the player chose is saved (GlassPearlsDB.pearls[key], a boolean,
@@ -163,6 +165,13 @@ local function touch(id)
     if SS then SS.Touch(id) end
 end
 
+-- Tell the pearl a setting changed (any route: options, slash, sync, Reset).
+local function changed(def, name, value)
+    if not def.onSettingChanged then return end
+    local ok, err = pcall(def.onSettingChanged, name, value)
+    if not ok then API.Fail("pearl " .. def.key .. " setting", err) end
+end
+
 function Pearls.SetSetting(key, name, value)
     local def = byKey[key]
     if not def or def.defaults[name] == nil or not GP.db then return false end
@@ -178,7 +187,10 @@ function Pearls.SetSetting(key, name, value)
         all[key] = all[key] or {}
         all[key][name] = value
     end
-    if value ~= was then touch(key .. "." .. name) end
+    if value ~= was then
+        touch(key .. "." .. name)
+        changed(def, name, value)
+    end
     return true
 end
 
@@ -190,7 +202,10 @@ function Pearls.ResetSettings(key)
     for name in pairs(def.defaults) do was[name] = Pearls.Setting(key, name) end
     GP.db.settings[key] = nil
     for name, d in pairs(def.defaults) do
-        if was[name] ~= d then touch(key .. "." .. name) end
+        if was[name] ~= d then
+            touch(key .. "." .. name)
+            changed(def, name, d)
+        end
     end
     if def.onReset then
         local ok, err = pcall(def.onReset)

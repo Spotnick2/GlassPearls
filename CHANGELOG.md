@@ -26,4 +26,12 @@
     anything in your bags it says so, and "Choose anyway" is there if you want it.
   - The gear: grey only or grey and white, greys first, and the never-suggest list.
     `/gpearls cheapest` shows the first suggestion any time.
-- LibGlass r11 and LibAccountSync r5 embedded.
+- **Map landmarks** (Interface, on by default): dungeon and raid entrances, boats, zeppelins and
+  the Deeprun Tram on the world map (zone and continent) and the minimap, and flight points where
+  the game's map shows none.
+  - Hover an icon for its tooltip: a dungeon's name and suggested levels (one icon for Blackrock
+    Mountain's five and Dire Maul's three), a boat's or zeppelin's destinations (the other
+    faction's are marked), a flight master's name. Clicks go through to the map.
+  - Hover a zone on a continent map for its level range under its name, when the game shows none.
+  - The gear: each kind on the world map and the minimap on its own, the zone levels, the icon size.
+- LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.
