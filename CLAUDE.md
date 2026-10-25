@@ -17,8 +17,8 @@ default and Glass UI's glass when Glass UI is installed (owner). The milestones,
 day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
-(#4) and the first pearl, the bags-full helper (#6), are built, and the second, map landmarks (#10);
-the day-one probe (#5) follows. Nothing
+(#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
+third, low spell ranks (#12); the day-one probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
 
@@ -28,8 +28,9 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 → `Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua` → `Libs\HereBeDragons-2.0\HereBeDragons-2.0.lua` →
 `Libs\HereBeDragons-2.0\HereBeDragons-Pins-2.0.lua` → `Compat.lua` → `Theme.lua` → `UI.lua` →
 `AccountSync.lua` → `Pearls.lua` → `SettingsSync.lua` → `Core\ToolItems.lua` → `Core\Bags.lua` →
-`Data\Landmarks.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` → `Pearls\BagsFull.lua` →
-`Pearls\Landmarks.lua`)* → `Options.lua` → `GlassPearls.lua`. Pearls load after
+`Data\Landmarks.lua` → `Data\SpellRanks.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
+`Pearls\BagsFull.lua` → `Pearls\Landmarks.lua` → `Pearls\SpellRanksFrame.lua` →
+`Pearls\SpellRanks.lua`)* → `Options.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
 
@@ -124,6 +125,30 @@ order) and before the options window and bootstrap.
   written), only when `C_Map.GetMapLevels` gives no range. Any setting change rebuilds.
   Unmeasured until day one: the icons, the positions marked "hand", the taxi API away from a
   flight master, Blizzard's label.
+- **`Data\SpellRanks.lua`**: **generated** by `Tools\gen_ranks.py` (never edit it): every class
+  spell that comes in ranks, `groups[g]` (IDs, lowest rank first) and `ranks[id] = { g, rank,
+  level }`, from the client's SkillLine (class trees: category 7 with flag 0x400; pet lines lack
+  it), SkillLineAbility (Season of Discovery rune copies, `AcquireMethod` 3, dropped), Spell
+  (`Rank N`), SpellName and SpellLevels. Names group ranks **offline only**. Two spells sharing a
+  name (Lightning Shield's buff and its bolt) are split by their description's first sentence;
+  two IDs of one spell at one rank (Seal of Righteousness 1) both stay; `Tools\ranks\exclude.csv`
+  drops groups whose ranks are different spells (Detect Invisibility). `Tools\ranks\report.txt`
+  lists every decision.
+- **`Pearls\SpellRanks.lua`**: low spell ranks (#12, pearl `spellranks`, Combat > Spells, on by
+  default). A spell is low when a higher rank of its group is known (`C_SpellBook.IsSpellKnown`,
+  else `IsPlayerSpell`) and casts as itself (`C_Spell.GetOverrideSpell` is it, or a higher rank of
+  the group); kept spells (the sync set `spellranks.keep`) never are. **IDs only.** The scan reads
+  the player's own pages (the main six, multi bars, stance bars; never the vehicle, override,
+  temporary-shapeshift, extra or multicast pages, read at scan time); macros are listed, never
+  edited; a low rank seen cast (`UNIT_SPELLCAST_SUCCEEDED`) is listed too. One debounced
+  scheduler (login, learning, a spec swap plus a second pass); never in combat or with a class
+  trainer open. **Update all** runs in our button's click, out of combat, cursor empty; after each
+  `PlaceAction` it reads the slot and the cursor again: a slot read as the best rank counts, a spell
+  of the group on the cursor is cleared, anything else is left and said, a failed placement is
+  undone only into an empty slot, and the first unclean result stops the run. Unmeasured until
+  day one: whether the client updates bars itself, `PlaceAction` from addon code, the page mapping.
+- **`Pearls\SpellRanksFrame.lua`**: its popup (Keep, Later, Update all; position per character) and
+  its Configuration Panel (when it checks, what it lists, Check now, the kept ranks).
 - **`Pearls\BagsFullFrame.lua`**: its window (beside the loot window, or where the player dragged it,
   per character) and its Configuration Panel (quality scope, greys first, the never-suggest list).
 - **`Options.lua`**: **our own options window**, on Leatrix Plus's layout (the owner's choice;
@@ -220,7 +245,9 @@ validated against the dump or `tests\events-70532.txt`, every widget method reco
 and ChatThrottleLib for LibAccountSync, `WoW.installGlassUI` for a scriptable Glass UI suite,
 `WoW.missingTemplates` for a template the client lacks, `WoW.reloadForbidden` for a refused
 `ReloadUI`, the world map, `C_Map` / `C_TaxiMap` / `C_Texture` and a recording HereBeDragons fake,
-`WoW.installFakeHBD`, which the harness installs in place of the vendored copy), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
+`WoW.installFakeHBD`, which the harness installs in place of the vendored copy, action slots,
+macros, known spells, overrides and a spell on the cursor (`WoW.actions`, `WoW.known`,
+`WoW.placeHook`, ...)), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
 registering test pearls, `opts.pearls = false` to leave the shipped pearls out of a framework
 test, `newChat`, `chatHas`). Bags, items, the cursor and the loot window are modelled too
 (`WoW.bags`, `WoW.items`, `WoW.openLoot`, `WoW.deleteForbidden`, ...; the block's header lists them). A stub is added only for something in the 70532

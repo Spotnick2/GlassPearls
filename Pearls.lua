@@ -35,7 +35,7 @@ GP.Pearls = Pearls
 
 -- The options window's pages, in this order; a page shows only once a pearl
 -- is on it. A category not listed here goes after them, alphabetically.
-Pearls.CATEGORIES = { "Loot & Bags", "Interface", "Social", "Chat", "Automation", "System" }
+Pearls.CATEGORIES = { "Loot & Bags", "Interface", "Combat", "Social", "Chat", "Automation", "System" }
 Pearls.DEFAULT_CATEGORY, Pearls.DEFAULT_SECTION = "Miscellaneous", "General"
 
 local byKey, order = {}, {}

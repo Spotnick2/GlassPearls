@@ -1,0 +1,69 @@
+gen_ranks.py, build 1.60.1.70532
+
+27 class skill lines; 145 rune copies dropped (AcquireMethod 3)
+
+325 groups written
+
+excluded (Tools/ranks/exclude.csv) (1)
+  Demonology / Detect Invisibility: each rank detects another kind: lesser (132), normal (2970), greater (11743)
+
+split by description (6)
+  Survival / Immolation Trap: 2 chain(s)
+  Holy / Holy Nova: 2 chain(s)
+  Shadow Magic / Shadowguard: 2 chain(s)
+  Shadow Magic / Touch of Weakness: 3 chain(s)
+  Enhancement / Lightning Shield: 2 chain(s)
+  Holy / Seal of Righteousness: 1 chain(s)
+
+same spell, two IDs at one rank (1)
+  Holy / Seal of Righteousness: 20154, 21084, 20287, 20288, 20289, 20290, 20291, 20292, 20293
+
+gap filled (0)
+
+gap left (8)
+  Survival / Monster Slaying: rank 1 (0 candidates)
+  Shadow Magic / Touch of Weakness: rank 1 (0 candidates)
+  Shadow Magic / Touch of Weakness: rank 2 (0 candidates)
+  Shadow Magic / Touch of Weakness: rank 3 (0 candidates)
+  Shadow Magic / Touch of Weakness: rank 4 (0 candidates)
+  Shadow Magic / Touch of Weakness: rank 1 (0 candidates)
+  Restoration / Healing Grace: rank 1 (0 candidates)
+  Elemental Combat / Lightning Mastery: rank 1 (0 candidates)
+
+review: descriptions differ (36)
+  Arms / Improved Pummel
+  Arms / Thunder Clap
+  Combat / Feint
+  Subtlety / Vanish
+  Beast Mastery / Aspect of the Beast
+  Survival / Disengage
+  Holy / Binding Heal
+  Holy / Prayer of Mending
+  Shadow Magic / Fade
+  Shadow Magic / Mind Control
+  Shadow Magic / Mind Vision
+  Feral Combat / Cower
+  Marksmanship / Distracting Shot
+  Marksmanship / Trueshot Aura
+  Arcane / Conjure Food
+  Arcane / Conjure Water
+  Assassination / Kidney Shot
+  Protection / Improved Shield Block
+  Protection / Holy Shield
+  Protection / Seal of Fury
+  Demonology / Create Firestone
+  Demonology / Create Healthstone
+  Demonology / Create Soulstone
+  Demonology / Create Spellstone
+  Affliction / Curse of the Elements
+  Enhancement / Flametongue Totem
+  Enhancement / Windfury Weapon
+  Elemental Combat / Purge
+  Restoration / Mark of the Wild
+  Restoration / Wild Growth
+  Balance / Hurricane
+  Destruction / Shadowburn
+  Holy / Lay on Hands
+  Holy / Seal of Righteousness
+  Discipline / Contingency Plan
+  Discipline / Power Word: Shield

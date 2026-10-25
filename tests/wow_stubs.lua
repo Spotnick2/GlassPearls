@@ -674,10 +674,17 @@ function C_Container.PickupContainerItem(bag, slot)
     local s = WoW.bags[bag] and WoW.bags[bag].items[slot]
     if s and not WoW.cursor then WoW.cursor = { bag = bag, slot = slot, id = s.id } end
 end
+-- The cursor holds an item ({ bag, slot, id }), or a spell / macro / other
+-- ({ kind = "spell", id }): a spell's ID is GetCursorInfo's 4th return, as
+-- Blizzard reads it (SharedUIPanelTemplates.lua:1955).
 function GetCursorInfo()
-    if WoW.cursor then return "item", WoW.cursor.id, itemLink(WoW.cursor.id) end
+    local c = WoW.cursor
+    if not c then return end
+    if c.kind == "spell" then return "spell", 1, "spell", c.id end
+    if c.kind then return c.kind, c.id end
+    return "item", c.id, itemLink(c.id)
 end
-function CursorHasItem() return WoW.cursor ~= nil end
+function CursorHasItem() return WoW.cursor ~= nil and WoW.cursor.kind == nil end
 function ClearCursor() call("ClearCursor"); WoW.cursor = nil end
 function DeleteCursorItem()
     call("DeleteCursorItem")
@@ -877,6 +884,79 @@ function WoW.hbdCount(display)
     for _ in pairs(WoW.hbd[display]) do n = n + 1 end
     return n
 end
+
+--------------------------------------------------------------------------------
+-- Spells and action slots, for the low spell ranks pearl (#12). In the 70532
+-- dump: C_Spell.* / C_SpellBook.IsSpellKnown / C_ActionBar.* documented;
+-- GetActionInfo, HasAction, PlaceAction, GetMacroSpell, GetMacroInfo,
+-- IsPlayerSpell, IsTradeskillTrainer in its _G walk. NUM_ACTIONBAR_PAGES,
+-- MultiActionBar_GetBarForPage and RANK are Blizzard's (ActionButtonUtil.lua:2,
+-- MultiActionBars.lua:131, GlobalStrings).
+--   WoW.actions[slot] = { kind = "spell" | "macro" | "item", id }
+--   WoW.macros[id] = { name, spell }      WoW.known[spellID] = true
+--   WoW.overrides[id] = otherID           WoW.spells[id] = { name, icon }
+--   WoW.pages = { vehicle, override, temp, extra, multicast }  (pages)
+--   WoW.multiBars[page] = true            stance bars: slots 73-120
+-- Calls are recorded (PickupSpell, PlaceAction). WoW.pickupSpellFails: the
+-- pickup does nothing; WoW.placeForbidden: PlaceAction raises
+-- ADDON_ACTION_FORBIDDEN and does nothing; WoW.placeHook(slot): runs instead
+-- of the swap when it returns true (a test's own outcome).
+--------------------------------------------------------------------------------
+
+WoW.actions, WoW.macros, WoW.known, WoW.overrides, WoW.spells = {}, {}, {}, {}, {}
+WoW.pages = { vehicle = 16, temp = 17, override = 18, extra = 19, multicast = 11 }
+WoW.multiBars = { [13] = true, [14] = true, [15] = true }
+NUM_ACTIONBAR_PAGES = 6
+RANK = "Rank"
+function HasAction(slot) return WoW.actions[slot] ~= nil end
+function GetActionInfo(slot)
+    local a = WoW.actions[slot]
+    if a then return a.kind, a.id, a.sub end
+end
+function GetMacroSpell(id) return WoW.macros[id] and WoW.macros[id].spell end
+function GetMacroInfo(id)
+    local m = WoW.macros[id]
+    if m then return m.name, 134400, "" end
+end
+function IsPlayerSpell(id) return WoW.known[id] == true end
+function IsTradeskillTrainer() return WoW.tradeTrainer == true end
+function MultiActionBar_GetBarForPage(page) return WoW.multiBars[page] and {} or nil end
+C_SpellBook = { IsSpellKnown = function(id) return WoW.known[id] == true end }
+C_Spell = {
+    GetSpellName = function(id) return (WoW.spells[id] and WoW.spells[id].name) or ("Spell" .. id) end,
+    GetSpellTexture = function(id) return (WoW.spells[id] and WoW.spells[id].icon) or 136000 end,
+    GetOverrideSpell = function(id) return WoW.overrides[id] or id end,
+    PickupSpell = function(id)
+        call("PickupSpell", id)
+        if WoW.pickupSpellFails then return end
+        WoW.cursor = { kind = "spell", id = id }
+    end,
+}
+function PlaceAction(slot)
+    call("PlaceAction", slot)
+    if WoW.placeForbidden then
+        WoW.fire("ADDON_ACTION_FORBIDDEN", "GlassPearls", "PlaceAction()")
+        return
+    end
+    if WoW.placeHook and WoW.placeHook(slot) then return end
+    local c = WoW.cursor
+    if not c then return end
+    local old = WoW.actions[slot]
+    WoW.actions[slot] = { kind = c.kind or "item", id = c.id }
+    WoW.cursor = old and { kind = old.kind, id = old.id } or nil
+end
+C_ActionBar = {
+    GetVehicleBarIndex = function() return WoW.pages.vehicle end,
+    GetOverrideBarIndex = function() return WoW.pages.override end,
+    GetTempShapeshiftBarIndex = function() return WoW.pages.temp end,
+    GetExtraBarIndex = function() return WoW.pages.extra end,
+    GetMultiCastBarIndex = function() return WoW.pages.multicast end,
+    GetBonusBarIndex = function() return WoW.bonusBar or 0 end,
+    GetBonusBarIndexForSlot = function(slot)
+        if slot >= 73 and slot <= 120 then return math.ceil((slot - 72) / 12) end
+    end,
+}
+function Methods.SetSpellByID(t, id) t._lines = { "spell:" .. tostring(id) } end
 
 function WoW.calledCount(name)
     local n = 0

@@ -25,8 +25,11 @@ SettingsSync.lua
 Core\ToolItems.lua
 Core\Bags.lua
 Data\Landmarks.lua
+Data\SpellRanks.lua
 Pearls\BagsFullFrame.lua
 Pearls\BagsFull.lua
 Pearls\Landmarks.lua
+Pearls\SpellRanksFrame.lua
+Pearls\SpellRanks.lua
 Options.lua
 GlassPearls.lua
