@@ -37,10 +37,12 @@ F.THROTTLE = 1                 -- AddAuraSound: 0-5 s (UnitConstantsDocumentatio
 F.RECHECK = 0.5                -- while the alert is shown
 F.TEST_SECONDS = 5
 
+local AA = GP.AuraAlert
 local events = CreateFrame("Frame")
+local sounds = AA.Sounds.New("pearl fixate sound")   -- the client's sounds (Core/AuraAlert.lua)
 local state = {
-    sounds = {},        -- [spellID] = the client's sound ID
-    soundStatus = {},   -- [spellID] = "registered" | "refused" | "off"
+    sounds = sounds.sounds,         -- [spellID] = the client's sound ID
+    soundStatus = sounds.status,    -- [spellID] = "registered" | "refused" | "off"
     lastRead = {},      -- [spellID] = "present" | "absent" | "unknown"
     alert = nil,        -- { id, expiration (0: none), duration, test }
     pendingSounds = false,
@@ -53,28 +55,10 @@ local function setting(name) return GP.Pearls.Setting(F.KEY, name) end
 local function Frame() return GP.FixateFrame end
 
 --------------------------------------------------------------------------------
--- Reading one aura: present / absent / unknown
-
-local function tryRead(id)
-    local a = C_UnitAuras.GetPlayerAuraBySpellID(id)
-    if API.IsSecret(a) then return "unknown" end
-    if a == nil then
-        local per = C_Secrets and C_Secrets.ShouldSpellAuraBeSecret
-        if not per then return "unknown" end
-        local secret = per(id)
-        if API.IsSecret(secret) then return "unknown" end
-        if secret == false then return "absent" end
-        return "unknown"
-    end
-    if type(a) ~= "table" then return "unknown" end
-    local exp, dur = a.expirationTime, a.duration
-    if API.IsSecret(exp) or API.IsSecret(dur) then return "unknown" end
-    return "present", type(exp) == "number" and exp or 0, type(dur) == "number" and dur or 0
-end
+-- Reading one aura: present / absent / unknown (Core/AuraAlert.lua's rules)
 
 function F.Read(id)
-    local ok, result, exp, dur = pcall(tryRead, id)
-    if not ok then return "unknown" end
+    local result, exp, dur = AA.Read(id)
     return result, exp, dur
 end
 
@@ -147,31 +131,13 @@ end
 
 local function registerSounds()
     if not (setting("sound") and F.enabled) then return end
-    if API.InCombat() then state.pendingSounds = true; return end
-    state.pendingSounds = false
-    local trigger = Enum and Enum.UnitAuraSoundTrigger and Enum.UnitAuraSoundTrigger.Added or 0
-    for _, id in ipairs(F.SPELLS) do
-        if not state.sounds[id] then
-            local ok, soundID = pcall(C_UnitAuras.AddAuraSound, trigger, {
-                unitToken = "player", spellID = id, soundFileID = F.SOUND_FILE,
-                outputChannel = "Master", throttleSeconds = F.THROTTLE,
-            })
-            if ok and not API.IsSecret(soundID) and type(soundID) == "number" then
-                state.sounds[id], state.soundStatus[id] = soundID, "registered"
-            else
-                state.soundStatus[id] = "refused"
-                API.Fail("pearl fixate sound", ok and "no sound ID" or tostring(soundID))
-            end
-        end
-    end
+    sounds:Register(F.SPELLS, { fileID = F.SOUND_FILE, throttle = F.THROTTLE })
+    state.pendingSounds = sounds.pending
 end
 
 local function removeSounds(status)
-    for id, soundID in pairs(state.sounds) do
-        pcall(C_UnitAuras.RemoveAuraSound, soundID)
-        state.sounds[id] = nil
-    end
-    for _, id in ipairs(F.SPELLS) do state.soundStatus[id] = status end
+    sounds:Remove(F.SPELLS, status)
+    state.pendingSounds = false
 end
 
 --------------------------------------------------------------------------------
