@@ -55,6 +55,10 @@ against it. Shown when you carry a shield. `/gpearls uncrushable` prints it in c
 paladin's Blessing of Protection, Sacrifice or Freedom lands on you: its icon and name, who gave
 it, and its time left. Each buff has its own switch and sound.
 
+**Paladin tank reminders** (Combat, on by default, paladins only). Out of combat, with a shield: a
+reminder when Righteous Fury is off, a heads-up before it ends, and when Salvation is on you, with
+its time left and who cast it.
+
 ## Using it
 
 - `/gpearls` opens the options window: each feature's checkbox, and a gear for its own options.
@@ -67,6 +71,7 @@ it, and its time left. Each buff has its own switch and sound.
 - `/gpearls fixate`: what the game allowed the fixate alert; `/gpearls fixate test` to place it.
 - `/gpearls uncrushable`: whether you are uncrushable, and the numbers.
 - `/gpearls buffs`: what the game allowed the buff alerts; `/gpearls buffs test` to place them.
+- `/gpearls paladintank`: the paladin reminders' last reads; `/gpearls paladintank test` to place them.
 - `/gpearls sync`: your settings follow you across your own WoW accounts on the same Battle.net
   account, automatically (Settings in the window turns it off).
 - `/gpearls help` for the rest.

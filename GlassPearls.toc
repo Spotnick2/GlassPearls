@@ -41,5 +41,6 @@ Pearls\Fixate.lua
 Pearls\Uncrushable.lua
 Pearls\BuffsFrame.lua
 Pearls\Buffs.lua
+Pearls\PaladinTank.lua
 Options.lua
 GlassPearls.lua

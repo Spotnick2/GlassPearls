@@ -19,7 +19,8 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), and the seventh, buff alerts (#21); the day-one probe (#5) follows. Nothing
+uncrushable (#19), the seventh, buff alerts (#21), and the eighth, the paladin tank reminders (#22); the day-one
+probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
 
@@ -33,7 +34,7 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 `Data\Landmarks.lua` → `Data\SpellRanks.lua` → `Data\AuraDurations.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
 `Pearls\BagsFull.lua` → `Pearls\Landmarks.lua` → `Pearls\SpellRanksFrame.lua` →
 `Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua` → `Pearls\FixateFrame.lua` →
-`Pearls\Fixate.lua` → `Pearls\Uncrushable.lua` → `Pearls\BuffsFrame.lua` → `Pearls\Buffs.lua`)* →
+`Pearls\Fixate.lua` → `Pearls\Uncrushable.lua` → `Pearls\BuffsFrame.lua` → `Pearls\Buffs.lua` → `Pearls\PaladinTank.lua`)* →
 `Options.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
@@ -144,6 +145,13 @@ order) and before the options window and bootstrap.
   Blizzard's Cooldown Manager tracks some of these for your own class: compare on day one.
 - **`Pearls\BuffsFrame.lua`**: its frame (a row of slots, icon, client name, time, from, pulse;
   below the fixate alert, never overlapping) and its panel.
+- **`Pearls\PaladinTank.lua`**: paladin tank reminders (#22, pearl `paladintank`, Combat > Tanking, on
+  by default). Only a paladin (classFile) who knows Righteous Fury (25780 or rune 407627); other
+  classes register nothing. **Out of combat**, with a shield (option: without): "Righteous Fury is
+  off" (both IDs proven absent), "ends in 0:45" under 60 s (gone at 0 without claiming off), and
+  "Salvation is on you" (Forever renamed it: 1038 "Salvation", 25895 "Mass Salvation") with its
+  exact time left and who cast it. Unknown reads change nothing (last observed); a death forgets;
+  hidden in combat, where Blizzard's Cooldown Manager is the pointer. No client sounds.
 - **`Pearls\Fixate.lua`**: the fixate alert (#17, pearl `fixate`, Combat > Alerts, on by default).
   **Every client language: spell IDs only, never a name**; the alert's words are the client's
   (`C_Spell.GetSpellName` / `GetSpellTexture`). The IDs are the client's four spells named
