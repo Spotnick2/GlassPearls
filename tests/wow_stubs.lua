@@ -809,9 +809,19 @@ WoW.mapAt, WoW.mapLevels, WoW.taxi, WoW.taxiShown, WoW.atlases, WoW.lfgNames = {
 WoW.playerLevel = 30
 WorldMapFrame = newWidget("Frame", UIParent, "WorldMapFrame")
 WorldMapFrame._shown = false
+-- AreaLabelFrameTemplate (AreaLabelDataProvider.xml:5): a 400x128 frame, Name
+-- at TOP -20, Description under Name ("" when the label has none). Another
+-- provider with a Label of a different shape must not be taken for it.
 local areaLabelProvider = { Label = newWidget("Frame", WorldMapFrame) }
-WorldMapFrame.dataProviders = { [{ other = true }] = true, [areaLabelProvider] = true }
-WoW.areaLabel = areaLabelProvider.Label
+local areaLabel = areaLabelProvider.Label
+areaLabel:SetSize(400, 128)
+areaLabel.Name = areaLabel:CreateFontString(nil, "OVERLAY", "WorldMapTextFont")
+areaLabel.Name:SetPoint("TOP", 0, -20)
+areaLabel.Description = areaLabel:CreateFontString(nil, "OVERLAY", "SubZoneTextFont")
+areaLabel.Description:SetPoint("TOP", areaLabel.Name, "BOTTOM", 0, -10)
+areaLabel.Description:SetText("")
+WorldMapFrame.dataProviders = { [{ Label = newWidget("Frame", WorldMapFrame) }] = true, [areaLabelProvider] = true }
+WoW.areaLabel = areaLabel
 function Methods.IsCanvasMouseFocus(w) return WoW.cursorMap.focus == true end
 function Methods.GetMapID(w) return WoW.cursorMap.mapID end
 function Methods.GetNormalizedCursorPosition(w) return WoW.cursorMap.x, WoW.cursorMap.y end

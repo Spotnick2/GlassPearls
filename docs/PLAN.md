@@ -85,7 +85,8 @@ Each line is a claim the code relies on that only the live client can settle.
       in the open world? Where `ShouldMapShowTaxiNodes` is true, Blizzard's own pins must show and
       ours not (no doubles). Undiscovered ones greyed; `TAXI_NODE_STATUS_CHANGED` after learning one.
 - [ ] **The zone level line:** hover a zone on the Kalimdor and Eastern Kingdoms maps: its range
-      under Blizzard's name, only when Blizzard shows none (`C_Map.GetMapLevels`). Check where the
+      just under Blizzard's name (or its description line), only when Blizzard shows none
+      (`C_Map.GetMapLevels`). Check where the
       area label provider's `Label` really is (`WorldMapFrame.dataProviders`).
 - [ ] Switching it off in the window removes every pin at once; on again brings them back.
 

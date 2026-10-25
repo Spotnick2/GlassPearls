@@ -140,8 +140,26 @@ local lbl = LM._test.label()
 LM._test.update()
 check(lbl.text:IsShown(), "over Durotar on the Kalimdor map: the line shows")
 check(lbl.text:GetText():find("(1-10)", 1, true), "  Durotar's range")
-local pt = lbl.text._points[#lbl.text._points]
-eq(pt[2], WoW.areaLabel, "  anchored under Blizzard's area label (read, never written)")
+-- Under the visible text, not the 128-tall label frame (Codex review of #11).
+local function anchor()
+    local pts = lbl.text._points
+    return pts[#pts], #pts
+end
+local pt, n = anchor()
+eq(n, 1, "  one anchor (cleared each time)")
+eq(pt[1], "TOP", "  its top")
+eq(pt[2], WoW.areaLabel.Name, "  under Blizzard's zone name, not the label frame")
+eq(pt[3], "BOTTOM", "  at the name's bottom")
+check(pt[5] < 0 and pt[5] >= -8, "  just below it")
+WoW.areaLabel.Description:SetText("Contested Territory")
+LM._test.update()
+pt = anchor()
+eq(pt[2], WoW.areaLabel.Description, "with a description line: under that")
+WoW.areaLabel.Description:SetText("")
+LM._test.update()
+eq(anchor()[2], WoW.areaLabel.Name, "  and back under the name when it empties")
+eq(select(2, anchor()), 1, "  still one anchor after three updates")
+eq(WoW.areaLabel.Name:GetText(), nil, "Blizzard's label is never written")
 WoW.mapLevels[1411] = { 1, 10 }
 LM._test.update()
 check(not lbl.text:IsShown(), "Blizzard shows its own range: ours steps aside")

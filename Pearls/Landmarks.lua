@@ -293,13 +293,24 @@ end
 --------------------------------------------------------------------------------
 -- The zone level line under Blizzard's area label.
 
--- The area label provider's label frame, read from the map's providers.
-local function areaLabel()
+-- The last visible line of Blizzard's area label, read from the map's
+-- providers. Its frame (AreaLabelFrameTemplate, AreaLabelDataProvider.xml:5)
+-- is 128 tall with Name 20 from its top and Description under Name, so the
+-- frame's bottom is far below the text: anchor to the line itself.
+local function areaLabelLine()
     local map = rawget(_G, "WorldMapFrame")
     local providers = map and map.dataProviders
     if type(providers) ~= "table" then return nil end
     for provider in pairs(providers) do
-        if type(provider) == "table" and type(provider.Label) == "table" then return provider.Label end
+        local f = type(provider) == "table" and provider.Label
+        if type(f) == "table" and type(f.Name) == "table" then
+            local desc = f.Description
+            if type(desc) == "table" and desc.GetText then
+                local ok, text = pcall(desc.GetText, desc)
+                if ok and plainString(text) then return desc end
+            end
+            return f.Name
+        end
     end
 end
 
@@ -325,10 +336,10 @@ local function updateLabel()
     if not label then return end
     local text = LM.ZoneLevelText()
     if not text then return label.text:Hide() end
-    local blizzard = areaLabel()
+    local blizzard = areaLabelLine()
     label.text:ClearAllPoints()
     if blizzard then
-        label.text:SetPoint("TOP", blizzard, "BOTTOM", 0, -2)
+        label.text:SetPoint("TOP", blizzard, "BOTTOM", 0, -4)
     else
         label.text:SetPoint("TOP", label, "TOP", 0, -40)
     end
