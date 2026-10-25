@@ -12,6 +12,8 @@
 --       Enable = function() end,     -- at login when on, and when switched on
 --       Disable = function() end,    -- when switched off (optional: then the change waits for /reload)
 --       defaults = { key = value },  -- optional: its own settings (Pearls.Setting)
+--       choices = { key = { ... } }, -- a string setting's allowed values (settings sync needs them)
+--       ranges = { key = { lo, hi } },  -- optional: an integer setting's range (synced values are checked)
 --       configure = function(panel, refreshers) end,  -- optional: builds its Configuration Panel
 --       help = "...",                -- optional: the panel's Help text
 --       onReset = function() end,    -- optional: after Reset put its settings back
@@ -135,9 +137,17 @@ end
 
 -- Save a pearl's setting; nothing is saved when it equals the default. False
 -- for an unknown pearl or setting.
+-- A change for settings sync to stamp and send (it ignores its own applies).
+local function touch(id)
+    local SS = GP.SettingsSync
+    if SS then SS.Touch(id) end
+end
+
 function Pearls.SetSetting(key, name, value)
     local def = byKey[key]
     if not def or def.defaults[name] == nil or not GP.db then return false end
+    if type(value) ~= type(def.defaults[name]) then return false end
+    local was = Pearls.Setting(key, name)
     local all = GP.db.settings
     if value == def.defaults[name] then
         if all[key] then
@@ -148,6 +158,7 @@ function Pearls.SetSetting(key, name, value)
         all[key] = all[key] or {}
         all[key][name] = value
     end
+    if value ~= was then touch(key .. "." .. name) end
     return true
 end
 
@@ -155,7 +166,12 @@ end
 function Pearls.ResetSettings(key)
     local def = byKey[key]
     if not def or not GP.db then return false end
+    local was = {}
+    for name in pairs(def.defaults) do was[name] = Pearls.Setting(key, name) end
     GP.db.settings[key] = nil
+    for name, d in pairs(def.defaults) do
+        if was[name] ~= d then touch(key .. "." .. name) end
+    end
     if def.onReset then
         local ok, err = pcall(def.onReset)
         if not ok then API.Fail("pearl " .. key .. " reset", err) end
@@ -187,8 +203,10 @@ function Pearls.Set(key, on)
     local def = byKey[key]
     if not def or not GP.db then return false end
     on = on == true
+    local was = Pearls.IsOn(key)
     if on == def.default then GP.db.pearls[key] = nil else GP.db.pearls[key] = on end
     if on then enable(def) else disable(def) end
+    if on ~= was then touch("on." .. key) end
     return true
 end
 

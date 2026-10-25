@@ -33,6 +33,9 @@ local function ensureDefaults()
     Pearls.Clean(db.pearls)
     if type(db.settings) ~= "table" then db.settings = {} end
     Pearls.CleanSettings(db.settings)
+    -- Settings sync's stamps, sets and relayed keys (SettingsSync.lua).
+    if type(db.sync) ~= "table" then db.sync = {} end
+    GP.SettingsSync.Core.Clean(db.sync)
     setmetatable(db, { __index = DEFAULTS })
     if type(GlassPearlsCharDB) ~= "table" then GlassPearlsCharDB = {} end
     if type(GlassPearlsSyncDB) ~= "table" then GlassPearlsSyncDB = {} end
@@ -84,7 +87,9 @@ GP.Settings = Settings
 
 -- Follow Glass UI's look; applies after a /reload (the look is fixed once a session).
 function Settings.SetUseGlassUI(on)
+    local was = GP.db.useGlassUI ~= false
     GP.db.useGlassUI = on == true
+    if GP.db.useGlassUI ~= was then GP.SettingsSync.Touch("core.glassui") end
     return true
 end
 
@@ -119,6 +124,7 @@ local function slash(msg)
             return
         end
         for _, line in ipairs(GP.AccountSync.Lines()) do say(line) end
+        for _, line in ipairs(GP.SettingsSync.Lines()) do say(line) end
     elseif cmd == "failures" then
         failures()
     elseif cmd == "version" then
@@ -165,6 +171,7 @@ boot:SetScript("OnEvent", function(_, event, arg1)
         if not GP.db then load() end
         start("options", GP.Options.Register)
         start("pearls", Pearls.StartAll)
+        start("settings sync", GP.SettingsSync.Start)
     elseif event == "PLAYER_ENTERING_WORLD" then
         -- arg1 = isInitialLogin. The build warning asks the developer to
         -- re-measure; a player can't act on it, and /reload never repeats it.

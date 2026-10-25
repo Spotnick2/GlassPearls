@@ -44,13 +44,18 @@ eq(tocLines()[1], LIBGLASS_XML, "LibGlass-1.0 loads first")
 eq(tocLines()[2], LIBACCOUNTSYNC_XML, "LibAccountSync-1.0 loads second")
 eq(tocFiles()[1], "Compat.lua", "Compat is the first of our own files")
 eq(tocFiles()[#tocFiles()], "GlassPearls.lua", "the bootstrap loads last")
-local seen, pearlsAt = {}, nil
+local seen, pearlsAt, syncAt = {}, nil, nil
 for i, f in ipairs(tocFiles()) do
     check(not seen[f], "TOC lists each file once: " .. f)
     seen[f] = true
     if f == "Pearls.lua" then pearlsAt = i end
-    -- A pearl registers at file scope, so it loads after the registry.
-    if f:match("^Pearls/") then check(pearlsAt and i > pearlsAt, "after Pearls.lua: " .. f) end
+    if f == "SettingsSync.lua" then syncAt = i end
+    -- A pearl registers itself (Pearls.lua) and its sets (SettingsSync.lua) at
+    -- file scope, so it loads after both.
+    if f:match("^Pearls/") then
+        check(pearlsAt and i > pearlsAt, "after Pearls.lua: " .. f)
+        check(syncAt and i > syncAt, "after SettingsSync.lua: " .. f)
+    end
 end
 
 -- Every .pkgmeta external is a library the TOC loads, and the other way round.
