@@ -100,6 +100,20 @@ aura()
 P.SetSetting("paladintank", "salv", false)
 eq(texts(), "", "the Salvation switch off: hidden")
 P.ResetSettings("paladintank")
+-- Its known expiration passing ends it, even if the next read is unknown (Codex review of #24).
+WoW.now = 4571
+WoW.auras[1038] = WoW.Secret("aura")
+aura()
+eq(texts(), "", "Salvation's expiration passed, the read unknown: not reported as on you")
+WoW.now = 4580
+aura()
+eq(texts(), "", "  and it stays ended until a fresh proven read")
+WoW.auras[1038] = { expirationTime = 8180, duration = 3600, sourceUnit = "party2" }
+aura()
+check(texts():find("Salut is on you", 1, true), "  a fresh read proves a new one: shown")
+WoW.now = 1030
+WoW.auras[1038] = salvRead
+aura()
 -- The clock rounds to the nearest second.
 eq(T.Clock(49.6), "0:50", "the clock rounds (49.6 s: 0:50)")
 eq(T.Clock(3570.4), "59:30", "  and shows minutes")

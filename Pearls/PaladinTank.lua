@@ -140,9 +140,19 @@ end
 --------------------------------------------------------------------------------
 -- The lines
 
+-- A Salvation whose known expiration passed has ended: it is never reported
+-- again until a fresh read proves one present (Codex review of #24). (Fury's
+-- expiry only drops the heads-up: "off" still needs a proven read.)
+local function expireSalvation(t)
+    if state.salv == "present" and state.salvExp > 0 and t >= state.salvExp then
+        state.salv, state.salvID, state.salvExp, state.salvFrom = "absent", nil, 0, nil
+    end
+end
+
 -- The lines to show now: { { id, text }, ... }.
 function T.Lines()
     local lines, t = {}, now()
+    expireSalvation(t)
     if state.test then
         lines[1] = { T.FURY[1], spellName(T.FURY[1]) .. " is off" }
         lines[2] = { T.SALVATION[1], spellName(T.SALVATION[1]) .. " is on you  " .. T.Clock(T.TEST_SECONDS) }
