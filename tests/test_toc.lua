@@ -7,6 +7,10 @@ check(toc:find("## Interface: 16001", 1, true), "interface 16001 (1.60.1; 11601 
 check(toc:find("## Version: @project-version@", 1, true), "packager version token kept")
 check(toc:find("## SavedVariables: GlassPearlsDB, GlassPearlsSyncDB", 1, true), "saved variables declared")
 check(toc:find("## SavedVariablesPerCharacter: GlassPearlsCharDB", 1, true), "per-character saved variables declared")
+-- The release targets: CurseForge's packager and the Wago app match on these,
+-- and CI's wago job uploads to the packaged TOC's X-Wago-ID.
+check(toc:find("## X%-Curse%-Project%-ID: 1764704\r?\n"), "the CurseForge project ID")
+check(toc:find("## X%-Wago%-ID: kGr9LxKy\r?\n"), "the Wago project ID")
 for _, f in ipairs(tocFiles()) do
     check(io.open(f, "r") ~= nil, "TOC file exists: " .. f)
 end

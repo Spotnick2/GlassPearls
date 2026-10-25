@@ -32,3 +32,20 @@ remains the work of its author:
                            MIT License; its own LICENSE ships beside it.
                            Fetched at build time, not kept in this
                            repository.
+
+--------------------------------------------------------------------------------
+
+Third-party libraries (Libs\), shipped unmodified under their own terms, which
+this MIT licence does not cover. Each library's own notice is in its folder.
+
+  LibGlass-1.0         Spotnick2. MIT licence, full text in
+                       Libs/LibGlass-1.0/LICENSE. The glass material, embedded
+                       by the packager from github.com/Spotnick2/LibGlass.
+                       Bundles LibStub (Kaelten, Cladhaire, ckknight, Mikk,
+                       Ammo, Nevcairiel, joshborke; public domain).
+  LibAccountSync-1.0   Spotnick2. MIT licence, full text in
+                       Libs/LibAccountSync-1.0/LICENSE. Messages between your
+                       own accounts, embedded by the packager from
+                       github.com/Spotnick2/LibAccountSync. Bundles LibStub
+                       (public domain, as above) and ChatThrottleLib v32
+                       (Mikk; public domain).
