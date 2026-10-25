@@ -26,12 +26,22 @@ Deeprun Tram and flight points on the world map (zone and continent) and the min
 - Hover a zone on a continent map to see its level range, when the game shows none.
 - Its gear switches each kind on the world map and minimap, and sets the icon size.
 
+**Low spell ranks** (Combat, on by default). When a spell on your action bars, or one you cast,
+is a lower rank than one you know, it lists it after combat and updates the buttons in one click.
+- It checks at login, after you learn a spell (once the trainer window closes), and after a
+  dual-spec swap, where each spec's bars can still hold old ranks.
+- Keep a rank you use low on purpose: it isn't listed again, on any of your accounts. Spells in
+  macros are listed, never edited.
+- The rank data comes from the game's own tables, by spell ID, on the model of
+  [RankSentinel](https://www.curseforge.com/wow/addons/ranksentinel) (MIT).
+
 ## Using it
 
 - `/gpearls` opens the options window: each feature's checkbox, and a gear for its own options.
   Esc > Options > AddOns > Glass Pearls has a button to it too.
 - `/gpearls <pearl> on/off` switches one; `/gpearls list` lists them.
 - `/gpearls cheapest`: the item the bags full helper would suggest right now.
+- `/gpearls ranks`: check your action bars for low spell ranks now.
 - `/gpearls sync`: your settings follow you across your own WoW accounts on the same Battle.net
   account, automatically (Settings in the window turns it off).
 - `/gpearls help` for the rest.

@@ -1,0 +1,7 @@
+# Rank groups that are not "the same spell, better": their ranks do different
+# things, so a lower one is never "low". Reviewed by hand from the generator's
+# "review: descriptions differ" list (Tools/ranks/report.txt); the rest of that
+# list are ordinary upgrades. skillline is SkillLine.ID, name the English
+# SpellName (offline only).
+skillline,name,reason
+354,Detect Invisibility,"each rank detects another kind: lesser (132), normal (2970), greater (11743)"

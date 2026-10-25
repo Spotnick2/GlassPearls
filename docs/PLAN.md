@@ -21,6 +21,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #5 | PearlsProbe: what the client must confirm on day one | next (built after #6, owner 2026-10-25) |
 | #6 | Bags full helper (pearl `bagsfull`) | built; its action waits for the probe |
 | #10 | Map landmarks (pearl `landmarks`): entrances, boats, zeppelins, the tram, flight points, zone levels | built; its positions and icons wait for day one |
+| #12 | Low spell ranks (pearl `spellranks`): the bar scan, the cast warning, Update all | built; the update path waits for day one |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -89,6 +90,26 @@ Each line is a claim the code relies on that only the live client can settle.
       (`C_Map.GetMapLevels`). Check where the
       area label provider's `Label` really is (`WorldMapFrame.dataProviders`).
 - [ ] Switching it off in the window removes every pin at once; on again brings them back.
+
+**Low spell ranks (#12)** (a shaman or any class with ranked spells; a second spec for the swap)
+- [ ] **Does learning a rank update the active bars by itself?** And does it leave the other
+      spec's bars on the old rank (the owner's case)? Learn a rank, look at both specs' bars.
+- [ ] **Update all**: `PlaceAction` from our button's click places the rank, without
+      `ADDON_ACTION_FORBIDDEN` (`/gpearls failures`), and the old rank lands on the cursor and is
+      cleared. If refused, the popup's "by hand" line must show and nothing change.
+- [ ] `C_Spell.PickupSpell(rank1)` picks up exactly rank 1 (not upgraded by the client).
+- [ ] `GetActionInfo` gives each rank's own ID; `IsSpellKnown` is true for a lower rank once a
+      higher one is learned; `GetOverrideSpell` on a talent-modified spell.
+- [ ] The pages: the stance and form bars (warrior, druid) are scanned and labelled; nothing on a
+      vehicle or possess bar is ever listed; the slot ceiling (180) holds.
+- [ ] `GetMacroSpell` for a `#showtooltip` macro: the macro row appears.
+- [ ] The cast warning: `UNIT_SPELLCAST_SUCCEEDED`'s spell ID in combat (plain or secret); casts
+      from a key, a macro, an item, a proc, a triggered or channelled spell. Any that fire on
+      their own go on a suppression list.
+- [ ] The spec swap: `ACTIVE_TALENT_GROUP_CHANGED` and the bars' reload timing (is the second
+      pass at 6 s enough?).
+- [ ] A class trainer holds the check until its window closes; a profession trainer doesn't.
+- [ ] The popup in both looks (screenshot); Keep survives a sync to the other account.
 
 **The probe (#5):** its steps are added here by its PR.
 

@@ -34,4 +34,11 @@
     faction's are marked), a flight master's name. Clicks go through to the map.
   - Hover a zone on a continent map for its level range under its name, when the game shows none.
   - The gear: each kind on the world map and the minimap on its own, the zone levels, the icon size.
+- **Low spell ranks** (Combat, on by default): tells you when a spell on your action bars, or one
+  you cast, is a lower rank than one you know, and fixes the buttons in one click.
+  - After combat, a list: "Earth Shock  Rank 1 > Rank 4 (2 buttons)", with **Keep** for a rank you
+    use low on purpose (on all your accounts), **Later** and **Update all** (same place, same key).
+  - It checks at login, after you learn a spell (once the trainer window closes) and after a
+    dual-spec swap; `/gpearls ranks` any time. Spells in macros are listed, never edited.
+  - The gear: when it checks, whether casts and macros are listed, and the kept ranks.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.
