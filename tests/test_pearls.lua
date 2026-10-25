@@ -17,7 +17,7 @@ end
 -- A pearl registers at file scope, before the saved variables load. The saved
 -- table: "beta" switched on (default off), "alpha" saved at its default
 -- (dropped), a pearl no file claims (kept), a non-boolean (dropped).
-local GP = loadAddon({
+local GP = loadAddon({ pearls = false,   -- only the pearls this test registers
     db = { pearls = { beta = true, alpha = true, gone = false, junk = "yes" } },
     before = function(GP)
         local R = GP.Pearls.Register

@@ -17,7 +17,7 @@ default and Glass UI's glass when Glass UI is installed (owner). The milestones,
 day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
-(#4) are done; the day-one probe (#5) and the first pearl, the bags-full helper (#6), follow. Nothing
+(#4) and the first pearl, the bags-full helper (#6), are built; the day-one probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
 
@@ -25,7 +25,8 @@ client claim is on the day-one checklist in docs/PLAN.md.
 
 TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.0\LibAccountSync-1.0.xml`
 → `Compat.lua` → `Theme.lua` → `UI.lua` → `AccountSync.lua` → `Pearls.lua` → `SettingsSync.lua` →
-*(pearl files, `Pearls\<Name>.lua`)* → `Options.lua` → `GlassPearls.lua`. Pearls load after
+`Core\ToolItems.lua` → `Core\Bags.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
+`Pearls\BagsFull.lua`)* → `Options.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
 
@@ -75,6 +76,28 @@ order) and before the options window and bootstrap.
   through the same setters with stamping suppressed. A fixed byte budget per part (see the file's
   header; `test_sync_budget` fills every part). The store is `GlassPearlsDB.sync`; integers are
   written with `%.0f` (Lua 5.1's `%d` is 32-bit on Windows).
+- **`Core\ToolItems.lua`**: **generated** by `Tools\gen_tools.py` from the client's ItemSparse and
+  TotemCategory tables (`References\Forever\db`, the `wago-tools` skill): every item the client
+  marks as a tool (`TotemCategoryID > 0`: picks, knives, hammers, spanners, rods, shaman totems,
+  the philosopher's stone). Never edit it; re-run the script on a new build.
+- **`Core\Bags.lua`**: bag facts for any pearl. `Slot`, `Snapshot`, `Fits(itemID, qty, snap)` →
+  true / false / **nil when it can't be told** (GlassMail's measured room rules: a partial stack is
+  room, a matching specialty bag takes its family, bags 0-4), `FreeGeneral`, `SetItems`,
+  `ItemFacts`, `Eligible(slot, opts)` and `Candidates(opts)`: what may be destroyed, on **known data
+  only** (anything uncached, unread or secret makes a stack ineligible), cheapest first by
+  `sellPrice × stackCount`, greys first when asked.
+- **`Pearls\BagsFull.lua`**: the bags-full helper (#6, pearl `bagsfull`, on by default). Shows when a
+  loot row really doesn't fit, or after a full-bags error with no loot window ("make room").
+  Offers grey (default) or grey and white items, never quest items, tools, equipment-set items,
+  containers, reagents, ammunition, recipes, quivers, keys, fishing poles, white consumables or
+  white items with a use, nor the never-suggest list (the sync set `bagsfull.keep`). The action runs
+  inside the window button's click: the stack checked again, grey in one click, white armed by a
+  second within 3 s, the cursor and slot lock confirmed, `DeleteCursorItem`; refused (the cursor
+  still holds it, or `ADDON_ACTION_FORBIDDEN`) puts the item back and switches to **by hand** for
+  the session; the loot (`LootSlot`) only once the slot is empty, with the row still holding that
+  item (`LOOT_CLOSED` cancels it). Unmeasured until day one: the delete and the loot path (probe).
+- **`Pearls\BagsFullFrame.lua`**: its window (beside the loot window, or where the player dragged it,
+  per character) and its Configuration Panel (quality scope, greys first, the never-suggest list).
 - **`Options.lua`**: **our own options window**, on Leatrix Plus's layout (the owner's choice;
   `References\Addons\Miscellaneous\LeatrixPlus`, All Rights Reserved: the layout is the model,
   nothing is copied). Left: the name, the version, Home, each category that has pearls, Settings.
@@ -104,7 +127,10 @@ order) and before the options window and bootstrap.
    string setting its `choices` and an integer one its `ranges`, or it won't travel. A list (a
    keep list) is a sync set: `SettingsSync.RegisterSet("<key>.<name>")` at file scope. Mind the
    budget: `test_sync_budget` fails if the known keys outgrow their 4 KB.
-5. A test file `tests\test_<name>.lua`, and a line in `CHANGELOG.md` under the next version.
+5. Slash commands of its own: `commands = { name = { help, run(arg) } }` (`/gpearls <name>`, listed
+   by `/gpearls help`).
+6. A test file `tests\test_<name>.lua` (the bags-full helper's four are the model), and a line in
+   `CHANGELOG.md` under the next version.
 
 ## Forever basics (shared with the siblings)
 
@@ -166,7 +192,9 @@ validated against the dump or `tests\events-70532.txt`, every widget method reco
 and ChatThrottleLib for LibAccountSync, `WoW.installGlassUI` for a scriptable Glass UI suite,
 `WoW.missingTemplates` for a template the client lacks, `WoW.reloadForbidden` for a refused
 `ReloadUI`), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
-registering test pearls, `newChat`, `chatHas`). A stub is added only for something in the 70532
+registering test pearls, `opts.pearls = false` to leave the shipped pearls out of a framework
+test, `newChat`, `chatHas`). Bags, items, the cursor and the loot window are modelled too
+(`WoW.bags`, `WoW.items`, `WoW.openLoot`, `WoW.deleteForbidden`, ...; the block's header lists them). A stub is added only for something in the 70532
 dump (documented functions or the `_G` walk) or Blizzard's source, and its comment says which.
 
 **The unit tests are the main proof until 2026-11-04** (owner): one test file per concern, every

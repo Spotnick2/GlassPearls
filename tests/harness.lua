@@ -87,7 +87,9 @@ end
 -- libraries' XML expanded in place, then ADDON_LOADED, PLAYER_LOGIN,
 -- PLAYER_ENTERING_WORLD (initial login). opts.before(), when given, runs
 -- after the files and before ADDON_LOADED: where a test registers a pearl, as
--- a pearl file would at file scope.
+-- a pearl file would at file scope. opts.pearls = false leaves out the shipped
+-- pearls (TOC lines under Pearls\): for a test of the framework, which counts
+-- only the pearls it registers itself.
 function loadAddon(opts)
     opts = opts or {}
     local ns = {}
@@ -97,6 +99,8 @@ function loadAddon(opts)
             files = libScripts(line)
         elseif not line:match("%.lua$") then
             error("the harness can't load TOC line " .. line, 0)
+        elseif opts.pearls == false and line:match("^Pearls\\") then
+            files = {}
         end
         for _, file in ipairs(files) do
             assert(loadfile((file:gsub("\\", "/"))))("GlassPearls", ns)

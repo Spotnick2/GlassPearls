@@ -4,7 +4,7 @@ dofile("tests/harness.lua")
 
 -- Missing SavedVariables still load.
 GlassPearlsDB = nil
-local GP = loadAddon()
+local GP = loadAddon({ pearls = false })   -- the framework alone: "no pearls yet"
 eq(type(GlassPearlsDB), "table", "missing saved variables become a table")
 eq(GP.db, GlassPearlsDB, "the addon keeps the saved table")
 eq(type(GlassPearlsDB.pearls), "table", "  with a pearls table")
