@@ -50,4 +50,9 @@
     only what the buyback page can still hold. Hold Shift as you open the merchant to skip a visit.
   - Repair: guild funds first, then your money (like Blizzard's guild repair button), or your money
     only. A guild that says `[noautorepair]` is never charged.
+- **Fixate alert** (Combat, on by default): a sound and an alert when a mob fixates on you, in any
+  client language: it goes by spell ID, and the alert shows the spell's name in your game's
+  language, its icon and a countdown. The game hides most aura details in combat, so the sound is
+  played by the game itself when it allows it; `/gpearls fixate` tells what it allowed, and
+  `/gpearls fixate test` shows the alert to place it.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.

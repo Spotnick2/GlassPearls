@@ -1064,6 +1064,54 @@ function RepairAllItems(guild)
     WoW.fire("UPDATE_INVENTORY_DURABILITY")
 end
 
+--------------------------------------------------------------------------------
+-- Player auras and the client's aura sounds, for the fixate alert (#17). In
+-- the 70532 dump: C_UnitAuras.GetPlayerAuraBySpellID / AddAuraSound /
+-- RemoveAuraSound, C_Secrets.ShouldSpellAuraBeSecret / ShouldAurasBeSecret /
+-- GetSpellAuraSecrecy, Frame:RegisterUnitEvent, PlaySound;
+-- Enum.UnitAuraSoundTrigger (UnitAuraConstantsDocumentation.lua:6) and
+-- UnitAuraSoundInfo (UnitConstantsDocumentation.lua:43) from Blizzard's docs.
+--   WoW.auras[spellID] = { expirationTime, duration, icon } (or a WoW.Secret)
+--   WoW.spellAuraSecret[spellID] = true | WoW.Secret(...)  (default plain false)
+--   WoW.aurasRestricted: ShouldAurasBeSecret() is true
+--   WoW.auraSoundRefused: AddAuraSound returns nothing; WoW.auraSounds lists
+--   the registered ones { trigger, info }; WoW.soundsPlayed what PlaySound got
+-- GetAuraDataBySpellName throws: a name lookup is never what these pearls use.
+--------------------------------------------------------------------------------
+
+WoW.auras, WoW.spellAuraSecret, WoW.auraSounds, WoW.soundsPlayed = {}, {}, {}, {}
+Enum.UnitAuraSoundTrigger = { Added = 0, ApplicationsIncreased = 1, Removed = 2 }
+SOUNDKIT = { RAID_WARNING = 8959 }
+function PlaySound(kit, channel) table.insert(WoW.soundsPlayed, { kit, channel }) return true end
+local auraSoundID = 0
+C_UnitAuras = {
+    GetPlayerAuraBySpellID = function(id) return WoW.auras[id] end,
+    GetAuraDataBySpellName = function() error("looked up by name", 2) end,
+    AddAuraSound = function(trigger, info)
+        if WoW.auraSoundRefused then return nil end
+        auraSoundID = auraSoundID + 1
+        WoW.auraSounds[auraSoundID] = { trigger = trigger, info = info }
+        return auraSoundID
+    end,
+    RemoveAuraSound = function(id) WoW.auraSounds[id] = nil end,
+}
+C_Secrets = {
+    ShouldAurasBeSecret = function() return WoW.aurasRestricted == true end,
+    ShouldSpellAuraBeSecret = function(id)
+        local v = WoW.spellAuraSecret[id]
+        if v == nil then return false end
+        return v
+    end,
+    GetSpellAuraSecrecy = function(id) return WoW.spellAuraSecret[id] == true and 2 or 0 end,
+}
+function Methods.RegisterUnitEvent(w, e, ...)
+    if not WoW.KNOWN_EVENTS[e] then error("Attempt to register unknown event \"" .. e .. "\"", 2) end
+    w._events[e] = true
+    w._units = w._units or {}
+    w._units[e] = { ... }
+    return true
+end
+
 function WoW.calledCount(name)
     local n = 0
     for _, c in ipairs(WoW.calls) do if c[1] == name then n = n + 1 end end

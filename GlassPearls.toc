@@ -34,5 +34,7 @@ Pearls\SpellRanksFrame.lua
 Pearls\SpellRanks.lua
 Pearls\JunkFrame.lua
 Pearls\Junk.lua
+Pearls\FixateFrame.lua
+Pearls\Fixate.lua
 Options.lua
 GlassPearls.lua

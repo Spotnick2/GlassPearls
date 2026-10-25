@@ -18,8 +18,8 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
-third, low spell ranks (#12), and the fourth, junk selling and repair (#15); the day-one probe (#5)
-follows. Nothing
+third, low spell ranks (#12), the fourth, junk selling and repair (#15), and the fifth, the fixate alert (#17); the day-one
+probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
 
@@ -32,8 +32,8 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 `Core\Merchant.lua` →
 `Data\Landmarks.lua` → `Data\SpellRanks.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
 `Pearls\BagsFull.lua` → `Pearls\Landmarks.lua` → `Pearls\SpellRanksFrame.lua` →
-`Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua`)* → `Options.lua` →
-`GlassPearls.lua`. Pearls load after
+`Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua` → `Pearls\FixateFrame.lua` →
+`Pearls\Fixate.lua`)* → `Options.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
 
@@ -122,6 +122,20 @@ order) and before the options window and bootstrap.
   `UPDATE_INVENTORY_DURABILITY`, within 2 s), or "my money only"; `[noautorepair]` in the guild
   info, or an unreadable one, never charges the guild. Commands `/gpearls sell [item]`, `keep`,
   `forget` (the pearl key `junk` is its on/off). Unmeasured until day one.
+- **`Pearls\Fixate.lua`**: the fixate alert (#17, pearl `fixate`, Combat > Alerts, on by default).
+  **Every client language: spell IDs only, never a name**; the alert's words are the client's
+  (`C_Spell.GetSpellName` / `GetSpellTexture`). The IDs are the client's four spells named
+  "Fixate" (`F.SPELLS`; add one found under another name by ID). Auras are secret in combat, so
+  two paths: the **client's own sound** (`C_UnitAuras.AddAuraSound(Added, { unitToken = "player",
+  spellID, ... })`, registered out of combat, removed when off; refused is recorded), and the
+  **alert when the aura can be read**: `RegisterUnitEvent("UNIT_AURA", "player")` with its payload
+  never touched, then `GetPlayerAuraBySpellID` inside one pcall answering **present** (a plain
+  table), **absent** (nil AND `C_Secrets.ShouldSpellAuraBeSecret(id)` plainly false; a spell can be
+  always secret) or **unknown**; shown on present, cleared on absent or its own countdown ending,
+  never on unknown. `/gpearls fixate` reports what the client allowed per spell; `fixate test`
+  places the alert. Unverified in combat until day one.
+- **`Pearls\FixateFrame.lua`**: the alert (icon, the client's spell name, a countdown; click-through,
+  draggable during a test, position per character) and its panel.
 - **`Pearls\JunkFrame.lua`**: its Configuration Panel (four switches, the two repair choices, the
   sell and keep lists).
 - **`Pearls\BagsFull.lua`**: the bags-full helper (#6, pearl `bagsfull`, on by default). Shows when a
@@ -189,7 +203,9 @@ order) and before the options window and bootstrap.
   click (unmeasured: if `ADDON_ACTION_FORBIDDEN` names it, "Type /reload" replaces the button).
   Plus a small Esc > Options > AddOns page with an "Open Glass Pearls" button.
 - **`GlassPearls.lua`**: bootstrap (saved settings, the look at `ADDON_LOADED`, login build
-  warning), `GP.Settings`, and `/gpearls` (`/glasspearls`): no argument toggles the window. Loads last.
+  warning), `GP.Settings`, and `/gpearls` (`/glasspearls`): no argument toggles the window. A pearl's
+  key with `on`/`off` switches it; a pearl command of the same name as its key takes every other
+  argument (`/gpearls fixate`, `/gpearls fixate test`). Loads last.
 
 ### Adding a pearl
 
@@ -277,7 +293,9 @@ and ChatThrottleLib for LibAccountSync, `WoW.installGlassUI` for a scriptable Gl
 macros, known spells, overrides and a spell on the cursor (`WoW.actions`, `WoW.known`,
 `WoW.placeHook`, ...), and a merchant: selling, the buyback page, repair and guild funds
 (`WoW.openMerchant`, `WoW.money`, `WoW.buyback`, `WoW.repairCost`, `WoW.guild`, `WoW.salesAsync`,
-...)), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
+...), and player auras with the client's aura sounds and per-spell secrecy (`WoW.auras`,
+`WoW.spellAuraSecret`, `WoW.auraSounds`; `GetAuraDataBySpellName` throws, so no name lookup
+survives a test)), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
 registering test pearls, `opts.pearls = false` to leave the shipped pearls out of a framework
 test, `newChat`, `chatHas`). Bags, items, the cursor and the loot window are modelled too
 (`WoW.bags`, `WoW.items`, `WoW.openLoot`, `WoW.deleteForbidden`, ...; the block's header lists them). A stub is added only for something in the 70532

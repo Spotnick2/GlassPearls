@@ -133,7 +133,9 @@ local function slash(msg)
     elseif cmd == "version" then
         say("version " .. GP.VersionText() .. ", client " .. API.ClientBuild()
             .. ", measured on " .. GP.MEASURED_ON_BUILD .. ", look " .. GP.Theme.Active())
-    elseif Pearls.Get(cmd) then
+    elseif Pearls.Get(cmd) and (ONOFF[arg] ~= nil or not Pearls.Command(cmd)) then
+        -- A pearl's key switches it; a pearl command of the same name takes
+        -- every other argument (/gpearls fixate, /gpearls fixate test).
         local def = Pearls.Get(cmd)
         if ONOFF[arg] == nil then
             return say(def.name .. " is " .. onoff(Pearls.IsOn(cmd)) .. ". /gpearls " .. cmd .. " on/off")
