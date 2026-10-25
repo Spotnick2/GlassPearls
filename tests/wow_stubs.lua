@@ -958,6 +958,112 @@ C_ActionBar = {
 }
 function Methods.SetSpellByID(t, id) t._lines = { "spell:" .. tostring(id) } end
 
+--------------------------------------------------------------------------------
+-- A merchant, for "Sell junk & repair" (#15). In the 70532 dump: GetMoney,
+-- IsShiftKeyDown, IsInGuild, C_Item.CanBeRefunded / IsBound / GetItemGUID,
+-- C_Container.UseContainerItem documented; GetNumBuybackItems,
+-- GetBuybackItemLink, GetBuybackItemInfo, CanMerchantRepair, GetRepairAllCost,
+-- RepairAllItems, CanGuildBankRepair, GetGuildInfoText in its _G walk.
+-- ItemLocation:CreateFromBagAndSlot is Blizzard_ObjectAPI's; the buyback page
+-- holds 12 (MerchantFrame.lua:2); GetBuybackItemInfo's 4th return is the
+-- quantity (MerchantFrame.lua:556).
+--   WoW.openMerchant({ repairs = true }) / WoW.closeMerchant()
+--   WoW.money (copper); WoW.buyback = { { link, count } } (oldest first)
+--   a bag stack's own fields: refundable, bound, guid
+--   WoW.repairCost; WoW.guild = { member, mayRepair, info, allowance }
+--   WoW.merchantRefuses = errorType: UseContainerItem raises that UI error
+--     and sells nothing; WoW.salesAsync: a sale waits for WoW.applySales();
+--     WoW.repairSilent: RepairAllItems does nothing
+-- RepairAllItems(true) pays from the guild allowance and takes the rest from
+-- the player when it can (Blizzard's guild repair tooltip, MerchantFrame.xml:345).
+--------------------------------------------------------------------------------
+
+WoW.money, WoW.buyback, WoW.repairCost, WoW.merchant = 0, {}, 0, nil
+WoW.guild = { member = false, mayRepair = false, info = "", allowance = 0 }
+WoW.pendingSales = {}
+ERR_VENDOR_DOESNT_BUY = "The merchant doesn't want that item."
+ERR_TOO_MUCH_GOLD = "You have too much gold."
+WoW.errorNames[51] = "ERR_VENDOR_DOESNT_BUY"
+WoW.errorNames[52] = "ERR_TOO_MUCH_GOLD"
+function GetMoney() return WoW.money end
+function IsShiftKeyDown() return WoW.shift == true end
+function IsInGuild() return WoW.guild.member == true end
+function CanGuildBankRepair() return WoW.guild.mayRepair == true end
+function GetGuildInfoText() return WoW.guild.info end
+ItemLocation = { CreateFromBagAndSlot = function(self, bag, slot) return { bag = bag, slot = slot } end }
+local function stackAt(loc)
+    local b = loc and WoW.bags[loc.bag]
+    return b and b.items[loc.slot]
+end
+local guidCounter = 0
+function C_Item.GetItemGUID(loc)
+    local s = stackAt(loc)
+    if not s then return nil end
+    if not s.guid then guidCounter = guidCounter + 1; s.guid = "Item-0-" .. guidCounter end
+    return s.guid
+end
+function C_Item.CanBeRefunded(loc) local s = stackAt(loc); return s ~= nil and s.refundable == true end
+function C_Item.IsBound(loc) local s = stackAt(loc); return s ~= nil and s.bound == true end
+function GetNumBuybackItems() return #WoW.buyback end
+function GetBuybackItemLink(i) return WoW.buyback[i] and WoW.buyback[i].link end
+function GetBuybackItemInfo(i)
+    local e = WoW.buyback[i]
+    if e then return "name", 134400, 1, e.count, -1, true, false end
+end
+function WoW.openMerchant(m)
+    WoW.merchant = m or { repairs = true }
+    WoW.fire("MERCHANT_SHOW")
+end
+function WoW.closeMerchant()
+    WoW.merchant = nil
+    WoW.fire("MERCHANT_CLOSED")
+end
+local function sell(bag, slot)
+    local b = WoW.bags[bag]
+    local s = b and b.items[slot]
+    if not s then return end
+    local it = WoW.items[s.id] or {}
+    b.items[slot] = nil
+    table.insert(WoW.buyback, { link = itemLink(s.id), count = s.count or 1 })
+    if #WoW.buyback > 12 then table.remove(WoW.buyback, 1) end
+    WoW.money = WoW.money + (it.price or 0) * (s.count or 1)
+    WoW.fire("PLAYER_MONEY")
+    WoW.fire("BAG_UPDATE_DELAYED")
+end
+function C_Container.UseContainerItem(bag, slot)
+    call("UseContainerItem", bag, slot)
+    if not WoW.merchant then return end
+    if WoW.merchantRefuses then
+        WoW.fire("UI_ERROR_MESSAGE", WoW.merchantRefuses, rawget(_G, WoW.errorNames[WoW.merchantRefuses]) or "?")
+        return
+    end
+    if WoW.salesAsync then table.insert(WoW.pendingSales, { bag, slot }) else sell(bag, slot) end
+end
+function WoW.applySales()
+    local pending = WoW.pendingSales
+    WoW.pendingSales = {}
+    for _, p in ipairs(pending) do sell(p[1], p[2]) end
+end
+function CanMerchantRepair() return WoW.merchant ~= nil and WoW.merchant.repairs == true end
+function GetRepairAllCost() return WoW.repairCost, WoW.repairCost > 0 end
+function RepairAllItems(guild)
+    call("RepairAllItems", guild == true)
+    if WoW.repairSilent or WoW.repairCost <= 0 then return end
+    local cost = WoW.repairCost
+    if guild then
+        local paid = math.min(cost, WoW.guild.allowance)
+        WoW.guild.allowance = WoW.guild.allowance - paid
+        cost = cost - paid
+    end
+    if cost > 0 and WoW.money >= cost then
+        WoW.money = WoW.money - cost
+        cost = 0
+        WoW.fire("PLAYER_MONEY")
+    end
+    WoW.repairCost = cost
+    WoW.fire("UPDATE_INVENTORY_DURABILITY")
+end
+
 function WoW.calledCount(name)
     local n = 0
     for _, c in ipairs(WoW.calls) do if c[1] == name then n = n + 1 end end

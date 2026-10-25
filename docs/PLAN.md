@@ -22,6 +22,8 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #6 | Bags full helper (pearl `bagsfull`) | built; its action waits for the probe |
 | #10 | Map landmarks (pearl `landmarks`): entrances, boats, zeppelins, the tram, flight points, zone levels | built; its positions and icons wait for day one |
 | #12 | Low spell ranks (pearl `spellranks`): the bar scan, the cast warning, Update all | built; the update path waits for day one |
+| #15 | Sell junk & repair (pearl `junk`), guild funds first | built; selling and guild repair wait for day one |
+| #14 | Restock food and water | backlog |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -110,6 +112,24 @@ Each line is a claim the code relies on that only the live client can settle.
       pass at 6 s enough?).
 - [ ] A class trainer holds the check until its window closes; a profession trainer doesn't.
 - [ ] The popup in both looks (screenshot); Keep survives a sync to the other account.
+
+**Sell junk & repair (#15)** (bags with greys, a listed white, a refundable purchase; a guild with repair rights)
+- [ ] **Selling from a timer at a merchant**: `C_Container.UseContainerItem` from our `MERCHANT_SHOW`
+      timer sells, no `ADDON_ACTION_FORBIDDEN` (`/gpearls failures`). One sale at a time: fast
+      enough? Does the slot read empty by `BAG_UPDATE_DELAYED` (the confirmation), and within 1 s?
+- [ ] The refusal names: a merchant that doesn't buy (`ERR_VENDOR_DOESNT_BUY`?) and the gold cap
+      (`ERR_TOO_MUCH_GOLD`?), through `GetGameMessageInfo`.
+- [ ] Not sold: unbound grey gear, a grey with a use, a refundable purchase (`C_Item.CanBeRefunded`),
+      a quest item, the Hearthstone. Items that report a price and can't be sold: add them to
+      `J.UNSELLABLE`.
+- [ ] Buyback-safe with 10 already on the page: two sold, the cheapest; all recoverable after.
+- [ ] Blizzard's own Sell All Junk button is on the merchant window (Mainline frame) and ours
+      doesn't fight it.
+- [ ] **Guild repair**: with the allowance covering it ("Repaired with guild funds."); with it short
+      (does `RepairAllItems(true)` take the rest from you, or repair nothing?); what
+      `GetGuildBankWithdrawMoney` / `GetGuildBankMoney` read before the bank is opened.
+- [ ] `UPDATE_INVENTORY_DURABILITY` after a repair, and the cost read again (the settle rule).
+- [ ] Shift held as the merchant opens skips both; the money lines match what the money did.
 
 **The probe (#5):** its steps are added here by its PR.
 
