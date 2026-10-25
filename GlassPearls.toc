@@ -4,6 +4,8 @@
 ## Author: Spotnick
 ## Version: @project-version@
 ## X-License: MIT
+## X-Curse-Project-ID: 1764704
+## X-Wago-ID: kGr9LxKy
 ## SavedVariables: GlassPearlsDB, GlassPearlsSyncDB
 ## SavedVariablesPerCharacter: GlassPearlsCharDB
 

@@ -126,17 +126,25 @@ rendering; that's a ForeverProbe module (`References\Docs\PROBES.md`) and an in-
 
 ## Workflow and releasing
 
-Same as GlassChat's CLAUDE.md, "Workflow and releasing":
-- Issue → branch off `main` → PR with `Closes #N`. Never commit to `main`; commit or push only
-  when asked. `luac -p` clean and tests green before committing; check the PR's `package-check`
-  run after pushing.
-- **The owner merges and closes PRs and launches reviews.**
+- Every change goes through a GitHub issue → branch off `main` → PR with `Closes #N`. Never
+  commit to `main`. `luac -p` clean and tests green before committing; check the PR's
+  `package-check` run after pushing.
+- **Never merge a PR without the owner's approval** (owner, 2026-10-25). The one exception: a
+  documentation-only PR where a review would add nothing, which may be merged and reported. A PR
+  touching `.github/workflows/`, the TOC or any Lua is never that.
 - **Plans** get an adversarial review before coding (the `codex-consult` skill). Verify its
   claims; push back on complexity.
-- CurseForge builds releases from the tag webhook through `.pkgmeta` (`References\Docs\RELEASING.md`);
-  the `release` job publishes a GitHub Release from the tag's `## vX.Y.Z` section of
-  `CHANGELOG.md`. The CurseForge project doesn't exist yet: add `## X-Curse-Project-ID` to the TOC
-  once it does.
+- **Releasing** follows `C:\Projects\WoW\References\Docs\RELEASING.md`; `package-check.yml` and
+  `tests/release_files.sh` are its templates (only the `REPO-SPECIFIC` steps are this repo's).
+  - CurseForge project **1764704** builds a release from every tag through its webhook and
+    `.pkgmeta`. No CurseForge key lives in the repo, and the packager never uploads from CI.
+  - The tag's run publishes CI's own checked zip as a GitHub Release (with `release.json`) and
+    uploads it to Wago Addons, project **`kGr9LxKy`** (https://addons.wago.io/addons/kGr9LxKy),
+    with the `WAGO_API_TOKEN` repo secret (set 2026-10-25).
+  - The TOC carries both IDs (`X-Curse-Project-ID`, `X-Wago-ID`); test_toc checks them.
+  - The notes are the tag's `## vX.Y.Z` section of `CHANGELOG.md`, which always has one: the
+    release-files step reads the newest heading on every run and fails without one.
+  - `README.curseforge.md` (gitignored) is the CurseForge and Wago description, pasted by hand.
 
 ## Conventions
 

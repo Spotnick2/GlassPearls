@@ -36,6 +36,7 @@ ignore:
   - Tools
   - CLAUDE.md
   - README.md
+  - README.curseforge.md
   - CHANGELOG.md
   # The libraries' own .pkgmeta ignores these, and the BigWigs packager
   # honours that; CurseForge's packager, which builds the release, does NOT
