@@ -330,6 +330,32 @@ function Core.Merge(reg, store, rec, apply)
     return res
 end
 
+-- The time a seed stamp carries: before any real edit could have been made.
+SS.SEED_TIME = 1
+
+-- Seed what was chosen before this key synced (an upgrade, or a key a later
+-- version starts syncing): every registered key without a stamp whose value
+-- isn't its default gets a stamp at SEED_TIME. So the choice travels to an
+-- account that never set it, while any real edit since (always later) wins
+-- over it (Codex review of #8). Returns how many were seeded.
+function Core.Seed(reg, store, origin)
+    local n = 0
+    local ids = {}
+    for id in pairs(reg.keys) do ids[#ids + 1] = id end
+    table.sort(ids)   -- a stable order for the sequence numbers
+    for _, id in ipairs(ids) do
+        local spec = reg.keys[id]
+        if not store.stamps[id] and spec.default ~= nil then
+            local ok, v = pcall(spec.get)
+            if ok and v ~= spec.default and Core.EncodeValue(spec, v) then
+                store.stamps[id] = Core.Stamp(store, SS.SEED_TIME, origin)
+                n = n + 1
+            end
+        end
+    end
+    return n
+end
+
 -- A new stamp for a local change.
 function Core.Stamp(store, now, origin)
     store.seq = (finiteInt(store.seq, 0, 999999998) and store.seq or 0) + 1
@@ -484,14 +510,38 @@ end
 
 function SS.Encode() return Core.Encode(reg, store()) end
 
-local function retry(why)
+local function transient(why)
     -- "disabled" while the switch is on means Battle.net isn't usable yet.
-    local transient = why == "not-ready" or why == "no-peers" or why == "offline" or why == "no-route"
+    return why == "not-ready" or why == "no-peers" or why == "offline" or why == "no-route"
         or (why == "disabled" and GP.AccountSync.IsEnabled())
-    if not transient then return end
+end
+
+-- One retry per send attempt, however many of its destinations failed: the
+-- next send carries the full snapshot to every peer anyway.
+local function retry(attempt, why)
+    if attempt.retried or not transient(why) then return end
+    attempt.retried = true
     retryStep = retryStep + 1
     local delay = SS.BACKOFF[retryStep]
     if delay then schedule(delay, true) end   -- after the last, only the peer check sends
+end
+
+-- A destination's result, which LibAccountSync gives per peer: at once for a
+-- peer whose handshake is still pending ("failed", "not-ready", and Send
+-- returns 0), later for one the frames were handed to ("sent", or "failed"
+-- with "offline" / "no-route"). Only "sent" ends the backoff; a peer that
+-- failed is forgotten by the peer check, so its next appearance sends again
+-- (Codex review of #8: a positive count isn't delivery).
+local function onResult(attempt, sender, result, reason)
+    local g = type(sender) == "table" and sender.guid
+    if result == "sent" then
+        attempt.sent = attempt.sent + 1
+        if not attempt.retried then retryStep = 0 end
+    elseif result == "failed" then
+        attempt.failed = attempt.failed + 1
+        if type(g) == "string" and not API.IsSecret(g) then knownPeers[g] = nil end
+        retry(attempt, reason or "not-ready")
+    end
 end
 
 function SS.SendNow()
@@ -504,9 +554,17 @@ function SS.SendNow()
         status.sent = { t = now(), why = "too-large" }
         return nil, "too-large"
     end
-    local n, why = GP.AccountSync.Send(SS.KIND, body)
+    local attempt = { sent = 0, failed = 0 }
+    status.attempt = attempt
+    local n, why = GP.AccountSync.Send(SS.KIND, body, function(sender, result, reason)
+        onResult(attempt, sender, result, reason)
+    end)
     status.sent = { t = now(), n = n, why = why }
-    if n and n > 0 then retryStep = 0 elseif why then retry(why) end
+    if why then
+        retry(attempt, why)
+    elseif n == 0 then
+        retry(attempt, "not-ready")   -- every peer's handshake still pending
+    end
     return n, why
 end
 
@@ -561,11 +619,11 @@ local function registerAll()
     local P = GP.Pearls
     for _, def in ipairs(P.List()) do
         local key = def.key
-        SS.Register(SS.PearlOnId(key), { kind = "bool",
+        SS.Register(SS.PearlOnId(key), { kind = "bool", default = def.default,
             get = function() return P.IsOn(key) end, set = function(v) P.Set(key, v) end })
         for name, d in pairs(def.defaults) do
             local id = SS.SettingId(key, name)
-            local spec = {
+            local spec = { default = d,
                 get = function() return P.Setting(key, name) end,
                 set = function(v) P.SetSetting(key, name, v) end,
             }
@@ -581,7 +639,7 @@ local function registerAll()
             if not (spec.kind and SS.Register(id, spec)) then API.Fail("settings sync " .. id, "not synced") end
         end
     end
-    SS.Register("core.glassui", { kind = "bool",
+    SS.Register("core.glassui", { kind = "bool", default = true,
         get = function() return GP.db.useGlassUI ~= false end,
         set = function(v) GP.Settings.SetUseGlassUI(v) end })
 end
@@ -591,14 +649,18 @@ local function checkPeers()
     if not inst or type(inst.Peers) ~= "function" then return end
     local ok, peers = pcall(inst.Peers)
     if not ok or type(peers) ~= "table" then return end
-    local fresh = false
+    -- The peers seen now replace those seen before: one that left and comes
+    -- back is new again (Codex review of #8).
+    local seen, fresh = {}, false
     for _, p in ipairs(peers) do
         local g = type(p) == "table" and p.guid
-        if type(g) == "string" and not API.IsSecret(g) and not knownPeers[g] then
-            knownPeers[g] = true
-            fresh = true
+        if type(g) == "string" and not API.IsSecret(g) then
+            seen[g] = true
+            if not knownPeers[g] then fresh = true end
         end
     end
+    for g in pairs(knownPeers) do knownPeers[g] = nil end
+    for g in pairs(seen) do knownPeers[g] = true end
     if fresh then schedule(1) end
 end
 
@@ -608,6 +670,7 @@ function SS.Start()
     if not st then return end
     registerAll()
     adopt(st)
+    Core.Seed(reg, st, origin())
     GP.AccountSync.On(SS.KIND, function(body, sender) SS.Receive(body, sender) end)
     schedule(SS.LOGIN_DELAY)
     if C_Timer.NewTicker then C_Timer.NewTicker(SS.PEER_CHECK, checkPeers) end

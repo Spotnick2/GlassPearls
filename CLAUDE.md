@@ -65,8 +65,12 @@ order) and before the options window and bootstrap.
   (`<key>.<name>`: booleans, integers with `ranges`, strings with `choices`), `core.glassui`, and
   sets (`RegisterSet`, `SetAdd`/`SetRemove`/`SetHas`/`SetMembers`/`SetClear`) with per-member
   stamps and **permanent tombstones**. Keys from a newer version are kept, merged and relayed,
-  never applied, and adopted once known. Sends: change (2 s debounce), login (+5 s), a new peer
-  (60 s check), retries with backoff; replies only when holding something newer. Receiving applies
+  never applied, and adopted once known. Choices saved before a key synced (an upgrade) are
+  **seeded** at start with a stamp at time 1, so they travel but lose to any real edit. Sends:
+  change (2 s debounce), login (+5 s), a new or returning peer (60 s check), retries with backoff.
+  Delivery is per peer through `onResult`: only "sent" ends the backoff; a pending handshake
+  (`Send` returns 0) or a later "failed" retries once per attempt, and a failed peer is forgotten
+  so its next appearance sends again. Replies only when holding something newer. Receiving applies
   through the same setters with stamping suppressed. A fixed byte budget per part (see the file's
   header; `test_sync_budget` fills every part). The store is `GlassPearlsDB.sync`; integers are
   written with `%.0f` (Lua 5.1's `%d` is 32-bit on Windows).

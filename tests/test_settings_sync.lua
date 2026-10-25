@@ -40,8 +40,14 @@ eq(store.stamps["on.alpha"] and store.stamps["on.alpha"].o, "Player-7-NEW", "  w
 eq(store.foreign["on.alpha"], nil, "  and leaves the relayed keys")
 
 -- Capture what the link is asked to send.
-local sends, nextResult = {}, { 1 }
-AS.Send = function(kind, body) sends[#sends + 1] = { kind = kind, body = body }; return unpack(nextResult) end
+-- Results given synchronously during Send (a pending handshake) come from
+-- `syncResults`; a later result is given through the recorded callback.
+local sends, nextResult, syncResults = {}, { 1 }, nil
+AS.Send = function(kind, body, cb)
+    sends[#sends + 1] = { kind = kind, body = body, cb = cb }
+    for _, r in ipairs(syncResults or {}) do cb(r[1], r[2], r[3]) end
+    return unpack(nextResult)
+end
 
 -- The login send (5 s after PLAYER_LOGIN).
 WoW.flushTimers(SS.LOGIN_DELAY)
@@ -178,6 +184,58 @@ eq(#sends, 1, "a new peer: a snapshot")
 SS._test.checkPeers()
 WoW.flushTimers()
 eq(#sends, 1, "  a known peer: nothing")
+-- A peer that leaves and comes back is new again (Codex review of #8).
+AS.inst.Peers = function() return {} end
+SS._test.checkPeers()
+WoW.flushTimers()
+eq(#sends, 1, "a peer leaving: nothing")
+AS.inst.Peers = function() return { { guid = "Player-1-CCC", name = "Third" } } end
+SS._test.checkPeers()
+WoW.flushTimers(1)
+eq(#sends, 2, "  coming back: a snapshot again")
+sends = {}
+
+-- Delivery is per peer, and a positive count isn't delivery (Codex review of #8).
+local third = { guid = "Player-1-CCC", name = "Third" }
+-- Every peer's handshake pending: Send gives "failed"/"not-ready" at once and returns 0.
+syncResults, nextResult = { { third, "failed", "not-ready" } }, { 0 }
+P.SetSetting("beta", "size", 5)
+WoW.flushTimers(SS.DEBOUNCE)
+eq(#sends, 1, "the send was tried")
+eq(SS._test.retryStep(), 1, "  a pending handshake schedules one retry, not two")
+WoW.flushTimers(SS.BACKOFF[1])
+eq(#sends, 2, "  retried after " .. SS.BACKOFF[1] .. " s")
+syncResults, nextResult = nil, { 1 }
+WoW.flushTimers()
+sends = {}
+-- Handed to the wire (Send returns 1), then the frames fail: retry, and the
+-- peer is forgotten so its next appearance sends again.
+P.SetSetting("beta", "size", 6)
+WoW.flushTimers(SS.DEBOUNCE)
+eq(#sends, 1, "handed to the wire")
+eq(SS._test.retryStep(), 0, "  a positive count alone doesn't count as delivered (no retry yet, no reset either)")
+sends[1].cb(third, "failed", "offline")
+eq(SS._test.retryStep(), 1, "  a later 'failed offline' schedules a retry")
+sends[1].cb(third, "failed", "offline")
+eq(SS._test.retryStep(), 1, "  once per attempt")
+-- The retry is handed to the wire too (a positive count): still not delivery.
+WoW.flushTimers(SS.BACKOFF[1])
+eq(#sends, 2, "  the retry goes out")
+eq(SS._test.retryStep(), 1, "  handed to the wire again: the backoff isn't reset yet")
+-- A "sent" result ends the backoff.
+sends[2].cb(third, "sent")
+eq(SS._test.retryStep(), 0, "'sent' resets the backoff")
+WoW.flushTimers()
+sends = {}
+-- A peer whose frames failed is forgotten: seen again by the peer check, it
+-- gets a fresh snapshot (a fresh trigger, so the backoff starts over).
+P.SetSetting("beta", "size", 8)
+WoW.flushTimers(SS.DEBOUNCE)
+sends[1].cb(third, "failed", "no-route")
+SS._test.checkPeers()
+WoW.flushTimers(1)
+eq(#sends, 2, "the failed peer seen again: a snapshot")
+WoW.flushTimers()
 sends = {}
 
 -- Over the budget: not sent, reported, not retried.
