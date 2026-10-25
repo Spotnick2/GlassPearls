@@ -174,10 +174,18 @@ local function allIDs()
     return ids
 end
 
+-- Sounds no longer wanted go at once, in combat too; only new registrations
+-- wait for the end of combat (Codex review of #23).
 local function resetSounds()
     if not B.enabled then return end
+    local wanted, unwanted = {}, {}
+    for _, id in ipairs(soundIDs()) do wanted[id] = true end
+    for id in pairs(sounds.sounds) do if not wanted[id] then unwanted[#unwanted + 1] = id end end
+    for _, id in ipairs(allIDs()) do
+        if not wanted[id] and not sounds.sounds[id] then sounds.status[id] = "off" end
+    end
+    if #unwanted > 0 then sounds:Remove(unwanted, "off") end
     if API.InCombat() then sounds.pending = true; return end
-    sounds:Remove(allIDs(), "off")
     sounds:Register(soundIDs(), { fileID = B.SOUND_FILE, throttle = B.THROTTLE })
 end
 
