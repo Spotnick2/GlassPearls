@@ -90,9 +90,10 @@ order) and before the options window and bootstrap.
   so its next appearance sends again; turning sharing back on sends at once. Replies only when
   holding something newer. Receiving applies
   through the same setters with stamping suppressed. A fixed byte budget per part (see the file's
-  header; `test_sync_budget` fills every part). Up to `SETS_MAX` (8) sets share the 300 entries
-  (raised from 4 before v0.1.0, #15: the format's decoder rejects more, so raise it only before a
-  release or with a format change). The store is `GlassPearlsDB.sync`; integers are
+  header; `test_sync_budget` fills every part). Up to `SETS_MAX` (8) sets share the `SET_MAX` (200)
+  entries (sets raised from 4, #15; entries lowered from 300 after v0.1.0-alpha1, #29, to give the
+  known keys room). The format's decoder rejects more of either, so change them only before a
+  release or with a format change. The store is `GlassPearlsDB.sync`; integers are
   written with `%.0f` (Lua 5.1's `%d` is 32-bit on Windows).
 - **`Core\ToolItems.lua`**: **generated** by `Tools\gen_tools.py` from the client's ItemSparse and
   TotemCategory tables (`References\Forever\db`, the `wago-tools` skill): every item the client
@@ -286,8 +287,8 @@ order) and before the options window and bootstrap.
    adds each control's `refresh`; `help` for the Help button. Settings sync picks them up: give a
    string setting its `choices` and an integer one its `ranges`, or it won't travel. A list (a
    keep list) is a sync set: `SettingsSync.RegisterSet("<key>.<name>")` at file scope. Mind the
-   budget: `test_sync_budget` fails if the known keys outgrow their 5 KB or the whole, every part
-   full, its 31 KB (about 30.4 KB with #27: room for ~17 more synced settings).
+   budget: `test_sync_budget` fails if the known keys outgrow their 12 KB or the whole, every part
+   full, its 31 KB (about 23.5 KB with #27, known keys 4.5 KB: room for ~100 more synced settings).
 5. Slash commands of its own: `commands = { name = { help, run(arg) } }` (`/gpearls <name>`, listed
    by `/gpearls help`).
 6. A test file `tests\test_<name>.lua` (the bags-full helper's four are the model), and a line in
