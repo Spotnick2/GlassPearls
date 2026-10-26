@@ -1152,6 +1152,57 @@ function UnitName(unit)
     return playerUnitName(unit)
 end
 
+--------------------------------------------------------------------------------
+-- Training, for the training reminder (#27). In the 70532 dump: UnitRace,
+-- C_SpellBook.IsSpellInSpellBook, C_ClassTalents.GetActiveConfigID,
+-- C_Traits.GetConfigInfo / GetTreeCurrencyInfo,
+-- C_SpecializationInfo.GetActiveSpecGroup documented; TooltipDataProcessor in
+-- its _G walk (Blizzard_SharedXMLGame/Tooltip/TooltipDataHandler.lua:199).
+-- Enum.TooltipDataType.Spell = 1 and Enum.SpellBookSpellBank.Player = 0 are
+-- Blizzard's (TooltipInfoSharedDocumentation.lua:97,
+-- SpellBookConstantsDocumentation.lua:42).
+--   WoW.player.raceID; WoW.knownSecret[id] = true: every known-spell read of
+--   id answers a secret; WoW.talentPoints = n | nil (unreadable) | a secret;
+--   WoW.specGroup = 1; WoW.tooltipPostCalls[type] = { fn, ... }
+--------------------------------------------------------------------------------
+
+WoW.player.raceID = 1
+WoW.knownSecret, WoW.specGroup, WoW.tooltipPostCalls = {}, 1, {}
+function UnitRace(unit) if unit == "player" then return "Human", "Human", WoW.player.raceID end end
+local function knownRead(id, v)
+    if WoW.knownSecret[id] then return WoW.Secret("known") end
+    return v
+end
+local plainIsPlayerSpell = IsPlayerSpell
+function IsPlayerSpell(id) return knownRead(id, plainIsPlayerSpell(id)) end
+local plainIsSpellKnown = C_SpellBook.IsSpellKnown
+C_SpellBook.IsSpellKnown = function(id) return knownRead(id, plainIsSpellKnown(id)) end
+C_SpellBook.IsSpellInSpellBook = function(id) return knownRead(id, WoW.known[id] == true) end
+Enum.SpellBookSpellBank = { Player = 0, Pet = 1 }
+Enum.TooltipDataType = { Item = 0, Spell = 1, Unit = 2 }
+C_ClassTalents = { GetActiveConfigID = function() return 88388 end }
+C_Traits = {
+    GetConfigInfo = function(cfg) return { ID = cfg, type = 1, name = "Talents", treeIDs = { 1114 } } end,
+    GetTreeCurrencyInfo = function(cfg, tree)
+        if WoW.talentPoints == nil then return {} end
+        return { { traitCurrencyID = 3820, quantity = WoW.talentPoints, spent = 0 } }
+    end,
+}
+C_SpecializationInfo = { GetActiveSpecGroup = function() return WoW.specGroup end }
+TooltipDataProcessor = { AddTooltipPostCall = function(kind, fn)
+    WoW.tooltipPostCalls[kind] = WoW.tooltipPostCalls[kind] or {}
+    table.insert(WoW.tooltipPostCalls[kind], fn)
+end }
+-- A spell tooltip as the client builds it: SetSpellByID, then the post calls.
+function WoW.spellTooltip(id)
+    GameTooltip:SetOwner(UIParent)
+    GameTooltip:SetSpellByID(id)
+    for _, fn in ipairs(WoW.tooltipPostCalls[Enum.TooltipDataType.Spell] or {}) do
+        fn(GameTooltip, { type = Enum.TooltipDataType.Spell, id = id, lines = {} })
+    end
+    return table.concat(GameTooltip._lines, "\n")
+end
+
 function WoW.calledCount(name)
     local n = 0
     for _, c in ipairs(WoW.calls) do if c[1] == name then n = n + 1 end end

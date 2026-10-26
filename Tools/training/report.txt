@@ -1,0 +1,14 @@
+gen_training.py: WhatsTraining 11.0.0-beta25, checked against build 1.60.1.70532
+
+DRUID: 182 spells, 15 override groups, 13 with a talent, 0 race, 0 faction, 0 skill
+HUNTER: 169 spells, 0 override groups, 12 with a talent, 0 race, 0 faction, 0 skill
+MAGE: 176 spells, 0 override groups, 26 with a talent, 0 race, 12 faction, 0 skill
+PALADIN: 152 spells, 6 override groups, 11 with a talent, 0 race, 0 faction, 0 skill
+  25780 Righteous Fury: trainer level 10, SpellLevels 16
+PRIEST: 208 spells, 0 override groups, 20 with a talent, 49 race, 0 faction, 0 skill
+ROGUE: 107 spells, 22 override groups, 3 with a talent, 0 race, 0 faction, 20 skill
+SHAMAN: 168 spells, 0 override groups, 8 with a talent, 0 race, 0 faction, 0 skill
+WARLOCK: 147 spells, 0 override groups, 15 with a talent, 0 race, 0 faction, 0 skill
+WARRIOR: 101 spells, 20 override groups, 9 with a talent, 0 race, 0 faction, 0 skill
+
+1410 spells written
