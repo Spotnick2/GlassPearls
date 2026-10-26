@@ -34,6 +34,11 @@
 -- player's money if it covers it; or the player's money only. A guild whose
 -- info text says [noautorepair] is never charged. An unsettled repair stops:
 -- never a second payment on stale data. Unmeasured until 2026-11-04.
+--
+-- The visit's outcome, for the restock pearl (#14), through Merchant.Report:
+-- "ready" once selling and repairing ended with nothing that may still land;
+-- "skip" when a sale or repair may (a run ended unconfirmed, by the buyback
+-- check, refused or by combat; an unconfirmed repair; combat; switched off).
 
 local ADDON = ...
 GlassPearls = GlassPearls or {}
@@ -59,6 +64,8 @@ J.UNSELLABLE = {}
 J.GEAR_CLASSES = { [2] = true, [4] = true }   -- weapon, armour (ItemConstantsDocumentation.lua:269)
 -- UI error names (GetGameMessageInfo) that mean "this merchant won't take it".
 J.REFUSALS = { ERR_VENDOR_DOESNT_BUY = true, ERR_TOO_MUCH_GOLD = true }
+-- A run that ended this way may still have a sale landing: the visit is "skip".
+J.UNSAFE = { unconfirmed = true, buyback = true, refused = true, combat = true }
 
 local events = CreateFrame("Frame")
 local state = {
@@ -258,9 +265,15 @@ local function guildCanPay()
     return not noAutoRepair()
 end
 
-local function finishRepair(text)
+-- This visit's outcome (Core/Merchant.lua): "ready" or "skip".
+local function outcome(s, result, unsafe)
+    Merchant.Report(J.KEY, s, unsafe and "skip" or result)
+end
+
+local function finishRepair(r, text, result)
     state.repair = nil
     if text then say(text) end
+    outcome(r.session, result or "ready", r.unsafe)
 end
 
 -- One RepairAllItems(guild) call, then wait for it to settle: the cost read
@@ -271,7 +284,7 @@ local function repairStep(r, guild, cost, after)
     local step = r.step
     Merchant.After(J.REPAIR_SECONDS, r.session, function()
         if state.repair == r and r.step == step then
-            finishRepair("The repair couldn't be confirmed: stopped (check your gear at the merchant).")
+            finishRepair(r, "The repair couldn't be confirmed: stopped (check your gear at the merchant).", "skip")
         end
     end)
 end
@@ -301,26 +314,29 @@ local function repaired(r, rest)
     return text
 end
 
-function J.Repair(s)
-    if not (setting("autoRepair") and Merchant.Current(s)) or API.InCombat() then return end
+-- unsafe: the selling run before it ended in a way that may still land a sale.
+function J.Repair(s, unsafe)
+    if not Merchant.Current(s) then return end
+    if API.InCombat() then return outcome(s, "skip") end
+    if not setting("autoRepair") then return outcome(s, "ready", unsafe) end
     local okM, can = pcall(CanMerchantRepair)
-    if not (okM and can == true) then return end
+    if not (okM and can == true) then return outcome(s, "ready", unsafe) end
     local cost, canRepair = repairCost()
-    if not cost or cost <= 0 or not canRepair then return end
-    local r = { session = s, before = getMoney(), guild = guildCanPay() }
+    if not cost or cost <= 0 or not canRepair then return outcome(s, "ready", unsafe) end
+    local r = { session = s, before = getMoney(), guild = guildCanPay(), unsafe = unsafe }
     state.repair = r
     -- The player's money: only when it covers what's left.
     local function personal(left)
         local m = getMoney()
         if not m or m < left then
-            return finishRepair((r.guild and "Guild funds covered part; not enough money for the rest ("
+            return finishRepair(r, (r.guild and "Guild funds covered part; not enough money for the rest ("
                 or "Not enough money to repair (") .. money(left) .. ").")
         end
-        repairStep(r, false, left, function(rest) finishRepair(repaired(r, rest)) end)
+        repairStep(r, false, left, function(rest) finishRepair(r, repaired(r, rest)) end)
     end
     if r.guild then
         repairStep(r, true, cost, function(left)
-            if left > 0 then personal(left) else finishRepair(repaired(r)) end
+            if left > 0 then personal(left) else finishRepair(r, repaired(r)) end
         end)
     else
         personal(cost)
@@ -369,7 +385,7 @@ local function endRun(r, reason)
         end
         if reason and REASONS[reason] then say(REASONS[reason]) end
         if state.run == r then state.run = nil end
-        J.Repair(r.session)
+        J.Repair(r.session, J.UNSAFE[reason or ""] == true)
     end)
 end
 
@@ -448,7 +464,7 @@ end
 local function onOpen(s)
     if IsShiftKeyDown() then return end   -- Shift: this visit, nothing
     Merchant.After(J.OPEN_DELAY, s, function()
-        if API.InCombat() or not J.enabled then return end
+        if API.InCombat() or not J.enabled then return outcome(s, "skip") end
         if setting("autoSell") then J.Sell(s) else J.Repair(s) end
     end)
 end
@@ -565,6 +581,7 @@ local function disable()
     Merchant.On(J.KEY, nil)
     if state.run then state.run.ended = true end
     state.run, state.repair = nil, nil
+    outcome(Merchant.Session(), "skip")   -- switched off mid-visit: whatever was in flight may land
 end
 
 GP.SettingsSync.RegisterSet(J.SELL)

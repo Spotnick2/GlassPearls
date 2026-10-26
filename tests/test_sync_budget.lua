@@ -27,6 +27,7 @@ for id in pairs(SS.reg.keys) do
 end
 local knownBytes = #C.Encode(SS.reg, store)
 check(known >= 1, "the registry has keys (" .. known .. ")")
+check(known <= SS.KNOWN_MAX, "  at most " .. SS.KNOWN_MAX .. " of them (" .. known .. ": #14's reagents are one each)")
 check(knownBytes <= 12 * 1024, "the known keys fit their 12 KB share (" .. knownBytes .. " B)")
 
 -- Unknown keys: 32 of them, the longest id and value, the longest stamp.

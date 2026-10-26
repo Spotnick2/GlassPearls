@@ -1,0 +1,35 @@
+# The reagents the restock pearl (#14) may buy: an audited allowlist, because
+# SpellReagents only says a spell consumes an item, not that a player wants it
+# stocked. Tools/gen_restock.py keeps a listed item only when one of the
+# class's own spells consumes it, and reports every unlisted candidate.
+# target: the default number to keep (each is a setting, 0 = never).
+item,target,why
+17034,5,Maple Seed: Rebirth 1
+17035,5,Stranglethorn Seed: Rebirth 2
+17036,5,Ashwood Seed: Rebirth 3
+17037,5,Hornbeam Seed: Rebirth 4
+17038,5,Ironwood Seed: Rebirth 5
+17056,20,Light Feather: Slow Fall (mage) and Levitate (priest)
+17031,10,Rune of Teleportation: the mage's teleports
+17032,10,Rune of Portals: the mage's portals
+17033,5,Symbol of Divinity: Divine Intervention
+21177,100,Symbol of Kings: the Greater Blessings
+5140,20,Flash Powder: Vanish
+2930,20,Essence of Pain: poisons
+3371,20,Empty Vial: poisons
+2928,20,Dust of Decay: poisons
+3372,20,Leaded Vial: poisons
+5173,20,Deathweed: poisons
+8924,20,Dust of Deterioration: poisons
+8925,20,Crystal Vial: poisons
+8923,20,Essence of Agony: poisons
+17057,10,Shiny Fish Scales: Water Breathing
+17058,10,Fish Oil: Water Walking
+17030,5,Ankh: Reincarnation
+5565,5,Infernal Stone: Inferno
+16583,5,Demonic Figurine: Ritual of Doom
+17020,20,Arcane Powder: Arcane Brilliance (left to Buffy while it restocks it)
+17021,20,Wild Berries: Gift of the Wild (left to Buffy while it restocks it)
+17026,20,Wild Thornroot: Gift of the Wild (left to Buffy while it restocks it)
+17028,20,Holy Candle: Prayer of Fortitude (left to Buffy while it restocks it)
+17029,20,Sacred Candle: the priest's Prayers (left to Buffy while it restocks it)

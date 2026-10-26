@@ -30,6 +30,7 @@ Data\Landmarks.lua
 Data\SpellRanks.lua
 Data\AuraDurations.lua
 Data\Training.lua
+Data\Restock.lua
 Pearls\BagsFullFrame.lua
 Pearls\BagsFull.lua
 Pearls\Landmarks.lua
@@ -45,5 +46,7 @@ Pearls\Buffs.lua
 Pearls\PaladinTank.lua
 Pearls\TrainingFrame.lua
 Pearls\Training.lua
+Pearls\RestockFrame.lua
+Pearls\Restock.lua
 Options.lua
 GlassPearls.lua

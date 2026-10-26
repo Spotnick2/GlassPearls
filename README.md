@@ -63,6 +63,10 @@ its time left and who cast it.
 now teaches you, what was already waiting, your talent points to spend and the cost. Spell tooltips
 say when the next ranks come; with dual spec, your other spec's waiting talent ranks.
 
+**Restock** (Loot & Bags, on by default). At a merchant, after junk is sold, tops up your food,
+water, ammunition and class reagents with the best you can use, within a spending limit per visit.
+"Ask first" to confirm each time; hold Shift to skip.
+
 ## Using it
 
 - `/gpearls` opens the options window: each feature's checkbox, and a gear for its own options.
@@ -77,6 +81,7 @@ say when the next ranks come; with dual spec, your other spec's waiting talent r
 - `/gpearls buffs`: what the game allowed the buff alerts; `/gpearls buffs test` to place them.
 - `/gpearls paladintank`: the paladin reminders' last reads; `/gpearls paladintank test` to place them.
 - `/gpearls training`: what your trainer teaches you now; `/gpearls training test` to place the toast.
+- `/gpearls restock`: at a merchant, what restock would buy there and why not.
 - `/gpearls sync`: your settings follow you across your own WoW accounts on the same Battle.net
   account, automatically (Settings in the window turns it off).
 - `/gpearls help` for the rest.
