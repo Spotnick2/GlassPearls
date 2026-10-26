@@ -40,6 +40,7 @@ T.MAX_POINTS = 51
 local events = CreateFrame("Frame")
 local state = {
     level = nil,        -- the level last seen
+    pending = nil,      -- level-ups waiting for LEVEL_DELAY: { prev, level }
     held = nil,         -- a toast waiting for the end of combat: { kind, prev, level }
     shown = nil,        -- the open toast's { kind, prev, level }, for refreshes
     gen = 0,            -- the remember timer's generation
@@ -338,12 +339,25 @@ local function empty(view)
     return #view.new == 0 and #view.waiting == 0 and #view.other == 0 and not view.points
 end
 
+-- A level-up toast not yet seen through (held, or still open) is extended,
+-- never replaced: the earliest prev and the latest level, so every spell of a
+-- run of level-ups stays new. A swap never replaces a held level-up.
+local function combine(old, kind, prev, level)
+    if not (old and old.kind == "level") then return kind, prev, level end
+    if kind ~= "level" then return old.kind, old.prev, old.level end
+    return kind, math.min(old.prev, prev), math.max(old.level, level)
+end
+
 -- Show the toast now, or after combat. Nothing to say: no toast.
 function T.Show(kind, prev, level)
     if not T.enabled then return end
     if API.InCombat() then
+        kind, prev, level = combine(state.held, kind, prev, level)
         state.held = { kind = kind, prev = prev, level = level }
         return
+    end
+    if kind == "level" and Frame().IsShown() then
+        kind, prev, level = combine(state.shown, kind, prev, level)
     end
     local view = T.Collect(kind, prev, level or T.Level())
     if empty(view) then return end
@@ -507,7 +521,15 @@ events:SetScript("OnEvent", function(_, event, ...)
         local prev = state.level or (level and level - 1)
         state.level = level
         if level and setting("toast") then
-            C_Timer.After(T.LEVEL_DELAY, function() T.Show("level", prev, level) end)
+            -- Level-ups within the delay are one toast: the first timer takes them all.
+            local p = state.pending
+            state.pending = p and { prev = math.min(p.prev, prev), level = math.max(p.level, level) }
+                or { prev = prev, level = level }
+            C_Timer.After(T.LEVEL_DELAY, function()
+                local q = state.pending
+                state.pending = nil
+                if q then T.Show("level", q.prev, q.level) end
+            end)
         end
     elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then
         C_Timer.After(T.SWAP_DELAY, function()
@@ -540,7 +562,7 @@ end
 local function disable()
     T.enabled = false
     events:UnregisterAllEvents()
-    state.held, state.shown = nil, nil
+    state.pending, state.held, state.shown = nil, nil, nil
     state.gen = state.gen + 1
     Frame().Hide()
 end

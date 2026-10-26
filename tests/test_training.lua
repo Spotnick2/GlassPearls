@@ -1,5 +1,6 @@
 -- Training reminder (#27): the level-up toast (new, waiting, a level jump,
--- nothing to say, combat hold, learning refreshes it, waiting off), what is
+-- nothing to say, combat hold, a run of level-ups as one toast, learning
+-- refreshes it, waiting off), what is
 -- learnable (requirements, talents, override and rank groups, unknown reads
 -- never listed, race, faction, skill), talent points (plain and sane only),
 -- the other spec as last seen, the tooltip lines and hook, the commands, the
@@ -186,6 +187,75 @@ check(F.IsShown(), "the mouse on it: it stays")
 function tf:IsMouseOver() return false end
 WoW.flushTimers(5)
 check(not F.IsShown(), "  then goes")
+
+-- A run of level-ups is one toast whose spells all stay new: within the
+-- delay, held in combat, or while the toast is open. Also with "also waiting"
+-- off, where a spell counted as waiting would vanish.
+local function knowUpTo(level)
+    for _, e in ipairs(GP.TrainingData.classes.PALADIN.spells) do
+        if e.level <= level then WoW.known[e.id] = true end
+    end
+end
+local function firstAt(level)
+    for _, e in ipairs(GP.TrainingData.classes.PALADIN.spells) do
+        if e.level == level and not (e.talent or e.race or e.faction) then return e.id end
+    end
+end
+local function has(list, id)
+    for _, e in ipairs(list) do if e.id == id then return true end end
+    return false
+end
+P.SetSetting("training", "waiting", false)
+knowUpTo(10)
+T.state.level = 10
+local shows, show = 0, T.Show
+T.Show = function(...) shows = shows + 1; return show(...) end
+WoW.playerLevel = 12
+WoW.fire("PLAYER_LEVEL_UP", 12)
+WoW.playerLevel = 14
+WoW.fire("PLAYER_LEVEL_UP", 14)
+WoW.flushTimers(T.LEVEL_DELAY)
+T.Show = show
+eq(shows, 1, "two level-ups within the delay: one toast")
+check(has(view().new, firstAt(12)) and has(view().new, firstAt(14)), "  one toast: levels 12 and 14 both new")
+eq(F.Get().title:GetText(), "Level 14", "  titled with the latest level")
+F.Hide()
+knowUpTo(14)
+WoW.combat = true
+WoW.fire("PLAYER_REGEN_DISABLED")
+levelUp(16)
+levelUp(18)
+WoW.combat = false
+WoW.fire("PLAYER_REGEN_ENABLED")
+check(has(view().new, firstAt(16)) and has(view().new, firstAt(18)), "two level-ups in combat: both new after it")
+eq(F.Get().title:GetText(), "Level 18", "  titled with the latest level")
+F.Hide()
+knowUpTo(18)
+levelUp(20)
+levelUp(22)
+check(has(view().new, firstAt(20)) and has(view().new, firstAt(22)), "a level-up while the toast is open: it grows")
+F.Get():Hide()   -- Esc (UISpecialFrames), not our OK; the level-22 spells left unlearned
+levelUp(24)
+check(not has(view().new, firstAt(22)), "  a toast closed with Esc isn't extended")
+F.Hide()
+knowUpTo(24)
+WoW.combat = true
+WoW.fire("PLAYER_REGEN_DISABLED")
+levelUp(26)
+WoW.fire("ACTIVE_TALENT_GROUP_CHANGED", 1, 1)
+WoW.flushTimers(T.SWAP_DELAY)
+WoW.combat = false
+WoW.fire("PLAYER_REGEN_ENABLED")
+check(view() and view().kind == "level" and has(view().new, firstAt(26)), "a swap held after a level-up: the level-up's toast")
+F.Hide()
+knowUpTo(26)
+WoW.playerLevel = 28
+WoW.fire("PLAYER_LEVEL_UP", 28)
+P.Set("training", false)
+P.Set("training", true)
+WoW.flushTimers(T.LEVEL_DELAY)
+check(not F.IsShown(), "a level-up before the pearl went off and on: forgotten")
+P.ResetSettings("training")
 
 -- The other spec, as last seen.
 for _, e in ipairs(GP.TrainingData.classes.PALADIN.spells) do
