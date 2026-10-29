@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), and the tenth, restock (#14); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), and the eleventh, the raid mark wheel (#34); the day-one
 probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
@@ -35,7 +35,8 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 `Pearls\BagsFull.lua` → `Pearls\Landmarks.lua` → `Pearls\SpellRanksFrame.lua` →
 `Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua` → `Pearls\FixateFrame.lua` →
 `Pearls\Fixate.lua` → `Pearls\Uncrushable.lua` → `Pearls\BuffsFrame.lua` → `Pearls\Buffs.lua` → `Pearls\PaladinTank.lua` → `Pearls\TrainingFrame.lua` →
-`Pearls\Training.lua` → `Pearls\RestockFrame.lua` → `Pearls\Restock.lua`)* →
+`Pearls\Training.lua` → `Pearls\RestockFrame.lua` → `Pearls\Restock.lua` → `Pearls\MarkWheelFrame.lua` →
+`Pearls\MarkWheel.lua`)* →
 `Options.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
@@ -56,7 +57,8 @@ order) and before the options window and bootstrap.
   builds the answered preset and the suite's body and accent, and reports (`live = false`,
   `declined` when turned off, `reason` on a failed build). The model is `..\Stakeout\Theme.lua`;
   the contract is `..\GlassUI\docs\SUITE.md`. No glass of our own choosing (owner). Helpers:
-  `Window`, `Reading`, `Control`, `Accent`, `NewGlass`; `Active`, `Following`, `Glass`.
+  `Window`, `Reading`, `Control`, `Accent` (`AccentRGB` for a texture's tint), `NewGlass`; `Active`,
+  `Following`, `Glass`.
 - **`UI.lua`**: the shared widgets (`Label`, `Header`, `Tooltip`, `Button`, `Check`, `Gear`,
   `Radios`, `Number`, `Search`), Blizzard templates in both looks; a value control returns a `refresh`.
 - **`Pearls.lua`**: the registry. `Pearls.Register{ key, name, desc, default, category, section,
@@ -212,6 +214,36 @@ order) and before the options window and bootstrap.
   synced integer per allowlisted reagent (`r<itemID>`). Unmeasured until day one.
 - **`Pearls\RestockFrame.lua`**: its "ask first" window (beside Blizzard's merchant frame, read for
   its position) and its panel (the kinds and targets, mode, limits, this class's reagents).
+- **`Pearls\MarkWheel.lua`**: the raid mark wheel (#34, pearl `markwheel`, Social > Group, on by
+  default). Pings are the client's own (`Blizzard_PingUI`, its Ping key and wheel: only it can ping a
+  world spot), so this is marks only, **out of combat only**. Opened by the key `GLASSPEARLS_MARKWHEEL`
+  (root `Bindings.xml`, category "Glass Pearls", not in the TOC: the deploy copies it and the package
+  check expects it) over a unit, or by an entry appended with `Menu.ModifyMenu` to the unit menus that
+  carry Blizzard's Raid Target Icon (`M.MENUS`: not ENEMY_PLAYER on Camelot, not VEHICLE or BOSS),
+  registered once at the first enable and kept (its calls during our registration, on a cached
+  menu, are ignored). The mark is set by Blizzard's secure `raidtarget` action, never by our code:
+  **one `SecureActionButtonTemplate` button** (parented to UIParent, `AnyDown`+`AnyUp`,
+  `useOnKeyDown=false`), **disarmed whenever no click is in progress**; the down edge does nothing;
+  the release's insecure PreClick checks lockdown, the pearl, the session and the cursor, then sets
+  `unit`, `marker`, `action` (`toggle` / `clear`) and `type` last; PostClick closes, which disarms. An
+  up with no down of ours is ignored. The unit is a **session** `{ token, guid, epoch }`: the key
+  resolves the mouseover at once with `UnitIsUnit` over target, player, focus, group, pets and
+  nameplates; a menu gives its token when built (other tokens refused). It holds while one epoch is
+  unchanged (bumped by target, focus, pet, roster and world changes and by switching off; the open
+  wheel's own plate removal closes it) and, when the GUID was plain at capture, while it reads the
+  same (plain then secret is refused). Gates: combat, in a raid leader or assistant,
+  `CanBeRaidTarget` not plainly false. Combat: closed inside `PLAYER_REGEN_DISABLED` (raw
+  `InCombatLockdown()` still false); once locked nothing protected is touched and a separate frame
+  finishes the cleanup at `PLAYER_REGEN_ENABLED`, on or off. Geometry: Blizzard's gamepad segments
+  (`(g-1)*45` degrees from east), marks `M.MARKERS = { 2, 1, 8, 7, 6, 5, 4, 3 }` (skull at the top),
+  Clear in the centre, outside cancels. `/gpearls markwheel [test]`. Unmeasured until day one.
+- **`Pearls\MarkWheelFrame.lua`**: its art (never a parent or anchor of the button, click-through,
+  in `UISpecialFrames`: hiding it ends the wheel), the open (0.15 s) and close (0.12 s) scale and
+  alpha animations (a close hides only its own open), and its panel (the menu switch, the key, Test).
+  WoW Forever: the gamepad radial art (`gamepad-radial-menu-wheelbg` / `-selected` /
+  `-bottomtext`), the highlight turned `rad(angle - 270)` and offset as `GamepadRadial.lua:1111`
+  does, scaled by the wheel atlas's width; glass: a LibGlass disc, the highlight in the suite's
+  accent. An atlas only when `C_Texture.GetAtlasInfo` knows it; otherwise a plain disc and lines.
 - **`Pearls\Fixate.lua`**: the fixate alert (#17, pearl `fixate`, Combat > Alerts, on by default).
   **Every client language: spell IDs only, never a name**; the alert's words are the client's
   (`C_Spell.GetSpellName` / `GetSpellTexture`). The IDs are the client's four spells named
@@ -325,8 +357,8 @@ order) and before the options window and bootstrap.
    string setting its `choices` and an integer one its `ranges`, or it won't travel. A list (a
    keep list) is a sync set: `SettingsSync.RegisterSet("<key>.<name>")` at file scope. Mind the
    budget: `test_sync_budget` fails if the known keys outgrow their 12 KB or the whole, every part
-   full, its 31 KB, and the registry its 128 keys (with #14: 99 keys, known keys 7.5 KB, the whole
-   about 26.5 KB; ~29 keys left).
+   full, its 31 KB, and the registry its 128 keys (with #34: 101 keys, known keys 7.6 KB, the whole
+   about 26.6 KB; ~27 keys left).
 5. Slash commands of its own: `commands = { name = { help, run(arg) } }` (`/gpearls <name>`, listed
    by `/gpearls help`).
 6. A test file `tests\test_<name>.lua` (the bags-full helper's four are the model), and a line in
@@ -400,7 +432,13 @@ macros, known spells, overrides and a spell on the cursor (`WoW.actions`, `WoW.k
 `WoW.buyRefuses`, `WoW.equipped`, `WoW.loadedAddOns`), and player auras with the client's aura sounds and per-spell secrecy (`WoW.auras`,
 `WoW.spellAuraSecret`, `WoW.auraSounds`; `GetAuraDataBySpellName` throws, so no name lookup
 survives a test), and the character panel's stats (`WoW.stats`, `CharacterStatsPaneScrollBox`,
-`PaperDollFrame_UpdateStats`)), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
+`PaperDollFrame_UpdateStats`), and the raid mark wheel's: units and marks (`WoW.units`, `WoW.marks`,
+`UnitIsUnit`, `SetRaidTarget` from the secure action only, else `WoW.forbidden`), a
+`SecureActionButtonTemplate` dispatch modelled on Blizzard's (`WoW.click`, `WoW.secureActions`,
+both edges and the CVars), protected frames refusing to show, hide or move in combat (`WoW.blocked`),
+the cursor (`WoW.mouse`, `WoW.uiScale`), `Menu.ModifyMenu` with its synchronous call on a cached
+menu (`WoW.openMenu`, `WoW.menuButton`), and atlases with sizes (`WoW.atlases`; `SetAtlas` returns
+nothing, as on the client)), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
 registering test pearls, `opts.pearls = false` to leave the shipped pearls out of a framework
 test, `newChat`, `chatHas`). Bags, items, the cursor and the loot window are modelled too
 (`WoW.bags`, `WoW.items`, `WoW.openLoot`, `WoW.deleteForbidden`, ...; the block's header lists them). A stub is added only for something in the 70532

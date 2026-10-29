@@ -29,6 +29,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #22 | Paladin tank reminders (pearl `paladintank`): Righteous Fury off, Salvation on you | built; the IDs and the Cooldown Manager wait for day one |
 | #27 | Training reminder (pearl `training`): a level-up toast, next ranks in spell tooltips, talent points, the other spec | built; the trainer match, the tooltip and dual spec wait for day one |
 | #14 | Restock (pearl `restock`): food, water, ammunition and class reagents at a merchant, after the junk seller | built; the purchase API, the events and the refusal names wait for day one |
+| #34 | Raid mark wheel (pearl `markwheel`): the eight marks at the cursor, from a key or a unit's menu; pings stay the client's own | built; the secure click, the menu entry and the art wait for day one |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -209,6 +210,26 @@ Each line is a claim the code relies on that only the live client can settle.
 - [ ] Value order in game (water, bread); the Manna Biscuit counting as both; the defaults and limits feel right.
 - [ ] Buffy installed: its reagents left to it while its restock is on, bought when off.
 - [ ] Ask first: the window beside the merchant (screenshot), both looks.
+
+**Raid mark wheel (#34)** (solo, then a party, then a raid as a member and as an assistant)
+- [ ] The key (Key Bindings > Glass Pearls) opens the wheel over a mob in the world, a player, yourself
+      and a party frame; with nameplates on and with them off (off: a mob not targeted is refused,
+      "target it or show its nameplate").
+- [ ] Are an NPC's GUIDs secret out of combat? (Decides whether the GUID check helps for mobs; the
+      epoch covers them either way.)
+- [ ] A click on a mark marks the unit (Blizzard's `raidtarget` action), the same mark again removes
+      it, the centre clears it, outside or Esc closes. No `ADDON_ACTION_FORBIDDEN`. Exactly one
+      action per click, with `ActionButtonUseKeyDown` on and off.
+- [ ] The menu entry shows on yourself, your target, focus, party and raid members and pets, not on
+      an enemy player; it opens the wheel where the menu was, and the click that chose it marks
+      nothing. **Blizzard's own Raid Target Icon and Set Focus entries still work** (no taint).
+- [ ] The art: `gamepad-radial-menu-wheelbg`, `-selected`, `-bottomtext` and `Radial_Wheel_Icon_Close`
+      exist; the highlight lines up with the segments and the icons (screenshot); `RAID_TARGET_1..8`
+      exist (the label's names).
+- [ ] The animations: open and close are smooth, centred on the cursor, in both looks.
+- [ ] Combat: pulling with the wheel open closes it; the key in combat says why. In a raid as a
+      plain member: refused; as an assistant: allowed.
+- [ ] Blizzard's Ping key: bound by default? (The panel's note.)
 
 **The probe (#5):** its steps are added here by its PR.
 

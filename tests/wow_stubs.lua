@@ -140,6 +140,11 @@ function CreateFrame(ftype, name, parent, template)
     if template == "SearchBoxTemplate" and not WoW.missingTemplates[template] then
         w.Instructions = Methods.CreateFontString(w)
     end
+    -- SecureTemplates.xml:4: protected, with Blizzard's OnClick (WoW.secureActionClick).
+    if template == "SecureActionButtonTemplate" then
+        w._protected = true
+        w._scripts.OnClick = function(...) return WoW.secureActionClick(...) end
+    end
     table.insert(WoW.frames, w)
     if parent then
         parent._children = parent._children or {}
@@ -150,8 +155,19 @@ function CreateFrame(ftype, name, parent, template)
 end
 function Methods.GetChildren(w) return unpack(w._children or {}) end
 
-function Methods.Show(w) w._shown = true; if w._scripts.OnShow then w._scripts.OnShow(w) end end
+-- A protected frame (a secure template's) refuses to show, hide or move in
+-- combat, as the client does: nothing happens and the call is recorded in
+-- WoW.blocked (porting guide, "Secure click-casting works").
+WoW.blocked = {}
+local function refused(w, what)
+    if WoW.combat and w._protected then table.insert(WoW.blocked, (w._name or w._type) .. ":" .. what); return true end
+end
+function Methods.Show(w)
+    if refused(w, "Show") then return end
+    w._shown = true; if w._scripts.OnShow then w._scripts.OnShow(w) end
+end
 function Methods.Hide(w)
+    if refused(w, "Hide") then return end
     local was = w._shown
     w._shown = false
     if was and w._scripts.OnHide then w._scripts.OnHide(w) end
@@ -163,8 +179,8 @@ function Methods.IsVisible(w)
     while p do if not p._shown then return false end; p = p._parent end
     return true
 end
-function Methods.SetPoint(w, ...) table.insert(w._points, { ... }) end
-function Methods.ClearAllPoints(w) w._points = {} end
+function Methods.SetPoint(w, ...) if refused(w, "SetPoint") then return end; table.insert(w._points, { ... }) end
+function Methods.ClearAllPoints(w) if refused(w, "ClearAllPoints") then return end; w._points = {} end
 function Methods.GetPoint(w, i)
     local p = w._points[i or 1]
     if p then return p[1], p[2], p[3], p[4], p[5] end
@@ -249,7 +265,8 @@ for _, state in ipairs({ "Normal", "Pushed", "Highlight", "Checked", "Disabled" 
 end
 function Methods.SetTexture(t, file) t._file, t._atlas = file, nil; return true end
 function Methods.SetDesaturated(t, on) t._desaturated = on == true end
-function Methods.SetAtlas(t, name) t._atlas, t._file = name, nil; return true end
+-- No return value (the dump declares none): ask C_Texture.GetAtlasInfo first.
+function Methods.SetAtlas(t, name) t._atlas, t._file = name, nil end
 function Methods.SetMouseClickEnabled(w, on) w._clicks = on == true end
 function Methods.SetMouseMotionEnabled(w, on) w._motion = on == true end
 function Methods.SetColorTexture(t, r, g, b, a) t._color = { r, g, b, a } end
@@ -843,7 +860,12 @@ C_TaxiMap = {
     GetTaxiNodesForMap = function(uiMapID) return WoW.taxi[uiMapID] or {} end,
     ShouldMapShowTaxiNodes = function(uiMapID) return WoW.taxiShown[uiMapID] == true end,
 }
-C_Texture = { GetAtlasInfo = function(name) if WoW.atlases[name] then return { width = 16, height = 16 } end end }
+-- WoW.atlases[name] = true (16x16) or { width = w, height = h }.
+C_Texture = { GetAtlasInfo = function(name)
+    local a = WoW.atlases[name]
+    if type(a) == "table" then return { width = a.width, height = a.height } end
+    if a then return { width = 16, height = 16 } end
+end }
 function GetLFGDungeonInfo(id) return WoW.lfgNames[id] end
 function UnitLevel(unit) if unit == "player" then return WoW.playerLevel end end
 QuestDifficultyColors = { difficult = { r = 1, g = 0.5, b = 0.25 }, standard = { r = 1, g = 0.82, b = 0 } }
@@ -1290,6 +1312,171 @@ function WoW.spellTooltip(id)
         fn(GameTooltip, { type = Enum.TooltipDataType.Spell, id = id, lines = {} })
     end
     return table.concat(GameTooltip._lines, "\n")
+end
+
+--------------------------------------------------------------------------------
+-- The raid mark wheel (#34). In the 70532 dump: UnitExists, UnitIsUnit,
+-- CanBeRaidTarget, GetRaidTargetIndex, SetRaidTarget, IsInRaid,
+-- UnitIsGroupLeader, UnitIsGroupAssistant, GetCursorPosition documented;
+-- GetCVarBool, GetBindingKey in its _G walk; Menu (7 functions) in its
+-- namespace list; Line:SetStartPoint / SetEndPoint / SetThickness,
+-- Texture:SetRotation, Region:GetEffectiveScale / GetCenter,
+-- Button:RegisterForClicks in its widget methods.
+-- Blizzard's code, modelled: SecureActionButton_OnClick
+-- (Blizzard_FrameXML/SecureTemplates.lua:802) and its raidtarget action
+-- (:582); Menu.ModifyMenu (Blizzard_Menu/Menu.lua:2723), which calls a new
+-- modifier at once, synchronously, with the description last generated for
+-- the tag, open or not.
+--   WoW.units[token] = { id = "A", guid = "Creature-1" | a secret, markable = false | a secret }
+--     ("player" exists by default); WoW.unitIsUnitSecret: every UnitIsUnit answers a secret
+--   WoW.marks[id] = 1..8; WoW.marksSecret: GetRaidTargetIndex answers a secret for a marked unit
+--   WoW.raidCalls = { { token, index } } (from the secure action only);
+--   WoW.forbidden: SetRaidTarget called from anything else (ADDON_ACTION_FORBIDDEN)
+--   WoW.mouse = { x, y } (GetCursorPosition, pixels); WoW.uiScale (effective scale)
+--   WoW.cvars[name] = true; WoW.group = { raid, leader, assistant }; WoW.bindings[action] = key
+--   WoW.click(button, mouseButton, down, isKeyPress): PreClick, OnClick, PostClick
+--   WoW.openMenu(which, contextData) -> the description; WoW.menuButton(d, text) -> its responder
+--------------------------------------------------------------------------------
+
+WoW.units, WoW.marks, WoW.raidCalls, WoW.forbidden = {}, {}, {}, {}
+WoW.mouse, WoW.cvars, WoW.bindings = { x = 0, y = 0 }, {}, {}
+WoW.group = { raid = false, leader = false, assistant = false }
+WoW.menuModifiers, WoW.menuCache = {}, {}
+
+local function unitOf(token)
+    if WoW.units[token] then return WoW.units[token] end
+    if token == "player" then return { id = "me", guid = WoW.playerGUID } end
+end
+function UnitExists(token) return unitOf(token) ~= nil end
+function UnitIsUnit(a, b)
+    if WoW.unitIsUnitSecret then return WoW.Secret("UnitIsUnit") end
+    local ua, ub = unitOf(a), unitOf(b)
+    return ua ~= nil and ub ~= nil and ua.id == ub.id
+end
+local playerOnlyGUID = UnitGUID
+function UnitGUID(token)
+    if WoW.units[token] then return WoW.units[token].guid end
+    return playerOnlyGUID(token)
+end
+function CanBeRaidTarget(token)
+    local u = unitOf(token)
+    if not u then return false end
+    if u.markable == nil then return true end
+    return u.markable
+end
+function GetRaidTargetIndex(token)
+    local u = unitOf(token)
+    local m = u and WoW.marks[u.id]
+    if m and WoW.marksSecret then return WoW.Secret("GetRaidTargetIndex") end
+    return m
+end
+-- Protected (porting guide): only Blizzard's secure action may call it.
+function SetRaidTarget(token, index)
+    if not WoW.inSecureAction then
+        table.insert(WoW.forbidden, "SetRaidTarget")
+        WoW.fire("ADDON_ACTION_FORBIDDEN", "GlassPearls", "SetRaidTarget()")
+        return
+    end
+    table.insert(WoW.raidCalls, { token, index })
+    local u = unitOf(token)
+    if u then WoW.marks[u.id] = (index ~= 0) and index or nil end
+end
+function IsInRaid() return WoW.group.raid == true end
+function UnitIsGroupLeader(u) return u == "player" and WoW.group.leader == true end
+function UnitIsGroupAssistant(u) return u == "player" and WoW.group.assistant == true end
+function GetCursorPosition() return WoW.mouse.x, WoW.mouse.y end
+function GetCVarBool(name) return WoW.cvars[name] == true end
+function GetBindingKey(action) return WoW.bindings[action] end
+function Methods.GetEffectiveScale(w) return WoW.uiScale or 1 end
+function Methods.RegisterForClicks(b, ...) b._registeredClicks = { ... } end
+function Methods.SetRotation(t, r) t._rotation = r end
+function Methods.CreateLine(w) return addRegion(w, newWidget("Line", w)) end
+function Methods.SetStartPoint(l, ...) l._start = { ... } end
+function Methods.SetEndPoint(l, ...) l._end = { ... } end
+-- A frame placed by SetPoint("CENTER", UIParent, "BOTTOMLEFT", x, y) is centred there.
+function Methods.GetCenter(w)
+    local p = w._points[#w._points]
+    if p and p[1] == "CENTER" and p[2] == UIParent and p[3] == "BOTTOMLEFT" then return p[4], p[5] end
+end
+
+-- SecureActionButton_OnClick: exactly one edge acts. A real mouse press
+-- (isKeyPress false, isSecureAction true) always acts on the release.
+WoW.secureActions = {}
+function WoW.secureActionClick(self, inputButton, down, isKeyPress, isSecureAction)
+    local isSecureMousePress = not isKeyPress and isSecureAction
+    local pressAndHold = self:GetAttribute("pressAndHoldAction")
+    local useOnKeyDown = self:GetAttribute("useOnKeyDown")
+    if useOnKeyDown == nil then useOnKeyDown = GetCVarBool("ActionButtonUseKeyDown") end
+    useOnKeyDown = not isSecureMousePress and (useOnKeyDown or pressAndHold)
+    local clickAction = (down and useOnKeyDown) or (not down and not useOnKeyDown)
+    local release = (not down) and (pressAndHold or GetCVarBool("ActionButtonUseKeyHeldSpell"))
+    local kind
+    if clickAction then kind = self:GetAttribute("type")
+    elseif release then kind = self:GetAttribute("typerelease") end
+    if kind == nil then return end
+    table.insert(WoW.secureActions, { kind = kind, down = down })
+    if kind ~= "raidtarget" then return end
+    local unit = self:GetAttribute("unit") or "target"
+    local marker = tonumber(self:GetAttribute("marker")) or 1
+    local action = self:GetAttribute("action") or "toggle"
+    WoW.inSecureAction = true
+    if action == "clear" then
+        SetRaidTarget(unit, 0)
+    elseif action == "toggle" then
+        if GetRaidTargetIndex(unit) == marker then SetRaidTarget(unit, 0) else SetRaidTarget(unit, marker) end
+    elseif action == "set" then
+        if GetRaidTargetIndex(unit) ~= marker then SetRaidTarget(unit, marker) end
+    end
+    WoW.inSecureAction = false
+end
+
+-- One edge of a click on a shown button: PreClick, OnClick, PostClick. A
+-- mouse press by default; isKeyPress for a key bound to it.
+function WoW.click(b, mouseButton, down, isKeyPress)
+    if not Methods.IsVisible(b) then return false end
+    local s = b._scripts
+    if s.PreClick then s.PreClick(b, mouseButton, down) end
+    if s.OnClick then s.OnClick(b, mouseButton, down, isKeyPress == true, isKeyPress ~= true) end
+    if s.PostClick then s.PostClick(b, mouseButton, down) end
+    return true
+end
+
+local function newDescription(owner, contextData)
+    local d = { owner = owner, contextData = contextData, elements = {} }
+    function d:CreateTitle(text) table.insert(self.elements, { kind = "title", text = text }) end
+    function d:CreateDivider() table.insert(self.elements, { kind = "divider" }) end
+    function d:CreateButton(text, fn)
+        local e = { kind = "button", text = text, fn = fn }
+        table.insert(self.elements, e)
+        return e
+    end
+    return d
+end
+Menu = {
+    ModifyMenu = function(tag, fn)
+        local cached = WoW.menuCache[tag]
+        if cached then fn(cached.owner, cached, cached.contextData) end
+        WoW.menuModifiers[tag] = WoW.menuModifiers[tag] or {}
+        local entry = { fn = fn }
+        table.insert(WoW.menuModifiers[tag], entry)
+        return { Unregister = function() entry.dead = true end }
+    end,
+}
+-- Blizzard building a unit's menu (UnitPopupShared.lua:110): its title, then the modifiers.
+function WoW.openMenu(which, contextData)
+    local tag = "MENU_UNIT_" .. which
+    local d = newDescription(UIParent, contextData)
+    d:CreateTitle(which)
+    WoW.menuCache[tag] = d
+    for _, e in ipairs(WoW.menuModifiers[tag] or {}) do
+        if not e.dead then e.fn(d.owner, d, contextData) end
+    end
+    return d
+end
+function WoW.menuButton(d, text)
+    for _, e in ipairs(d.elements) do
+        if e.kind == "button" and e.text == text then return e.fn end
+    end
 end
 
 function WoW.calledCount(name)
