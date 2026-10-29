@@ -23,7 +23,7 @@
 --   A count is complete or nothing: one unreadable slot skips the line.
 --
 -- Buying (R.Run): one purchase in flight; each step reads everything again
--- (the offer at its index, the recount, room, money). A chunk is whole packs,
+-- (the offer at its index, the settings, the recount, room, money). A chunk is whole packs,
 -- at most the merchant's max stack per call, within both limits for the visit
 -- (budget % of the money at the start and maxSpend gold; spent = the larger of
 -- the confirmed prices and the money observed gone). Confirmed when the count
@@ -203,6 +203,13 @@ end
 -- Does a spell at the highest rank this character knows consume it?
 local function highestKnown(sid)
     if not known(sid) then return false end
+    local higher = data().higher[sid]   -- a poison recipe (not in SpellRankData)
+    if higher then
+        for _, h in ipairs(higher) do
+            if known(h) then return false end
+        end
+        return true
+    end
     local ranks = GP.SpellRankData
     local r = ranks and ranks.ranks[sid]
     if not r then return true end
@@ -211,6 +218,14 @@ local function highestKnown(sid)
         if known(group[j]) then return false end
     end
     return true
+end
+
+-- A kind's target now, or nil while it is switched off (a target of 0 wants nothing).
+local SWITCH = { reagent = "reagents", drink = "water", food = "food", ammo = "ammo" }
+local TARGET = { drink = "waterTarget", food = "foodTarget", ammo = "ammoTarget" }
+function R.Target(kind, id)
+    if not setting(SWITCH[kind]) then return nil end
+    return setting(TARGET[kind] or ("r" .. id)) or 0
 end
 
 function R.ReagentNeeded(spells)
@@ -241,10 +256,10 @@ function R.Plan()
     end
     -- Reagents.
     local mine = d.reagents[class]
-    if setting("reagents") and mine then
+    if mine then
         for item, spells in pairs(mine) do
-            local target = setting("r" .. item) or 0
-            if target > 0 and R.ReagentNeeded(spells) then
+            local target = R.Target("reagent", item)
+            if target and R.ReagentNeeded(spells) then
                 local o = best(offers, function(x) return x.id == item and 1 or nil end)
                 if o then
                     if R.BuffyHas(item) then
@@ -259,8 +274,8 @@ function R.Plan()
     end
     -- Water and food.
     for _, kind in ipairs({ "drink", "food" }) do
-        local on = setting(kind == "drink" and "water" or "food") and (kind == "food" or R.MANA[class])
-        if on then
+        local target = R.Target(kind)
+        if target and (kind == "food" or R.MANA[class]) then
             local tbl = d[kind]
             local o, value = best(offers, function(x)
                 local e = tbl[x.id]
@@ -269,13 +284,13 @@ function R.Plan()
             if o then
                 local ids = {}
                 for id, e in pairs(tbl) do if e.value >= value then ids[id] = true end end
-                add(line(kind, o, setting(kind == "drink" and "waterTarget" or "foodTarget"), ids,
-                    kind == "drink" and "water" or "food"))
+                add(line(kind, o, target, ids, kind == "drink" and "water" or "food"))
             end
         end
     end
     -- Ammo.
-    if setting("ammo") and class == "HUNTER" then
+    local ammoTarget = R.Target("ammo")
+    if ammoTarget and class == "HUNTER" then
         local kind = R.AmmoKind()
         if kind then
             local o, lvl = best(offers, function(x)
@@ -285,7 +300,7 @@ function R.Plan()
             if o then
                 local ids = {}
                 for id, e in pairs(d.ammo) do if e.kind == kind and e.level >= lvl then ids[id] = true end end
-                add(line("ammo", o, setting("ammoTarget"), ids, "ammunition"))
+                add(line("ammo", o, ammoTarget, ids, "ammunition"))
             end
         end
     end
@@ -382,10 +397,14 @@ step = function(r)
     if not (o and o.id == l.id and o.price == l.price and o.pack == l.pack) then
         return nextLine(R.Name(l.id) .. " changed at the merchant: skipped.")
     end
+    -- The settings again (changed by hand or by sync since the plan): a kind
+    -- switched off ends its line, a lower target counts; the plan stays the most.
+    local target = R.Target(l.kind, l.id)
+    if not target then return nextLine() end
     -- The recount.
     local owned = R.Count(l.ids)
     if not owned then return nextLine("Your bags can't be read: " .. R.Name(l.id) .. " skipped.") end
-    local packs = math.min(math.ceil(math.max(l.target - owned, 0) / l.pack), l.packs - l.done)
+    local packs = math.min(math.ceil(math.max(target - owned, 0) / l.pack), l.packs - l.done)
     if packs <= 0 then return nextLine() end
     packs = math.min(packs, math.max(1, math.floor(o.maxStack / o.pack)))
     if o.stock ~= -1 then packs = math.min(packs, math.floor(o.stock / o.pack)) end

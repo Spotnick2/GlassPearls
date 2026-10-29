@@ -15,9 +15,14 @@ buy, from the client's own tables.
                 the class skill lines of SkillLineAbility, rune copies dropped: SkillLine category 7
                 with flag 0x400, as gen_ranks.py; the rogue's Poisons line too),
                 per class, with the spells that consume it.
+  higher        the poison recipes' higher ranks (the Poisons line isn't in
+                Data/SpellRanks.lua): each Poisons-line spell that consumes an
+                allowlisted reagent, with the recipes of the same name and a
+                higher numeral ("Instant Poison" < "Instant Poison II"); the
+                numerals must rise with the spells' levels (SpellLevels).
 
 Tables: Item, ItemSparse, ItemXItemEffect, ItemEffect, SpellEffect, SpellMisc,
-SpellDuration, SpellReagents, SkillLine, SkillLineAbility, SpellName (fetched
+SpellDuration, SpellReagents, SkillLine, SkillLineAbility, SpellName, SpellLevels (fetched
 once per build with References/Tools/Wago/wago.py). Never fetches anything.
 Tools/restock/report.txt lists every decision.
 
@@ -44,6 +49,7 @@ CLASS_CATEGORY, CLASS_FLAG = 7, 0x400
 POISONS_LINE = 40
 RUNE_ACQUIRE = "3"   # Season of Discovery rune copies (as gen_ranks.py)
 CONJURED = 0x2
+NUMERALS = {"I": 1, "II": 2, "III": 3, "IV": 4, "V": 5, "VI": 6, "VII": 7, "VIII": 8}
 # ChrClasses IDs (SkillLineAbility.ClassMask bit = ID - 1) to class files.
 CLASSES = {1: "WARRIOR", 2: "PALADIN", 3: "HUNTER", 4: "ROGUE", 5: "PRIEST", 7: "SHAMAN",
            8: "MAGE", 9: "WARLOCK", 11: "DRUID"}
@@ -151,9 +157,12 @@ def main():
                    if int(r["CategoryID"] or 0) == CLASS_CATEGORY and int(r["Flags"] or 0) & CLASS_FLAG}
     class_lines.add(POISONS_LINE)
     class_spells = collections.defaultdict(set)
+    poisons = set()
     for r in rows("skilllineability", build):
         if int(r["SkillLine"]) not in class_lines or r["AcquireMethod"] == RUNE_ACQUIRE:
             continue
+        if int(r["SkillLine"]) == POISONS_LINE:
+            poisons.add(r["Spell"])
         mask = int(r["ClassMask"] or 0)
         for cid, cls in CLASSES.items():
             if mask & (1 << (cid - 1)):
@@ -174,6 +183,24 @@ def main():
                 else:
                     unlisted[reagent].add("%s %s" % (cls, names.get(sid, sid)))
     used = {i for per in reagents.values() for i in per}
+
+    # The poison recipes' ranks, from their names, checked against their levels.
+    levels = {r["SpellID"]: int(r["SpellLevel"] or 0) for r in rows("spelllevels", build)}
+    recipes = collections.defaultdict(list)
+    for sid in poisons:
+        if any(reagent in allow for reagent in consumes.get(sid, [])):
+            m = re.match(r"^(.*?)(?: ([IVX]+))?$", names.get(sid, ""))
+            recipes[m.group(1)].append((NUMERALS[m.group(2)] if m.group(2) else 1, int(sid)))
+    higher = {}
+    for base, members in recipes.items():
+        members.sort()
+        if len({n for n, _ in members}) != len(members):
+            sys.exit("two %s recipes share a rank: %s" % (base, members))
+        lv = [levels.get(str(sid), 0) for _, sid in members]
+        if lv != sorted(lv):
+            sys.exit("%s: the numerals don't rise with the levels: %s %s" % (base, members, lv))
+        for k, (_, sid) in enumerate(members):
+            higher[sid] = [s for _, s in members[k + 1:]]
     for i in sorted(set(allow) - used):
         sys.exit("reagents.csv lists %d (%s), but no class spell consumes it" % (i, allow[i][1]))
 
@@ -203,6 +230,10 @@ def main():
             report.append("  %s %d %s (target %d): %s" % (cls, i, sparse.get(str(i), {}).get("Display_lang", "?"),
                           allow[i][0], ", ".join(sorted(names.get(str(s), str(s)) for s in reagents[cls][i]))))
     report.append("")
+    report.append("Poison recipes, lowest rank first (only the highest known buys its reagents):")
+    for base in sorted(recipes):
+        report.append("  %s: %s" % (base, ", ".join("%s %d" % (names.get(str(s), s), s) for _, s in sorted(recipes[base]))))
+    report.append("")
     report.append("Reagents of class spells not on the allowlist (not bought):")
     for i in sorted(unlisted):
         report.append("  %d %s: %s" % (i, sparse.get(str(i), {}).get("Display_lang", "?"), ", ".join(sorted(unlisted[i]))))
@@ -216,7 +247,7 @@ def main():
         "-- the script after a new build. What the restock pearl (#14) may buy: food and",
         "-- water (value: the total restored; bop: bind on pickup, never bought), ammo",
         "-- (kind 2 arrows, 3 bullets) and, per class, the allowlisted reagents its own",
-        "-- spells consume.",
+        "-- spells consume; higher: the poison recipes' higher ranks.",
         "",
         "GlassPearls = GlassPearls or {}",
         "GlassPearls.RestockData = {",
@@ -241,6 +272,11 @@ def main():
             spells = ", ".join(str(s) for s in sorted(reagents[cls][i]))
             lines.append("            [%d] = { %s },   -- %s" % (i, spells, sparse.get(str(i), {}).get("Display_lang", "?")))
         lines.append("        },")
+    lines.append("    },")
+    lines.append("    higher = {")
+    for sid in sorted(higher):
+        ranks = ", ".join(str(s) for s in higher[sid])
+        lines.append("        [%d] = %s,   -- %s" % (sid, "{ %s }" % ranks if ranks else "{}", names.get(str(sid), sid)))
     lines.append("    },")
     lines.append("    targets = {")
     for i in sorted(used):

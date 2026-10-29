@@ -3,7 +3,7 @@
 -- the script after a new build. What the restock pearl (#14) may buy: food and
 -- water (value: the total restored; bop: bind on pickup, never bought), ammo
 -- (kind 2 arrows, 3 bullets) and, per class, the allowlisted reagents its own
--- spells consume.
+-- spells consume; higher: the poison recipes' higher ranks.
 
 GlassPearls = GlassPearls or {}
 GlassPearls.RestockData = {
@@ -363,6 +363,33 @@ GlassPearls.RestockData = {
             [5565] = { 1122 },   -- Infernal Stone
             [16583] = { 18540 },   -- Demonic Figurine
         },
+    },
+    higher = {
+        [2835] = { 2837, 11357, 11358, 25347 },   -- Deadly Poison
+        [2837] = { 11357, 11358, 25347 },   -- Deadly Poison II
+        [3420] = { 3421 },   -- Crippling Poison
+        [3421] = {},   -- Crippling Poison II
+        [5763] = { 8694, 11400 },   -- Mind-numbing Poison
+        [8681] = { 8687, 8691, 11341, 11342, 11343 },   -- Instant Poison
+        [8687] = { 8691, 11341, 11342, 11343 },   -- Instant Poison II
+        [8691] = { 11341, 11342, 11343 },   -- Instant Poison III
+        [8694] = { 11400 },   -- Mind-numbing Poison II
+        [11341] = { 11342, 11343 },   -- Instant Poison IV
+        [11342] = { 11343 },   -- Instant Poison V
+        [11343] = {},   -- Instant Poison VI
+        [11357] = { 11358, 25347 },   -- Deadly Poison III
+        [11358] = { 25347 },   -- Deadly Poison IV
+        [11400] = {},   -- Mind-numbing Poison III
+        [13220] = { 13228, 13229, 13230 },   -- Wound Poison
+        [13228] = { 13229, 13230 },   -- Wound Poison II
+        [13229] = { 13230 },   -- Wound Poison III
+        [13230] = {},   -- Wound Poison IV
+        [25347] = {},   -- Deadly Poison V
+        [439500] = {},   -- Sebacious Poison
+        [439503] = {},   -- Atrophic Poison
+        [439505] = {},   -- Numbing Poison
+        [458822] = { 1214168 },   -- Occult Poison I
+        [1214168] = {},   -- Occult Poison II
     },
     targets = {
         [2928] = 20,   -- Dust of Decay: poisons

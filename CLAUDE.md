@@ -183,12 +183,14 @@ order) and before the options window and bootstrap.
   gone after 30 s unless the mouse is on it, position per character) and its panel.
 - **`Data\Restock.lua`**: **generated** by `Tools\gen_restock.py` (never edit it) from the client's
   Item, ItemSparse, ItemXItemEffect, ItemEffect, SpellEffect, SpellMisc, SpellDuration,
-  SpellReagents and SkillLineAbility tables: food (use spell aura 84) and water (85; alcohol has
+  SpellReagents, SkillLineAbility and SpellLevels tables: food (use spell aura 84) and water (85; alcohol has
   neither; the Manna Biscuits trigger both), `value` = the total restored (points × duration / 5 s,
   as the tooltips say), `bop` (bind on pickup: Forever's level-1 copies of high-end food are),
   `conjured`; ammo (2 arrows, 3 bullets) with its level; per class the reagents its own spells
   consume, only from the audited allowlist `Tools\restock\reagents.csv` (default targets), rune
-  copies dropped. `Tools\restock\report.txt` lists the vendor lines' order and every drop.
+  copies dropped; `higher`: the poison recipes' higher ranks (by the numeral in the name, checked
+  against their levels), since the Poisons line isn't in `Data\SpellRanks.lua`.
+  `Tools\restock\report.txt` lists the vendor lines' order, the poison ranks and every drop.
 - **`Pearls\Restock.lua`**: restock (#14, pearl `restock`, Loot & Bags > Merchant, on by default).
   At a merchant, after the junk seller reports "ready" (`Merchant.Await`, 10 s; "skip" or nothing
   means no restock this visit; 0.3 s after the show when Junk is off), never with Shift or in
@@ -200,7 +202,8 @@ order) and before the options window and bootstrap.
   rank** consumes them, never while Buffy restocks them (read in a pcall; unreadable: its fixed
   list). Owned counts only **as good or better** (conjured included); `R.Count` reads every slot of
   bags 0-4, locked ones too, and is nil (the line skipped) if one can't be read. Wanted in whole
-  packs rounded up. `R.Run`: one purchase in flight, each step reading the offer, the recount, room
+  packs rounded up. `R.Run`: one purchase in flight, each step reading the offer, the settings (a
+  kind switched off ends its line, a lower target counts, by hand or by sync), the recount, room
   (`Bags.Fits`, fresh) and both limits (`budget`% of the money at the start, `maxSpend` gold; spent
   = the larger of the confirmed prices and the money observed gone) again; a chunk is whole packs,
   at most the merchant's max stack; confirmed only when the count reaches before + chunk within 2 s,

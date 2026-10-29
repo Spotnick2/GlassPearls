@@ -107,6 +107,17 @@ Reagents kept, per class:
   WARLOCK 5565 Infernal Stone (target 5): Inferno
   WARLOCK 16583 Demonic Figurine (target 5): Ritual of Doom
 
+Poison recipes, lowest rank first (only the highest known buys its reagents):
+  Atrophic Poison: Atrophic Poison 439503
+  Crippling Poison: Crippling Poison 3420, Crippling Poison II 3421
+  Deadly Poison: Deadly Poison 2835, Deadly Poison II 2837, Deadly Poison III 11357, Deadly Poison IV 11358, Deadly Poison V 25347
+  Instant Poison: Instant Poison 8681, Instant Poison II 8687, Instant Poison III 8691, Instant Poison IV 11341, Instant Poison V 11342, Instant Poison VI 11343
+  Mind-numbing Poison: Mind-numbing Poison 5763, Mind-numbing Poison II 8694, Mind-numbing Poison III 11400
+  Numbing Poison: Numbing Poison 439505
+  Occult Poison: Occult Poison I 458822, Occult Poison II 1214168
+  Sebacious Poison: Sebacious Poison 439500
+  Wound Poison: Wound Poison 13220, Wound Poison II 13228, Wound Poison III 13229, Wound Poison IV 13230
+
 Reagents of class spells not on the allowlist (not bought):
   3818 Fadeleaf: ROGUE Blinding Powder
   5530 Blinding Powder: ROGUE Blind

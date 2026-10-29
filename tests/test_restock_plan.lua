@@ -14,7 +14,7 @@ local ITEMS = {
     [8079] = "Conjured Crystal Water", [4540] = "Tough Hunk of Bread", [4544] = "Mulgore Spice Bread",
     [17031] = "Rune of Teleportation", [17032] = "Rune of Portals", [17056] = "Light Feather",
     [17020] = "Arcane Powder", [17034] = "Maple Seed", [17035] = "Stranglethorn Seed",
-    [19222] = "Cheap Beer",
+    [19222] = "Cheap Beer", [3371] = "Empty Vial", [3372] = "Leaded Vial", [2928] = "Dust of Decay",
 }
 for id, name in pairs(ITEMS) do WoW.items[id] = { name = name, maxStack = 20, price = 1, quality = 1 } end
 for _, id in ipairs({ 2515, 3030, 3033 }) do WoW.items[id] = { name = "ammo " .. id, maxStack = 200, family = 1 } end
@@ -41,6 +41,9 @@ local GOODS = {
     { id = 3033, price = 300, pack = 200 },
     { id = 17034, price = 200, pack = 1 },
     { id = 17035, price = 400, pack = 1 },
+    { id = 3371, price = 4, pack = 1 },
+    { id = 3372, price = 100, pack = 1 },
+    { id = 2928, price = 125, pack = 1 },
 }
 local function goods()
     WoW.goods = {}
@@ -131,6 +134,14 @@ eq(plan(), "17034x5 1708x20 4544x20", "Rebirth 1: Maple Seed")
 WoW.known[20739] = true
 eq(plan(), "17035x5 1708x20 4544x20", "Rebirth 2 known too: Stranglethorn Seed, no more Maple Seed")
 WoW.known[20484], WoW.known[20739] = nil, nil
+
+-- A rogue's poisons: the reagents of the highest recipe known in each line.
+WoW.class = "ROGUE"
+WoW.known[8681] = true   -- Instant Poison: Empty Vial, Dust of Decay
+eq(plan(), "2928x20 3371x20 4544x20", "Instant Poison: Dust of Decay and Empty Vials")
+WoW.known[8687] = true   -- Instant Poison II: Leaded Vial, Dust of Decay
+eq(plan(), "2928x20 3372x20 4544x20", "Instant Poison II known too: Leaded Vials, no more Empty Vials")
+WoW.known[8681], WoW.known[8687] = nil, nil
 
 -- A hunter's ammo, by the ranged weapon.
 WoW.class = "HUNTER"

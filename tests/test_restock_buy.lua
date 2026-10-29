@@ -256,6 +256,41 @@ check(count(4544) == 0 and count(1708) == 20, "an item whose stack size can't be
 check(has(chat, "Can't tell whether item 4544 fits: skipped."), "  and said: " .. text(chat))
 WoW.items[4544] = bread
 
+-- The settings changed since the plan (by hand or by sync): read again each step.
+reset()
+P.SetSetting("restock", "mode", "ask")
+WoW.openMerchant()
+drain()
+P.SetSetting("restock", "r17031", 0)
+P.SetSetting("restock", "food", false)
+GP.RestockFrame.Buy()
+drain()
+check(count(17031) == 0 and count(4544) == 0, "the runes set to 0 and food switched off after the window: neither bought")
+check(count(17056) == 20 and count(1708) == 20, "  the rest bought")
+P.ResetSettings("restock")
+reset()
+P.SetSetting("restock", "mode", "ask")
+WoW.openMerchant()
+drain()
+P.SetSetting("restock", "r17031", 4)
+P.SetSetting("restock", "waterTarget", 40)
+GP.RestockFrame.Buy()
+drain()
+eq(count(17031) .. "/" .. count(1708), "4/20", "a lower target counts; a higher one never passes what the window showed")
+P.ResetSettings("restock")
+reset()
+WoW.buysAsync = true
+WoW.openMerchant()
+soon()   -- the runes wait
+WoW.applyBuys()
+soon()   -- the first five feathers wait
+P.SetSetting("restock", "reagents", false)
+WoW.applyBuys()
+drain()
+eq(count(17056), 5, "reagents switched off during a run: no more feathers")
+P.ResetSettings("restock")
+reset()
+
 -- The offer changed since the plan: that line skipped.
 reset()
 P.SetSetting("restock", "mode", "ask")
