@@ -84,4 +84,10 @@
   set it (the same mark again removes it), the centre to clear it, outside or Esc to close. Out of
   combat; in a raid, as the leader or an assistant. It opens and closes with a short animation, in
   WoW Forever's own wheel art or Glass UI's glass. Pings are the game's own: its Ping key.
+- **Auto gossip** (Automation, on by default): when an NPC has a single gossip option, it's picked for
+  you (never the hearthstone binding or the spirit healer, by default; a setting chooses). When you
+  keep choosing the same option at an NPC, it offers to always pick it for you, on all your
+  characters. Never in combat, with Shift held, or while the NPC has a quest for you; anything
+  that costs money, binds your hearthstone or resets talents still asks you first. `/gpearls
+  gossip` shows the NPC's options.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.
