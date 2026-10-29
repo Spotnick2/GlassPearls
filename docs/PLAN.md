@@ -30,6 +30,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #27 | Training reminder (pearl `training`): a level-up toast, next ranks in spell tooltips, talent points, the other spec | built; the trainer match, the tooltip and dual spec wait for day one |
 | #14 | Restock (pearl `restock`): food, water, ammunition and class reagents at a merchant, after the junk seller | built; the purchase API, the events and the refusal names wait for day one |
 | #34 | Raid mark wheel (pearl `markwheel`): the eight marks at the cursor, from a key or a unit's menu; pings stay the client's own | built; the secure click, the menu entry and the art wait for day one |
+| #47 | Auto gossip (pearl `autogossip`): lone options by a setting, and the options you keep choosing; gossip only | built; the icons, the event order, the button hook and the picks wait for day one |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -230,6 +231,24 @@ Each line is a claim the code relies on that only the live client can settle.
 - [ ] Combat: pulling with the wheel open closes it; the key in combat says why. In a raid as a
       plain member: refused; as an assistant: allowed.
 - [ ] Blizzard's Ping key: bound by default? (The panel's note.)
+
+**Auto gossip (#47)** (a vendor, an innkeeper, a flight master, a class trainer, a spirit healer, a
+story NPC, a multi-page NPC)
+- [ ] `/gpearls gossip` at each: the icons' fileIDs (the binder 132052/136458 and healer 132054
+      refusals; the `services` icons and the four `Interface\GossipFrame\*GossipIcon` paths it
+      resolves), `gossipOptionID` present or hidden, `selectOptionWhenOnlyOption` where.
+- [ ] `/gpearls gossip trace`: the order of show, refresh, selects, confirmations,
+      `PLAYER_INTERACTION_MANAGER_FRAME_SHOW` (its type) and closes (`interactionIsContinuing`), in
+      particular at a binder, a talent master and a spirit healer against their confirmations; does
+      Blizzard's lone pick come before our decision a frame later?
+- [ ] A pick works from our handler (`SelectOption(id)`): no taint, no `ADDON_ACTION_FORBIDDEN`. A
+      paid option still shows Blizzard's popup; binding and talent wipe are never answered by us.
+- [ ] The PreClick hook: on the real gossip buttons (scrolled ones too), fired by a mouse click and
+      by the gamepad; Blizzard's lone pick and a popup's Accept or Enter never count.
+- [ ] The offer after the third pick, in both looks; never in combat; Always then picks it.
+- [ ] Enter in a code popup, an innkeeper you're already bound at, a spirit healer alive and dead,
+      a paid always option, a trainer's unlearn option, one option ID at two NPCs.
+- [ ] A multi-page NPC stops after 3 automatic picks; quickly talking again after an ambiguous close.
 
 **The probe (#5):** its steps are added here by its PR.
 

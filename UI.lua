@@ -150,6 +150,67 @@ function UI.Number(parent, text, get, set, lo, hi, width)
     return box, refresh
 end
 
+-- A paged list of one settings-sync set under `anchor`: Remove per row,
+-- < n/N >, Clear all. nameOf(member) gives a row's text; `noun` counts them
+-- ("item(s)"); `empty` shows when there are none. Returns its last control (to
+-- anchor what follows) and the list (its refresh is list.refresh).
+UI.LIST_PAGE = 4
+function UI.SetList(panel, anchor, title, setID, empty, nameOf, noun)
+    local SS = GP.SettingsSync
+    local head = UI.Header(panel, title, "GameFontNormal")
+    head:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -16)
+    local count = UI.Label(panel, "", "GameFontDisableSmall")
+    count:SetPoint("LEFT", head, "RIGHT", 10, 0)
+    local list = { rows = {}, page = 1, head = head, count = count }
+    local function refresh()
+        local ids = SS.SetMembers(setID)
+        local pages = math.max(1, math.ceil(#ids / UI.LIST_PAGE))
+        if list.page > pages then list.page = pages end
+        count:SetText(#ids == 0 and empty or (#ids .. " " .. noun))
+        for i = 1, UI.LIST_PAGE do
+            local row = list.rows[i]
+            local id = ids[(list.page - 1) * UI.LIST_PAGE + i]
+            row.id = id
+            if id then
+                row.label:SetText(nameOf(id))
+                row.label:Show()
+                row.remove:Show()
+            else
+                row.label:Hide()
+                row.remove:Hide()
+            end
+        end
+        list.pageText:SetText(pages > 1 and (list.page .. "/" .. pages) or "")
+        list.prev:SetShown(pages > 1)
+        list.next:SetShown(pages > 1)
+        list.clear:SetEnabled(#ids > 0)
+    end
+    for i = 1, UI.LIST_PAGE do
+        local row = {}
+        row.remove = UI.Button(panel, "Remove", 70, function()
+            if row.id then SS.SetRemove(setID, row.id) end
+            refresh()
+        end)
+        row.remove:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -6 - (i - 1) * 24)
+        row.label = UI.Label(panel, "")
+        row.label:SetPoint("LEFT", row.remove, "RIGHT", 8, 0)
+        list.rows[i] = row
+    end
+    list.prev = UI.Button(panel, "<", 24, function() list.page = math.max(1, list.page - 1); refresh() end)
+    list.prev:SetPoint("TOPLEFT", list.rows[UI.LIST_PAGE].remove, "BOTTOMLEFT", 0, -6)
+    list.pageText = UI.Label(panel, "", "GameFontHighlightSmall")
+    list.pageText:SetPoint("LEFT", list.prev, "RIGHT", 6, 0)
+    list.next = UI.Button(panel, ">", 24, function() list.page = list.page + 1; refresh() end)
+    list.next:SetPoint("LEFT", list.pageText, "RIGHT", 6, 0)
+    list.clear = UI.Button(panel, "Clear all", 90, function()
+        SS.SetClear(setID)
+        refresh()
+    end)
+    list.clear:SetPoint("LEFT", list.next, "RIGHT", 16, 0)
+    list.refresh = refresh
+    return list.prev, list
+end
+
 -- The search box: SearchBoxTemplate (its clear button and instructions) when
 -- the client has it, else a plain input box. onChange(text) on every edit.
 function UI.Search(parent, width, instructions, onChange)

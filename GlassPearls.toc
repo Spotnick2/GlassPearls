@@ -50,5 +50,7 @@ Pearls\RestockFrame.lua
 Pearls\Restock.lua
 Pearls\MarkWheelFrame.lua
 Pearls\MarkWheel.lua
+Pearls\AutoGossipFrame.lua
+Pearls\AutoGossip.lua
 Options.lua
 GlassPearls.lua

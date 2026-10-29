@@ -471,7 +471,7 @@ end
 
 -- Timers keep their delay: WoW.flushTimers(upTo) runs those due within upTo
 -- seconds (all when nil) and keeps the rest.
-C_Timer = { After = function(s, fn) table.insert(WoW.timers, { s = s, fn = fn }) end }
+C_Timer = { After = function(s, fn) table.insert(WoW.timers, { s = s, fn = fn, at = (WoW.now or 0) + s }) end }
 function WoW.flushTimers(upTo)
     local run, keep = {}, {}
     for _, t in ipairs(WoW.timers) do
@@ -479,6 +479,20 @@ function WoW.flushTimers(upTo)
     end
     WoW.timers = keep
     for _, t in ipairs(run) do t.fn() end
+end
+-- A clock instead: move WoW.now on by dt and run the timers due by then, in
+-- order of when they fall due (timers they schedule count from the new now).
+function WoW.advance(dt)
+    WoW.now = (WoW.now or 0) + dt
+    while true do
+        local due, at
+        for i, t in ipairs(WoW.timers) do
+            if t.at <= WoW.now and (not at or t.at < at) then due, at = i, t.at end
+        end
+        if not due then return end
+        local t = table.remove(WoW.timers, due)
+        t.fn()
+    end
 end
 --------------------------------------------------------------------------------
 -- Driving
@@ -1477,6 +1491,156 @@ function WoW.menuButton(d, text)
     for _, e in ipairs(d.elements) do
         if e.kind == "button" and e.text == text then return e.fn end
     end
+end
+
+--------------------------------------------------------------------------------
+-- Auto gossip (#47). In the 70532 dump: C_GossipInfo.GetOptions,
+-- GetNumAvailableQuests, GetNumActiveQuests, ForceGossip, SelectOption,
+-- SelectOptionByIndex documented; GetFileIDFromPath documented; GossipFrame
+-- and ScrollUtil in its namespace list; the GOSSIP_* events. Blizzard's code,
+-- modelled: GossipFrameSharedMixin:HandleShow's own lone pick
+-- (Blizzard_UIPanels_Game/Shared/GossipFrameShared.lua:191), its option
+-- buttons (GossipOptionButtonMixin: SetID(orderIndex), OnClick ->
+-- SelectOptionByIndex(self:GetID()), :67-99) pooled in
+-- GossipFrame.GreetingPanel.ScrollBox (Mainline/GossipFrame.xml:62), whose
+-- frames carry GetElementData (ScrollBoxListView.lua:90) and which tells
+-- ScrollUtil.AddInitializedFrameCallback's callbacks of each initialized
+-- frame (ScrollUtil.lua:21); Enum.GossipOptionStatus and
+-- Enum.PlayerInteractionType from Blizzard's generated docs.
+--   WoW.openGossip{ options = { { id, index, status, icon, override, only, name, flags } },
+--                   available, active, force, textureKit, npc = false, blizzardFirst, visible }
+--     -> Blizzard's lone pick and frame, and GOSSIP_SHOW, in either order
+--   WoW.refreshGossip(options), WoW.closeGossip(continuing), WoW.scrollGossip() (frames made later)
+--   WoW.playerPicks(orderIndex): a click on that option's button (PreClick, OnClick, the select)
+--   WoW.gossipSelects = { { fn, arg, text, confirmed } }; WoW.gossipOnSelect(fn, arg): runs inside a
+--     select (synchronous events); WoW.gossipSelectThrows; WoW.fileIDs[path] = id
+--------------------------------------------------------------------------------
+
+WoW.gossip, WoW.gossipSelects, WoW.fileIDs = nil, {}, {}
+Enum.GossipOptionStatus = { Available = 0, Unavailable = 1, Locked = 2, AlreadyComplete = 3 }
+Enum.PlayerInteractionType = { None = 0, TradePartner = 1, Item = 2, Gossip = 3, QuestGiver = 4, Merchant = 5,
+    TaxiNode = 6, Trainer = 7, Banker = 8, AlliedRaceDetailsGiver = 9, GuildBanker = 10, Registrar = 11, Vendor = 12,
+    PetitionVendor = 13, GuildTabardVendor = 14, TalentMaster = 15, SpecializationMaster = 16, MailInfo = 17,
+    SpiritHealer = 18, AreaSpiritHealer = 19, Binder = 20, Auctioneer = 21, StableMaster = 22, BattleMaster = 23 }
+GOSSIP_BUTTON_TYPE_OPTION = 3
+function GetFileIDFromPath(path) return WoW.fileIDs[path] end
+function Methods.SetID(w, id) w._id = id end
+function Methods.GetID(w) return w._id or 0 end
+function Methods.GetLeft(w) return w._left end
+function Methods.GetTop(w) return w._top end
+
+local function gossipOptions()
+    local g = WoW.gossip
+    local out = {}
+    for _, o in ipairs(g and g.options or {}) do
+        out[#out + 1] = { gossipOptionID = o.id, orderIndex = o.index, status = o.status or 0, icon = o.icon,
+            overrideIconID = o.override, selectOptionWhenOnlyOption = o.only == true, name = o.name, flags = o.flags or 0,
+            rewards = {} }
+    end
+    return out
+end
+local function gossipSelect(fn, arg, text, confirmed)
+    if WoW.gossipSelectThrows then error("select refused") end
+    table.insert(WoW.gossipSelects, { fn = fn, arg = arg, text = text, confirmed = confirmed })
+    if WoW.gossipOnSelect then WoW.gossipOnSelect(fn, arg) end
+end
+C_GossipInfo = {
+    GetOptions = function() return WoW.gossipOptionsSecret and WoW.Secret("GetOptions") or gossipOptions() end,
+    GetNumAvailableQuests = function() return WoW.gossip and WoW.gossip.available or 0 end,
+    GetNumActiveQuests = function() return WoW.gossip and WoW.gossip.active or 0 end,
+    ForceGossip = function() return WoW.gossip ~= nil and WoW.gossip.force == true end,
+    SelectOption = function(id, text, confirmed) gossipSelect("SelectOption", id, text, confirmed) end,
+    SelectOptionByIndex = function(index, text, confirmed) gossipSelect("SelectOptionByIndex", index, text, confirmed) end,
+}
+
+-- GossipFrame.GreetingPanel.ScrollBox: a pool of option buttons.
+local scrollBox = newWidget("Frame", UIParent)
+scrollBox._frames, scrollBox._callbacks = {}, {}
+GossipFrame = newWidget("Frame", UIParent, "GossipFrame")
+GossipFrame.GreetingPanel = newWidget("Frame", GossipFrame)
+GossipFrame.GreetingPanel.ScrollBox = scrollBox
+WoW.gossipScrollBox = scrollBox
+function scrollBox:ForEachFrame(fn)
+    for _, frame in ipairs(self._frames) do
+        if frame._shown then
+            local r = fn(frame, frame:GetElementData())
+            if r then return r end
+        end
+    end
+end
+ScrollUtil = { AddInitializedFrameCallback = function(sb, callback, owner, iterateExisting)
+    if iterateExisting then sb:ForEachFrame(callback) end
+    table.insert(sb._callbacks, { fn = callback, owner = owner })
+end }
+-- Blizzard laying out a page's buttons: `count` of its options get a frame
+-- (pooled), each initialized and told to the callbacks.
+local function layout(count)
+    local opts = WoW.gossip and WoW.gossip.options or {}
+    for _, frame in ipairs(scrollBox._frames) do frame._shown = false end
+    for i = 1, math.min(count, #opts) do
+        local frame = scrollBox._frames[i]
+        if not frame then
+            frame = newWidget("Button", scrollBox)
+            frame._scripts.OnClick = function(self) C_GossipInfo.SelectOptionByIndex(self:GetID()) end
+            scrollBox._frames[i] = frame
+        end
+        local data = { buttonType = GOSSIP_BUTTON_TYPE_OPTION, info = opts[i] }
+        frame.GetElementData = function() return data end
+        frame:SetID(opts[i].index or 0)
+        frame._shown = true
+        for _, cb in ipairs(scrollBox._callbacks) do cb.fn(cb.owner, frame, data) end
+    end
+end
+-- HandleShow: Blizzard's own lone pick, else the frame.
+local function blizzardShow()
+    local g = WoW.gossip
+    local opts = g.options
+    if (g.available or 0) == 0 and (g.active or 0) == 0 and #opts == 1 and not g.force and opts[1].only then
+        C_GossipInfo.SelectOptionByIndex(opts[1].index)
+        return
+    end
+    GossipFrame._shown = true
+    layout(g.visible or #opts)
+end
+function WoW.openGossip(spec)
+    WoW.gossip = spec
+    spec.options = spec.options or {}
+    if spec.npc ~= false then
+        WoW.units.npc = WoW.units.npc or { id = "NPC", guid = "Creature-0-1-2-3-4567-0000ABCD" }
+    else
+        WoW.units.npc = nil
+    end
+    if spec.blizzardFirst then
+        blizzardShow()
+        WoW.fire("GOSSIP_SHOW", spec.textureKit)
+    else
+        WoW.fire("GOSSIP_SHOW", spec.textureKit)
+        blizzardShow()
+    end
+end
+function WoW.refreshGossip(options)
+    WoW.gossip.options = options
+    layout(#options)
+    WoW.fire("GOSSIP_OPTIONS_REFRESHED")
+end
+function WoW.scrollGossip() layout(#(WoW.gossip and WoW.gossip.options or {})) end
+function WoW.closeGossip(continuing)
+    WoW.gossip = nil
+    GossipFrame._shown = false
+    for _, frame in ipairs(scrollBox._frames) do frame._shown = false end
+    WoW.fire("GOSSIP_CLOSED", continuing)
+end
+-- A click on the shown button of option `orderIndex`.
+function WoW.playerPicks(orderIndex)
+    for _, frame in ipairs(scrollBox._frames) do
+        if frame._shown and frame:GetID() == orderIndex then
+            local s = frame._scripts
+            if s.PreClick then s.PreClick(frame, "LeftButton", false) end
+            s.OnClick(frame, "LeftButton", false)
+            return true
+        end
+    end
+    return false
 end
 
 function WoW.calledCount(name)

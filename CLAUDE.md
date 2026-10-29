@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), and the eleventh, the raid mark wheel (#34); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), and the twelfth, auto gossip (#47); the day-one
 probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
@@ -36,7 +36,7 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 `Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua` → `Pearls\FixateFrame.lua` →
 `Pearls\Fixate.lua` → `Pearls\Uncrushable.lua` → `Pearls\BuffsFrame.lua` → `Pearls\Buffs.lua` → `Pearls\PaladinTank.lua` → `Pearls\TrainingFrame.lua` →
 `Pearls\Training.lua` → `Pearls\RestockFrame.lua` → `Pearls\Restock.lua` → `Pearls\MarkWheelFrame.lua` →
-`Pearls\MarkWheel.lua`)* →
+`Pearls\MarkWheel.lua` → `Pearls\AutoGossipFrame.lua` → `Pearls\AutoGossip.lua`)* →
 `Options.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
@@ -60,7 +60,8 @@ order) and before the options window and bootstrap.
   `Window`, `Reading`, `Control`, `Accent` (`AccentRGB` for a texture's tint), `NewGlass`; `Active`,
   `Following`, `Glass`.
 - **`UI.lua`**: the shared widgets (`Label`, `Header`, `Tooltip`, `Button`, `Check`, `Gear`,
-  `Radios`, `Number`, `Search`), Blizzard templates in both looks; a value control returns a `refresh`.
+  `Radios`, `Number`, `Search`, `SetList`: a paged list of one sync set), Blizzard templates in both looks; a
+  value control returns a `refresh`.
 - **`Pearls.lua`**: the registry. `Pearls.Register{ key, name, desc, default, category, section,
   Enable, Disable, defaults, configure, help, onReset, onSettingChanged }` (the last after any
   change of its settings, from any route, sync included: for a pearl that must rebuild); `IsOn`, `IsLive`, `NeedsReload`,
@@ -214,6 +215,37 @@ order) and before the options window and bootstrap.
   synced integer per allowlisted reagent (`r<itemID>`). Unmeasured until day one.
 - **`Pearls\RestockFrame.lua`**: its "ask first" window (beside Blizzard's merchant frame, read for
   its position) and its panel (the kinds and targets, mode, limits, this class's reagents).
+- **`Pearls\AutoGossip.lua`**: auto gossip (#47, pearl `autogossip`, Automation > NPCs, on by
+  default). **Gossip only**: nothing while the NPC has quest business. Scope: ordinary gossip with an
+  NPC (`GOSSIP_SHOW`'s `textureKit` plainly nil, `UnitExists("npc")` plainly true; a refresh keeps
+  the show's scope). A **page** (show, refresh; ended by every close) is decided once, a frame
+  later (`C_Timer.After(0)`, so Blizzard's own frame goes first), unless anything selected on it
+  meanwhile (`hooksecurefunc` on `C_GossipInfo.SelectOption` / `SelectOptionByIndex`; ours are
+  marked before the call). Never in combat, with Shift, with quest business, past the chain's cap,
+  or when Blizzard's own lone pick applies (`GossipFrameShared.lua:191`). Picks an option of the
+  sync set `autogossip.always` (two on a page: nothing; `ForceGossip` doesn't block it), else the
+  lone option by the `lone` setting (`off` | `services` | `most`, the default: never the binder or
+  spirit healer icons | `any`; icons are the override first, binder 132052/136458 and healer
+  132054 fixed, services fixed plus `GetFileIDFromPath` of Blizzard's gossip icon paths, unresolved
+  means not admitted). The same decision runs again on fresh state and must give the same option;
+  selected by ID (else index), **never with `confirmed`**. A **chain** (one conversation): 3
+  automatic picks, never the same ID twice, none after a pick by index; ends at a plainly
+  terminal close, the NPC plainly gone a second after a close, 60 s without a page, a loading
+  screen, or switching off; its timers carry its token. **Learning** counts only a `PreClick` on
+  Blizzard's own option buttons (`GossipFrame.GreetingPanel.ScrollBox`: scanned at each decision,
+  plus `ScrollUtil.AddInitializedFrameCallback`; option rows only), and only on a positive sign:
+  a new page or an allowlisted service window (`SERVICE_TYPES`: never Binder, TalentMaster,
+  SpiritHealer...). Silence is never clean (10 s, then dropped); two clicks before a sign: neither.
+  `CONFIRM_BINDER` / `_TALENT_WIPE` / `_XP_LOSS` mark the pending pick; `GOSSIP_CONFIRM` /
+  `GOSSIP_ENTER_CODE` name the option and also take it off the always list. After `repeats` (3)
+  picks, the prompt offers Always / Not now / Never (sync set `autogossip.never`), never for the
+  binder, the healer, a confirmed option or a lone option the rule picks anyway. Counts, names
+  and confirms are local (`GlassPearlsDB.autogossip`, counts at most 200). `/gpearls gossip
+  [list | trace | always <id> | forget <id>]`: the page's options with their IDs and icons, for
+  day one. Unmeasured until day one.
+- **`Pearls\AutoGossipFrame.lua`**: its prompt (one at a time, 30 s, hidden for a fight and offered
+  again after, position per character) and its panel (the lone radios, the offer switch, repeats,
+  the two lists through `UI.SetList`).
 - **`Pearls\MarkWheel.lua`**: the raid mark wheel (#34, pearl `markwheel`, Social > Group, on by
   default). Pings are the client's own (`Blizzard_PingUI`, its Ping key and wheel: only it can ping a
   world spot), so this is marks only, **out of combat only**. Opened by the key `GLASSPEARLS_MARKWHEEL`
@@ -357,8 +389,8 @@ order) and before the options window and bootstrap.
    string setting its `choices` and an integer one its `ranges`, or it won't travel. A list (a
    keep list) is a sync set: `SettingsSync.RegisterSet("<key>.<name>")` at file scope. Mind the
    budget: `test_sync_budget` fails if the known keys outgrow their 12 KB or the whole, every part
-   full, its 31 KB, and the registry its 128 keys (with #34: 101 keys, known keys 7.6 KB, the whole
-   about 26.6 KB; ~27 keys left).
+   full, its 31 KB, and the registry its 128 keys (with #47: 105 keys and 6 of 8 sets, known keys 7.8 KB,
+   the whole about 26.9 KB; ~23 keys left).
 5. Slash commands of its own: `commands = { name = { help, run(arg) } }` (`/gpearls <name>`, listed
    by `/gpearls help`).
 6. A test file `tests\test_<name>.lua` (the bags-full helper's four are the model), and a line in
@@ -437,7 +469,9 @@ survives a test), and the character panel's stats (`WoW.stats`, `CharacterStatsP
 `SecureActionButtonTemplate` dispatch modelled on Blizzard's (`WoW.click`, `WoW.secureActions`,
 both edges and the CVars), protected frames refusing to show, hide or move in combat (`WoW.blocked`),
 the cursor (`WoW.mouse`, `WoW.uiScale`), `Menu.ModifyMenu` with its synchronous call on a cached
-menu (`WoW.openMenu`, `WoW.menuButton`), and atlases with sizes (`WoW.atlases`; `SetAtlas` returns
+menu (`WoW.openMenu`, `WoW.menuButton`), Blizzard's gossip frame for auto gossip (`WoW.openGossip`,
+`WoW.playerPicks`, `WoW.closeGossip`, its own lone pick in either order, pooled option buttons,
+`WoW.gossipOnSelect` for events inside a select), a clock (`WoW.advance`), and atlases with sizes (`WoW.atlases`; `SetAtlas` returns
 nothing, as on the client)), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
 registering test pearls, `opts.pearls = false` to leave the shipped pearls out of a framework
 test, `newChat`, `chatHas`). Bags, items, the cursor and the loot window are modelled too
