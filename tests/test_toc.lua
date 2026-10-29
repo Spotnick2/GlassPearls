@@ -69,8 +69,23 @@ for i, f in ipairs(tocFiles()) do
     end
 end
 
+-- Bindings.xml (the raid mark wheel's key, #34): a category, never a header
+-- (porting guide, "Key bindings"); not in the TOC (the client finds it by
+-- name), so the deploy copies and keeps it and the package check expects it.
+local bindings = io.open("Bindings.xml"):read("*a")
+check(bindings:find('<Binding name="GLASSPEARLS_MARKWHEEL" category="Glass Pearls">', 1, true),
+    "Bindings.xml: the mark wheel's key, in the Glass Pearls category")
+check(not bindings:find("header=", 1, true), "  no header attribute")
+check(bindings:find("GlassPearls.MarkWheel.OnKey()", 1, true), "  it calls the pearl's key handler")
+check(not toc:find("Bindings.xml", 1, true), "  not listed in the TOC")
+local deploy = io.open("Tools/deploy.ps1"):read("*a")
+check(deploy:find('@("GlassPearls.toc", "Bindings.xml")', 1, true), "deploy.ps1 copies and keeps Bindings.xml")
+local workflow = io.open(".github/workflows/package-check.yml"):read("*a")
+check(workflow:find("echo GlassPearls/Bindings.xml", 1, true), "the package check expects Bindings.xml in the zip")
+
 -- Every .pkgmeta external is a library the TOC loads, and the other way round.
 local pkgmeta = io.open(".pkgmeta"):read("*a")
+check(not pkgmeta:find("Bindings", 1, true), ".pkgmeta doesn't ignore Bindings.xml")
 for line in pairs(LIBS) do
     local dir = line:match("^(Libs\\[^\\]+)\\"):gsub("\\", "/")
     check(pkgmeta:find("\n  " .. dir .. ":", 1, true), ".pkgmeta pins " .. dir)

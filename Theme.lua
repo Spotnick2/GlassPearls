@@ -234,6 +234,12 @@ function Theme.Accent(fs)
     if c then fs:SetTextColor(c[1], c[2], c[3]) end
 end
 
+-- The suite's accent as r, g, b while following (a texture's tint), else nil.
+function Theme.AccentRGB()
+    local c = following and following.accentRGB
+    if c then return c[1], c[2], c[3] end
+end
+
 -- The Forever look's window: Blizzard's dark dialog art on a child frame, or,
 -- if the template is missing, a plain dark fill (never a bare frame).
 local function ForeverWindow(frame)

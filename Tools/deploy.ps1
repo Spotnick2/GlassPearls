@@ -11,8 +11,8 @@
     $env:LIBGLASS / $env:LIBACCOUNTSYNC, else ..\LibGlass / ..\LibAccountSync
     (GlassChat's pattern).
 
-    The files copied are the TOC and every Lua file it lists (Pearls\ included),
-    so a new pearl deploys once it is in the TOC.
+    The files copied are the TOC, Bindings.xml and every Lua file the TOC lists
+    (Pearls\ included), so a new pearl deploys once it is in the TOC.
 
     Usage:
         pwsh Tools/deploy.ps1
@@ -52,7 +52,8 @@ $dest = Join-Path $AddOnsPath "GlassPearls"
 Write-Host "Deploying GlassPearls -> $dest" -ForegroundColor Cyan
 New-Item -ItemType Directory -Force -Path $dest | Out-Null
 $tocPath = Join-Path $RepoRoot "GlassPearls.toc"
-$files = @("GlassPearls.toc") + @(Get-Content -LiteralPath $tocPath | ForEach-Object { $_.Trim() } |
+# Bindings.xml isn't in the TOC: the client finds it in the folder by name.
+$files = @("GlassPearls.toc", "Bindings.xml") + @(Get-Content -LiteralPath $tocPath | ForEach-Object { $_.Trim() } |
     Where-Object { $_ -notmatch "^#" -and $_ -match "[.]lua$" })
 foreach ($f in $files) {
     $src = Join-Path $RepoRoot $f

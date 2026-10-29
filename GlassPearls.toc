@@ -48,5 +48,7 @@ Pearls\TrainingFrame.lua
 Pearls\Training.lua
 Pearls\RestockFrame.lua
 Pearls\Restock.lua
+Pearls\MarkWheelFrame.lua
+Pearls\MarkWheel.lua
 Options.lua
 GlassPearls.lua

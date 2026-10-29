@@ -1,0 +1,5 @@
+<Bindings>
+    <Binding name="GLASSPEARLS_MARKWHEEL" category="Glass Pearls">
+        GlassPearls.MarkWheel.OnKey()
+    </Binding>
+</Bindings>

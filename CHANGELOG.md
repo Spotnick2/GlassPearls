@@ -78,4 +78,10 @@
   the merchant has that you can use. Only what's at least as good counts toward a target, so you
   move up as you level. At most half your money and 5 gold a visit (both settings); "Ask first" to
   confirm each time; Shift skips it. Leaves to Buffy the reagents Buffy restocks.
+- **Raid mark wheel** (Social, on by default): a wheel of the eight raid marks at your cursor. Bind
+  its key in Key Bindings > Glass Pearls, point at a unit (in the world, on its nameplate or on a
+  group frame) and press it, or pick "Raid mark wheel" in a unit's right-click menu. Click a mark to
+  set it (the same mark again removes it), the centre to clear it, outside or Esc to close. Out of
+  combat; in a raid, as the leader or an assistant. It opens and closes with a short animation, in
+  WoW Forever's own wheel art or Glass UI's glass. Pings are the game's own: its Ping key.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.

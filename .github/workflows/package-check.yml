@@ -114,6 +114,8 @@ jobs:
           {
             echo GlassPearls/GlassPearls.toc
             echo GlassPearls/LICENSE
+            # Not in the TOC: the client finds it in the folder by name.
+            echo GlassPearls/Bindings.xml
             tr -d '\r' < GlassPearls.toc | grep -v '^#' | grep '\.lua$' | tr '\\' '/' | sed 's|^|GlassPearls/|'
             # The vendored libraries (committed, their .lua files are TOC
             # lines above) ship their notices.
