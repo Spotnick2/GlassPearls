@@ -29,8 +29,8 @@
 --
 -- Learning counts only a click on Blizzard's own option button (a PreClick
 -- hooked on GossipFrame.GreetingPanel.ScrollBox's option buttons), and only
--- once the pick visibly went through: a new page, or an ordinary service
--- window (SERVICE_TYPES). A confirmation instead marks the option as one
+-- once the pick visibly went through, in the same conversation: a new page, or
+-- an ordinary service window (SERVICE_TYPES). A confirmation instead marks the option as one
 -- never offered; GOSSIP_CONFIRM / GOSSIP_ENTER_CODE name it and also take it
 -- off the always list. After `repeats` such picks the prompt offers to always
 -- pick it.
@@ -272,10 +272,24 @@ local function scrollBox()
 end
 
 -- The pending pick resolves: counted (clean), or dropped.
+-- The NPC's GUID, when plain (it may be secret: then nothing is known).
+local function npcGUID()
+    local g = ask(UnitGUID, "npc")
+    if type(g) == "string" then return g end
+end
+
+-- A sign that the pending pick went through: counted only when it comes in
+-- the conversation the pick was made in (the same chain, and the same NPC
+-- when both GUIDs are plain). Anything else is no evidence: the pick stays
+-- pending, for a late confirmation, until its wait ends.
 local function resolveClean()
     local p = state.pending
-    state.pending = nil
     if not p then return end
+    local chain = state.chain
+    if not (chain and chain.token == p.chain) then return end
+    local guid = npcGUID()
+    if p.npc and guid and guid ~= p.npc then return end
+    state.pending = nil
     trace("pick counted: " .. p.id)
     G.Count(p.id)
 end
@@ -320,7 +334,8 @@ function G.PlayerClicked(index)
     end
     state.pendingGen = state.pendingGen + 1
     local gen = state.pendingGen
-    state.pending = { id = opt.id, pageToken = page.token, gen = gen }
+    state.pending = { id = opt.id, pageToken = page.token, gen = gen, chain = state.chain and state.chain.token,
+        npc = npcGUID() }
     trace("player picks " .. opt.id)
     C_Timer.After(G.PENDING_SECONDS, function()
         if state.pending and state.pending.gen == gen then
@@ -384,7 +399,11 @@ function G.Answer(id, answer)
         counts[id] = nil
         state.last = "always picks " .. id
     elseif answer == "never" then
-        SS().SetAdd(G.NEVER, id)
+        local ok, why = SS().SetAdd(G.NEVER, id)
+        if not ok then
+            say(why == "full" and "Auto gossip: the never list is full." or "Auto gossip: not saved.")
+            return false
+        end
         counts[id] = nil
     else
         counts[id] = nil
@@ -556,9 +575,8 @@ end)
 -- Commands
 
 local function npcID()
-    local guid = ask(UnitGUID, "npc")
-    if type(guid) ~= "string" then return nil end
-    return tonumber(guid:match("%-(%d+)%-%x+$"))
+    local guid = npcGUID()
+    return guid and tonumber(guid:match("%-(%d+)%-%x+$"))
 end
 
 local function optionText(id)

@@ -56,6 +56,40 @@ WoW.flushTimers(G.PENDING_SECONDS)
 eq(counts(15), 0, "a close and then silence: never counted")
 eq(G.state.pending, nil, "  the pick is dropped after the wait")
 
+-- A sign counts only in the conversation the pick was made in (Codex review of #48).
+visit(opt(16, 1), opt(17, 2), 2)
+WoW.closeGossip(false)                          -- a terminal close: that conversation is over
+WoW.openGossip({ options = { opt(90, 1), opt(91, 2) } })   -- talking again, or to someone else
+WoW.flushTimers(0)
+eq(counts(17), 0, "a terminal close, then a new conversation: not counted")
+WoW.fire("PLAYER_INTERACTION_MANAGER_FRAME_SHOW", T.Merchant)
+eq(counts(17), 0, "  nor a service window in it")
+WoW.fire("CONFIRM_BINDER", "Goldshire")
+check(G._test.db().confirms[17], "  a late confirmation still names the pick")
+bye()
+visit(opt(16, 1), opt(18, 2), 2)
+WoW.fire("PLAYER_ENTERING_WORLD", false, false)
+WoW.openGossip({ options = { opt(90, 1), opt(91, 2) } })
+WoW.flushTimers(0)
+eq(counts(18), 0, "a loading screen, then a new conversation: not counted")
+bye()
+WoW.flushTimers(G.PENDING_SECONDS)
+visit(opt(16, 1), opt(19, 2), 2)
+WoW.closeGossip(true)
+WoW.units.npc = { id = "OTHER", guid = "Creature-0-1-2-3-9999-0000FFFF" }
+WoW.openGossip({ options = { opt(92, 1), opt(93, 2) } })
+WoW.flushTimers(0)
+eq(counts(19), 0, "another NPC (plain GUIDs differ): not counted")
+WoW.units.npc = { id = "NPC", guid = "Creature-0-1-2-3-4567-0000ABCD" }
+bye()
+WoW.flushTimers(G.PENDING_SECONDS)
+visit(opt(16, 1), opt(25, 2), 2)
+WoW.units.npc.guid = WoW.Secret("guid")
+nextPage()
+eq(counts(25), 1, "the NPC's GUID secret: the same conversation still counts")
+WoW.units.npc = { id = "NPC", guid = "Creature-0-1-2-3-4567-0000ABCD" }
+bye()
+
 -- The excluded interactions: never a sign; their confirmations still name the pick.
 for _, case in ipairs({ { T.TalentMaster, "CONFIRM_TALENT_WIPE", 21 }, { T.Binder, "CONFIRM_BINDER", 22 } }) do
     visit(opt(20, 1), opt(case[3], 2), 2)
@@ -268,6 +302,12 @@ pick(73); pick(73); pick(73)
 newChat()
 f.always:GetScript("OnClick")(f.always)
 check(not SS.SetHas(G.ALWAYS, 73) and chatHas("full"), "a full list: not added, and said")
+check(FR.IsShown() == false, "  the prompt closes")
+FR.Offer(73, "Seventy-three")
+newChat()
+f.never:GetScript("OnClick")(f.never)
+check(not SS.SetHas(G.NEVER, 73) and chatHas("never list is full"), "Never with a full list: not saved, and said")
+check(counts(73) > 0, "  and the count kept, not reset as if answered")
 SS.SetClear(G.NEVER)
 
 done("test_autogossip_learn")
