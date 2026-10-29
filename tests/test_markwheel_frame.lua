@@ -123,6 +123,18 @@ if mode == "forever" then
 elseif mode == "glass" then
     eq(f.art, "glass", "glass: a LibGlass disc")
     check(f.glass ~= nil, "  built")
+    -- Draw order: the disc's body is the art frame's own BACKGROUND, under
+    -- the marks; a body on a child frame would draw over all of them.
+    for _, part in ipairs({ "tint", "grain", "wash" }) do
+        local region = f.glass[part]
+        check(region and region._parent == f and region._layer == "BACKGROUND",
+            "  the disc's " .. part .. ": the art frame's BACKGROUND")
+    end
+    local above = true
+    for _, region in ipairs({ f.icons[8], f.clear, f.clearText, f.current, f.highlight }) do
+        if region._parent ~= f or region._layer == "BACKGROUND" then above = false end
+    end
+    check(above, "  the marks, centre, ring and highlight: the art frame's, above BACKGROUND")
     eq(f.label.art, "glass", "  the label on a glass shell")
     check(f.highlight._desaturated, "  the highlight desaturated")
     local c = f.highlight._vertex

@@ -103,7 +103,7 @@ local function dividers(host, r, g, b, a)
     end
 end
 
-local function buildForever(D)
+local function buildForever()
     local bg = f:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints(f)
     if setAtlas(bg, Frame.ATLAS.wheel) then
@@ -124,12 +124,13 @@ local function buildForever(D)
     hl:Hide()
 end
 
-local function buildGlass(D)
+-- The disc on the art frame itself: its body (tint, grain, wash) is in the
+-- frame's BACKGROUND layer, under every mark, ring and highlight; only its
+-- rims sit above, on the library's own top frame. (On a child frame, the
+-- whole body would draw over them.)
+local function buildGlass()
     local G = GP.Theme.Glass()
-    local host = CreateFrame("Frame", nil, f)
-    host:SetSize(D, D)
-    host:SetPoint("CENTER", f, "CENTER")
-    local g = G.Disc(host, "disc")
+    local g = G.Disc(f, "disc")
     f.glass, f.art = g, "glass"
     dividers(f, 1, 1, 1, 0.28)
     local hl = f:CreateTexture(nil, "BORDER")
@@ -182,7 +183,7 @@ local function build()
     local info = atlasInfo(Frame.ATLAS.wheel)
     f.k = D / (info and plainNumber(info.width) or Frame.NATIVE)
     f.look = (GP.Theme.Active() == "glass" and GP.Theme.Glass()) and "glass" or "forever"
-    if f.look == "glass" then buildGlass(D) else buildForever(D) end
+    if f.look == "glass" then buildGlass() else buildForever() end
 
     -- The centre: Clear.
     local centre = f:CreateTexture(nil, "BORDER", nil, 1)
