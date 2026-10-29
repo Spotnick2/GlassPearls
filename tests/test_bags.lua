@@ -145,4 +145,57 @@ eq(B.FreeGeneral(), 0, "FreeGeneral: none in a full backpack")
 WoW.bags[1] = { size = 3, items = {} }
 eq(B.FreeGeneral(), 3, "  three in an empty bag")
 
+-- Take (faster loot, #36): Fits, and the room it found is reserved.
+WoW.resetBags()
+items({ [2] = { name = "Linen Cloth", maxStack = 20 }, [3] = { name = "Green Ring", maxStack = 1 },
+        [4] = { name = "Peacebloom", maxStack = 20, family = 32 } })
+WoW.bags[0] = { size = 2, items = { [1] = { id = 2, count = 15 } } }    -- one free slot
+snap = B.Snapshot()
+eq(B.Take(2, 5, snap), true, "5 cloth onto the partial stack")
+eq(snap.general, 1, "  no slot used")
+eq(B.Take(2, 1, snap), true, "1 more: the stack is full, a slot is used")
+eq(snap.general, 0, "  the free slot reserved")
+eq(B.Take(3, 1, snap), false, "a ring after that: no room left")
+eq(B.Take(2, 19, snap), true, "19 cloth onto the new stack of 1")
+eq(B.Take(2, 1, snap), false, "  and then it's full")
+-- Two rows that each fit alone, but not together.
+snap = B.Snapshot()
+eq(B.Take(3, 1, snap), true, "one ring into the one free slot")
+eq(B.Take(3, 1, snap), false, "  a second ring: the slot is taken")
+-- A quantity over several slots.
+WoW.bags[1] = { size = 3, items = {} }
+snap = B.Snapshot()
+eq(B.Take(2, 45, snap), true, "45 cloth: 5 on the stack, then two slots")
+eq(snap.general, 2, "  two of the four free slots used")
+-- False or nil leaves the snapshot as it was.
+snap = B.Snapshot()
+local before = snap.general
+eq(B.Take(2, 500, snap), false, "too much: false")
+eq(snap.general, before, "  nothing reserved")
+eq(B.Take(999, 1, snap), nil, "an uncached item: nil")
+eq(snap.general, before, "  nothing reserved")
+-- A matching specialty bag first: a herb and a ring with one general and one
+-- herb slot both fit.
+WoW.resetBags()
+items({ [3] = { name = "Green Ring", maxStack = 1 }, [4] = { name = "Peacebloom", maxStack = 20, family = 32 } })
+WoW.bags[0] = { size = 1, items = {} }
+WoW.bags[1] = { size = 1, family = 32, items = {} }
+snap = B.Snapshot()
+eq(B.Take(4, 1, snap), true, "a herb: into the herb bag")
+eq(B.Take(3, 1, snap), true, "  so a ring still fits the general slot")
+
+-- The strict snapshot: uncertain room is no room; the plain one is unchanged.
+WoW.resetBags()
+items({ [2] = { name = "Linen Cloth", maxStack = 20 } })
+WoW.bags[0] = { size = 2, items = { [1] = { id = 2, count = 15 } } }
+WoW.bags[1] = { size = 3, familySecret = true, items = {} }
+eq(B.Snapshot().general, 4, "plain: a bag whose family can't be read counts as general")
+eq(B.Snapshot(true).general, 1, "strict: it offers no room")
+WoW.bags[0].items[1].lockSecret = true
+eq(#(B.Snapshot().stacks[2] or {}), 1, "plain: a stack whose lock can't be read is room")
+eq(#(B.Snapshot(true).stacks[2] or {}), 0, "strict: it isn't")
+WoW.bags[0].items[1].lockSecret = nil
+eq(#(B.Snapshot(true).stacks[2] or {}), 1, "strict: a stack plainly unlocked is room")
+eq(B.Slot(0, 1).lockKnown, true, "Slot: lockKnown when the lock reads plainly")
+
 done("test_bags")

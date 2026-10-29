@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), and the twelfth, auto gossip (#47); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), and the thirteenth, faster loot (#36); the day-one
 probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
@@ -36,7 +36,8 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 `Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua` → `Pearls\FixateFrame.lua` →
 `Pearls\Fixate.lua` → `Pearls\Uncrushable.lua` → `Pearls\BuffsFrame.lua` → `Pearls\Buffs.lua` → `Pearls\PaladinTank.lua` → `Pearls\TrainingFrame.lua` →
 `Pearls\Training.lua` → `Pearls\RestockFrame.lua` → `Pearls\Restock.lua` → `Pearls\MarkWheelFrame.lua` →
-`Pearls\MarkWheel.lua` → `Pearls\AutoGossipFrame.lua` → `Pearls\AutoGossip.lua`)* →
+`Pearls\MarkWheel.lua` → `Pearls\AutoGossipFrame.lua` → `Pearls\AutoGossip.lua` → `Pearls\FastLootFrame.lua` →
+`Pearls\FastLoot.lua`)* →
 `Options.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
@@ -107,7 +108,11 @@ order) and before the options window and bootstrap.
   room, a matching specialty bag takes its family, bags 0-4), `FreeGeneral`, `SetItems`,
   `ItemFacts`, `Eligible(slot, opts)` and `Candidates(opts)`: what may be destroyed, on **known data
   only** (anything uncached, unread or secret makes a stack ineligible), cheapest first by
-  `sellPrice × stackCount`, greys first when asked.
+  `sellPrice × stackCount`, greys first when asked. `Snapshot(true)` is **strict** for an automatic
+  action: a bag whose family can't be read, or a stack whose lock can't (`Slot`'s `lockKnown`),
+  offers no room. `Take(itemID, qty, snap)` is `Fits` that also reserves the room it found
+  (partial stacks, then a matching specialty bag, then general), leaving `snap` as it was on
+  false or nil (#36).
 - **`Core\Merchant.lua`**: the merchant session for any pearl (#15, #14): `IsOpen`,
   `Session` (a counter per visit), `On(key, fn)` (registers `MERCHANT_SHOW` / `MERCHANT_CLOSED` when
   the first pearl listens; a repeated close is told once), `Current(s)`, `After(delay, s, fn)` (only
@@ -215,6 +220,30 @@ order) and before the options window and bootstrap.
   synced integer per allowlisted reagent (`r<itemID>`). Unmeasured until day one.
 - **`Pearls\RestockFrame.lua`**: its "ask first" window (beside Blizzard's merchant frame, read for
   its position) and its panel (the kinds and targets, mode, limits, this class's reagents).
+- **`Pearls\FastLoot.lua`**: faster loot (#36, pearl `fastloot`, Loot & Bags > Loot, on by default).
+  With auto loot on, takes every slot it safely can as the loot window opens. **One pass per loot
+  session** (`LOOT_READY` / `LOOT_OPENED` to `LOOT_CLOSED`, a token per session), only when the
+  event's payload says auto loot (a plain `false` is final; only a nil payload falls back to
+  `GetCVarBool("autoLootDefault") ~= IsModifiedClick("AUTOLOOTTOGGLE")`, both plain), consumed
+  before its first `LootSlot` (a `LOOT_READY` with no slots yet leaves it to `LOOT_OPENED`), never
+  repeated or retried, never while the bags-full helper's own loot is pending
+  (`GP.BagsFull.state.pending`, read only). Slot 1 up, each in one `pcall`; left to the client:
+  cleared, locked (must read plainly false), a type not positively Money / Currency / Item, an item
+  a group's method may send to a roll or a list (`C_PartyInfo.GetLootMethod`: Group,
+  Needbeforegreed, Masterlooter at or above `GetLootThreshold()`; Freeforall, Roundrobin, Personal
+  never; unknown or unreadable fails closed), an unreadable ID or quantity, or an item that may
+  not fit (`Bags.Take` on a strict snapshot). Never touches `LootFrame`, the bind-on-pickup popup
+  (`ConfirmLootSlot` never called) or the errors. **It keeps its session listeners after the first
+  enable, also while off** (they only follow sessions then), so a window closed while off never
+  leaves the next corpse with a consumed pass: don't "clean that up". The client's own auto loot is
+  expected to run beside it: a day-one check. **Coin text** (setting `coins`, on): a coins-only
+  pass floats up the sum of the positive `PLAYER_MONEY` changes seen while a `CHAT_MSG_MONEY` came
+  (its text never read), shown only when the window closed, the message came and the sum is
+  positive within 2 s; else it expires silently. Its record starts, provisional, before the first
+  `LootSlot` (the game may credit the money inside the call) and is confirmed only for a coins-only pass. `/gpearls fastloot`: the last pass (loot calls
+  made, what was left by reason). Unmeasured until day one.
+- **`Pearls\FastLootFrame.lua`**: its coin text (click-through, at the cursor, rises and fades,
+  `TrainingFrame.Money` for the coins) and its panel (the `coins` switch).
 - **`Pearls\AutoGossip.lua`**: auto gossip (#47, pearl `autogossip`, Automation > NPCs, on by
   default). **Gossip only**: nothing while the NPC has quest business. Scope: ordinary gossip with an
   NPC (`GOSSIP_SHOW`'s `textureKit` plainly nil, `UnitExists("npc")` plainly true; a refresh keeps
@@ -389,8 +418,8 @@ order) and before the options window and bootstrap.
    string setting its `choices` and an integer one its `ranges`, or it won't travel. A list (a
    keep list) is a sync set: `SettingsSync.RegisterSet("<key>.<name>")` at file scope. Mind the
    budget: `test_sync_budget` fails if the known keys outgrow their 12 KB or the whole, every part
-   full, its 31 KB, and the registry its 128 keys (with #47: 105 keys and 6 of 8 sets, known keys 7.8 KB,
-   the whole about 26.9 KB; ~23 keys left).
+   full, its 31 KB, and the registry its 128 keys (with #36: 107 keys and 6 of 8 sets, known keys 7.9 KB,
+   the whole about 27 KB; ~21 keys left).
 5. Slash commands of its own: `commands = { name = { help, run(arg) } }` (`/gpearls <name>`, listed
    by `/gpearls help`).
 6. A test file `tests\test_<name>.lua` (the bags-full helper's four are the model), and a line in
@@ -471,7 +500,9 @@ both edges and the CVars), protected frames refusing to show, hide or move in co
 the cursor (`WoW.mouse`, `WoW.uiScale`), `Menu.ModifyMenu` with its synchronous call on a cached
 menu (`WoW.openMenu`, `WoW.menuButton`), Blizzard's gossip frame for auto gossip (`WoW.openGossip`,
 `WoW.playerPicks`, `WoW.closeGossip`, its own lone pick in either order, pooled option buttons,
-`WoW.gossipOnSelect` for events inside a select), a clock (`WoW.advance`), and atlases with sizes (`WoW.atlases`; `SetAtlas` returns
+`WoW.gossipOnSelect` for events inside a select), faster loot's loot window (`WoW.openLoot(rows, { autoloot,
+noReady, emptyReady, noOpened })`, locked, quality and money rows, `WoW.lootMethod`, `WoW.lootThreshold`,
+`WoW.modified`, unreadable bag families and locks), a clock (`WoW.advance`), and atlases with sizes (`WoW.atlases`; `SetAtlas` returns
 nothing, as on the client)), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
 registering test pearls, `opts.pearls = false` to leave the shipped pearls out of a framework
 test, `newChat`, `chatHas`). Bags, items, the cursor and the loot window are modelled too

@@ -52,5 +52,7 @@ Pearls\MarkWheelFrame.lua
 Pearls\MarkWheel.lua
 Pearls\AutoGossipFrame.lua
 Pearls\AutoGossip.lua
+Pearls\FastLootFrame.lua
+Pearls\FastLoot.lua
 Options.lua
 GlassPearls.lua

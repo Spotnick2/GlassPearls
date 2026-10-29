@@ -90,4 +90,8 @@
   characters. Never in combat, with Shift held, or while the NPC has a quest for you; anything
   that costs money, binds your hearthstone or resets talents still asks you first. `/gpearls
   gossip` shows the NPC's options.
+- **Faster loot** (Loot & Bags, on by default): with auto loot on, everything that will fit in your
+  bags is taken the moment the loot window opens. Bind-on-pickup still asks you; a group's rolls and
+  master loot, and anything that may not fit, are left to the game. When a corpse has only money,
+  the amount floats up where you clicked (a setting). `/gpearls fastloot` shows the last pass.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.

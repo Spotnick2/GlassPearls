@@ -31,6 +31,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #14 | Restock (pearl `restock`): food, water, ammunition and class reagents at a merchant, after the junk seller | built; the purchase API, the events and the refusal names wait for day one |
 | #34 | Raid mark wheel (pearl `markwheel`): the eight marks at the cursor, from a key or a unit's menu; pings stay the client's own | built; the secure click, the menu entry and the art wait for day one |
 | #47 | Auto gossip (pearl `autogossip`): lone options by a setting, and the options you keep choosing; gossip only | built; the icons, the event order, the button hook and the picks wait for day one |
+| #36 | Faster loot (pearl `fastloot`): every slot that safely fits, as the loot window opens; the coins-only text | built; the race with the client's auto loot, the events and the loot methods wait for day one |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -249,6 +250,24 @@ story NPC, a multi-page NPC)
 - [ ] Enter in a code popup, an innkeeper you're already bound at, a spirit healer alive and dead,
       a paid always option, a trainer's unlearn option, one option ID at two NPCs.
 - [ ] A multi-page NPC stops after 3 automatic picks; quickly talking again after an ambiguous close.
+
+**Faster loot (#36)** (solo, then a group with each loot method; a corpse with coins only)
+- [ ] `LootSlot` from our handler: no `ADDON_ACTION_BLOCKED` or forbidden. Is it faster than the
+      client's own auto loot, and does the race leave anything behind or raise errors?
+- [ ] A trace: `LOOT_READY` / `LOOT_OPENED` / `LOOT_CLOSED` order and payloads (plain booleans? the
+      auto-loot key gives `false`?), slot counts at each, lock states, clear events, bag updates;
+      does `LOOT_READY` repeat for one corpse?
+- [ ] On versus off, comparing final bags and the loot left: one free slot and two items (one a
+      quest item); several rows of one stackable item and a partial stack; a matching specialty bag.
+- [ ] Bind on pickup (several rows): the prompt as usual, never answered by us; accept, cancel,
+      Escape with ordinary loot beside it.
+- [ ] Every loot method: free-for-all, round-robin, group, need before greed, master, and an item
+      left after everyone passes.
+- [ ] Full bags: no "Inventory is full" spam from us, and the bags-full helper's destroy works beside it.
+- [ ] Money, currency, fishing, containers from bags, skinning, mining and herbs; the gamepad's loot
+      all; closing and reopening with loot outstanding; server throttling with no gaps.
+- [ ] The coin text: the right amount at the corpse, rising and fading; `PLAYER_MONEY` and
+      `CHAT_MSG_MONEY` within 2 s with the window closed, solo and for a group share.
 
 **The probe (#5):** its steps are added here by its PR.
 
