@@ -46,17 +46,19 @@ function Bags.Slot(bag, slot)
     return {
         bag = bag, slot = slot, id = id, count = count, link = link,
         quality = plain(info.quality), locked = plain(info.isLocked) == true,
+        lockKnown = type(plain(info.isLocked)) == "boolean",
         noValue = plain(info.hasNoValue) == true, icon = plain(info.iconFileID),
         name = plain(info.itemName),
     }
 end
 
--- Free slots of a bag and its family (0 = general), both plain numbers.
+-- Free slots of a bag and its family (0 = general), both plain numbers, and
+-- whether the family could be read (an unreadable one counts as 0 here).
 local function freeSlots(bag)
     local ok, free, family = pcall(C_Container.GetContainerNumFreeSlots, bag)
-    if not ok then return 0, 0 end
+    if not ok then return 0, 0, false end
     free, family = plain(free), plain(family)
-    return type(free) == "number" and free or 0, type(family) == "number" and family or 0
+    return type(free) == "number" and free or 0, type(family) == "number" and family or 0, type(family) == "number"
 end
 
 local function numSlots(bag)
@@ -67,16 +69,20 @@ end
 
 -- { general = free general slots, specialty = { { free, family }, ... },
 --   stacks = { [itemID] = { count, ... } } } over the unlocked stacks.
-function Bags.Snapshot()
+-- `strict` (an automatic action relies on it): uncertain room is no room. A
+-- bag whose family can't be read offers no free slots (else: general), a
+-- stack whose lock can't be read no room (else: unlocked).
+function Bags.Snapshot(strict)
     local snap = { general = 0, specialty = {}, stacks = {} }
     for bag = Bags.FIRST, Bags.LAST do
-        local free, family = freeSlots(bag)
+        local free, family, known = freeSlots(bag)
+        if strict and not known then free = 0 end
         if family == 0 then snap.general = snap.general + free
         elseif free > 0 then snap.specialty[#snap.specialty + 1] = { free = free, family = family } end
         for slot = 1, numSlots(bag) do
             local s = Bags.Slot(bag, slot)
             -- A locked stack (on the cursor, mid-move) offers no room.
-            if s and not s.locked then
+            if s and not s.locked and (s.lockKnown or not strict) then
                 local list = snap.stacks[s.id] or {}
                 list[#list + 1] = s.count
                 snap.stacks[s.id] = list
@@ -109,6 +115,52 @@ function Bags.Fits(itemID, qty, snap)
         end
     end
     return room + slots * maxStack >= qty
+end
+
+-- Like Fits, and when it fits, the room is reserved in `snap` (so the next
+-- row sees what's left): this item's partial stacks first, then free slots,
+-- a matching specialty bag first (GlassMail's measured rule, Core\Loot.lua:4),
+-- then general. False or nil leaves `snap` as it was. Bookkeeping to avoid
+-- predictable failures, not a model of the client's placement.
+function Bags.Take(itemID, qty, snap)
+    local fits = Bags.Fits(itemID, qty, snap)
+    if fits ~= true then return fits end
+    qty = qty or 1
+    local maxStack = plain(C_Item.GetItemMaxStackSizeByID(itemID))
+    local stacks = snap.stacks[itemID] or {}
+    snap.stacks[itemID] = stacks
+    local rest = qty
+    for i, count in ipairs(stacks) do
+        if rest <= 0 then break end
+        local room = maxStack - count
+        if room > 0 then
+            local put = math.min(room, rest)
+            stacks[i] = count + put
+            rest = rest - put
+        end
+    end
+    local family = 0
+    if rest > 0 and #snap.specialty > 0 then
+        local okF, f = pcall(C_Item.GetItemFamily, itemID)
+        family = okF and plain(f) or 0
+    end
+    while rest > 0 do
+        local put = math.min(maxStack, rest)
+        local bagged = false
+        if type(family) == "number" and family ~= 0 then
+            for _, b in ipairs(snap.specialty) do
+                if b.free > 0 and bit.band(family, b.family) ~= 0 then
+                    b.free = b.free - 1
+                    bagged = true
+                    break
+                end
+            end
+        end
+        if not bagged then snap.general = snap.general - 1 end
+        stacks[#stacks + 1] = put
+        rest = rest - put
+    end
+    return true
 end
 
 -- Free general slots, for "has room appeared?".

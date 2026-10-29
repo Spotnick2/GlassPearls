@@ -487,7 +487,8 @@ function WoW.advance(dt)
     while true do
         local due, at
         for i, t in ipairs(WoW.timers) do
-            if t.at <= WoW.now and (not at or t.at < at) then due, at = i, t.at end
+            local tAt = t.at or t.s or 0      -- a timer made without a clock: due from 0
+            if tAt <= WoW.now and (not at or tAt < at) then due, at = i, tAt end
         end
         if not due then return end
         local t = table.remove(WoW.timers, due)
@@ -681,6 +682,7 @@ function C_Container.GetContainerNumFreeSlots(bag)
     if not b then return 0, 0 end
     local used = 0
     for _ in pairs(b.items) do used = used + 1 end
+    if b.familySecret then return b.size - used, WoW.Secret("family") end
     return b.size - used, b.family or 0
 end
 function C_Container.GetContainerItemInfo(bag, slot)
@@ -689,7 +691,9 @@ function C_Container.GetContainerItemInfo(bag, slot)
     if not s then return nil end
     local it = WoW.items[s.id]
     local onCursor = WoW.cursor and WoW.cursor.bag == bag and WoW.cursor.slot == slot
-    return { iconFileID = it and it.icon or 134400, stackCount = s.count or 1, isLocked = onCursor or s.locked == true,
+    local locked = onCursor or s.locked == true
+    if s.lockSecret then locked = WoW.Secret("isLocked") end
+    return { iconFileID = it and it.icon or 134400, stackCount = s.count or 1, isLocked = locked,
              quality = s.quality or (it and it.quality), isReadable = false, hasLoot = false,
              hyperlink = itemLink(s.id), isFiltered = false, hasNoValue = s.noValue == true or (it and it.price == 0) or false,
              itemID = s.id, isBound = false, itemName = it and it.name or "" }
@@ -789,19 +793,33 @@ function GetGameMessageInfo(errorType) return WoW.errorNames[errorType] end
 -- Blizzard's loot window (Blizzard_UIPanels_Game, LootFrame.xml:116).
 LootFrame = newWidget("Frame", UIParent, "LootFrame")
 LootFrame._shown = false
-function WoW.openLoot(rows)
+-- opts (faster loot, #36): autoloot = the events' payload (default false;
+-- WoW.NIL for nil), noReady (only LOOT_OPENED), emptyReady (no slots yet at
+-- LOOT_READY, LootDocumentation.lua:229), noOpened.
+WoW.NIL = {}
+function WoW.openLoot(rows, opts)
+    opts = opts or {}
     WoW.loot = rows or WoW.loot
     WoW.lootOpen = true
     LootFrame._shown = true
-    WoW.fire("LOOT_READY", false)
-    WoW.fire("LOOT_OPENED", false, false)
+    local auto = opts.autoloot
+    if auto == nil then auto = false elseif auto == WoW.NIL then auto = nil end
+    if not opts.noReady then
+        WoW.lootEmpty = opts.emptyReady
+        WoW.fire("LOOT_READY", auto)
+        WoW.lootEmpty = nil
+    end
+    if not opts.noOpened then WoW.fire("LOOT_OPENED", auto, false) end
 end
 function WoW.closeLoot()
     WoW.lootOpen = false
     LootFrame._shown = false
     WoW.fire("LOOT_CLOSED")
 end
-function GetNumLootItems() return WoW.lootOpen and #WoW.loot or 0 end
+function GetNumLootItems()
+    if WoW.lootEmpty then return 0 end
+    return WoW.lootOpen and #WoW.loot or 0
+end
 function GetLootSlotType(i)
     local r = WoW.lootOpen and WoW.loot[i]
     if not r then return Enum.LootSlotType.None end
@@ -811,11 +829,17 @@ function LootSlotHasItem(i)
     local r = WoW.lootOpen and WoW.loot[i]
     return r ~= nil and not r.taken
 end
+-- A row: { id, qty, kind (Enum.LootSlotType), quality, locked, isQuest, questID }.
 function GetLootSlotInfo(i)
     local r = WoW.lootOpen and WoW.loot[i]
     if not r or r.taken then return end
     local it = WoW.items[r.id] or {}
-    return it.icon or 134400, it.name or "", r.qty or 1, nil, it.quality or 1, false, r.isQuest == true, r.questID, false, false
+    local quality = r.quality
+    if quality == nil then quality = it.quality or 1 end
+    local locked = r.locked
+    if locked == nil then locked = false end
+    return it.icon or 134400, it.name or "", r.qty or 1, nil, quality, locked, r.isQuest == true, r.questID, false,
+        r.kind == Enum.LootSlotType.Money
 end
 function GetLootSlotLink(i)
     local r = WoW.lootOpen and WoW.loot[i]
@@ -1642,6 +1666,23 @@ function WoW.playerPicks(orderIndex)
     end
     return false
 end
+
+
+--------------------------------------------------------------------------------
+-- Faster loot (#36). In the 70532 dump: GetLootThreshold, IsInGroup,
+-- IsModifiedClick (its _G walk), C_PartyInfo.GetLootMethod (documented,
+-- three returns); Enum.LootMethod from LootConstantsDocumentation.lua:7.
+--   WoW.group.party = true (IsInGroup); WoW.lootMethod (an Enum.LootMethod value, or a secret);
+--   WoW.lootThreshold; WoW.modified[action] = true (IsModifiedClick)
+--------------------------------------------------------------------------------
+
+Enum.LootMethod = { Freeforall = 0, Roundrobin = 1, Masterlooter = 2, Group = 3, Needbeforegreed = 4, Personal = 5 }
+WoW.lootMethod, WoW.lootThreshold, WoW.modified = 0, 2, {}
+function IsInGroup() return WoW.group.party == true or WoW.group.raid == true end
+function GetLootThreshold() return WoW.lootThreshold end
+function IsModifiedClick(action) return WoW.modified[action] == true end
+C_PartyInfo = C_PartyInfo or {}
+function C_PartyInfo.GetLootMethod() return WoW.lootMethod, nil, nil end
 
 function WoW.calledCount(name)
     local n = 0
