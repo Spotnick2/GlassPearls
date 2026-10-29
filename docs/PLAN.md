@@ -188,10 +188,12 @@ Each line is a claim the code relies on that only the live client can settle.
 - [ ] Level up: the toast's new and waiting spells match the class trainer's list; learning one at
       the trainer takes it off the open toast.
 - [ ] Spell tooltips in the spellbook (and on the action bars): the next ranks and their levels.
-- [ ] Talent points: the count is right (`C_Traits` tree currency), also below level 10 with the
-      Legacy talent Talented.
-- [ ] Dual spec: does it exist? If so, the other spec's waiting talent ranks, and are ranks learned
-      in one spec known in the other?
+- [ ] Talent points: the count is right (`C_Traits` tree currency), also at levels 5-9 with the
+      Legacy talent Talented (1225474: talent points from level 5 instead of 10; learned at the
+      class trainer or in the talent tree, owner 2026-10-29): a level-up toast at 5-9 shows them.
+- [ ] Dual spec (Forever has it, owner 2026-10-29; the measurement at 70245 found one spec
+      group): the other spec's waiting talent ranks, as last seen, and are ranks
+      learned in one spec known in the other?
 - [ ] Righteous Fury: WhatsTraining says trainer level 10, the client's SpellLevels 16. Which?
 - [ ] Placement (screenshot), both looks.
 
