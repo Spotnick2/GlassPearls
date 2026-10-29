@@ -28,7 +28,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #21 | Buff alerts (pearl `buffs`): Clearcasting, Innervate, Power Infusion, the Blessings, with time left | built; the overlay and combat paths wait for day one |
 | #22 | Paladin tank reminders (pearl `paladintank`): Righteous Fury off, Salvation on you | built; the IDs and the Cooldown Manager wait for day one |
 | #27 | Training reminder (pearl `training`): a level-up toast, next ranks in spell tooltips, talent points, the other spec | built; the trainer match, the tooltip and dual spec wait for day one |
-| #14 | Restock food and water | backlog |
+| #14 | Restock (pearl `restock`): food, water, ammunition and class reagents at a merchant, after the junk seller | built; the purchase API, the events and the refusal names wait for day one |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -194,6 +194,19 @@ Each line is a claim the code relies on that only the live client can settle.
       in one spec known in the other?
 - [ ] Righteous Fury: WhatsTraining says trainer level 10, the client's SpellLevels 16. Which?
 - [ ] Placement (screenshot), both looks.
+
+**Restock (#14)** (a mage and a hunter, a food and drink vendor, a reagent vendor, a bowyer)
+- [ ] `BuyMerchantItem(index, n)`: is `n` in items (Blizzard's "buy multiple" says so)? A pack item
+      (vials, 5 per pack) bought 10 at a time? A request above `GetMerchantItemMaxStack`?
+- [ ] After a purchase: `BAG_UPDATE_DELAYED` arrives, and the count is complete by then (within 2 s).
+- [ ] The refusal names through `GetGameMessageInfo`: not enough money, bags full, sold out (a
+      limited-stock item), and whether `ERR_ITEM_MAX_COUNT` exists.
+- [ ] Forever loads Mainline's merchant frame (`C_MerchantFrame.GetItemInfo`); `MERCHANT_HIGH_PRICE_COST`.
+- [ ] Ammo: equipped arrows stay in the quiver (the ammo slot points at them), so the bag count covers it.
+- [ ] The junk seller then restock in one visit: the order, the money line of each.
+- [ ] Value order in game (water, bread); the Manna Biscuit counting as both; the defaults and limits feel right.
+- [ ] Buffy installed: its reagents left to it while its restock is on, bought when off.
+- [ ] Ask first: the window beside the merchant (screenshot), both looks.
 
 **The probe (#5):** its steps are added here by its PR.
 

@@ -73,4 +73,9 @@
   spend (Talented's early ones included) and what it costs. Only what you can really learn. Spell
   tooltips say when the next ranks come. With dual spec, your other spec's waiting talent ranks.
   Trainer lists from WhatsTraining (thanks, Sveng).
+- **Restock** (Loot & Bags, on by default): at a merchant, after selling junk and repairing, tops up
+  your food, water (if you use mana), arrows or bullets (hunters) and class reagents, with the best
+  the merchant has that you can use. Only what's at least as good counts toward a target, so you
+  move up as you level. At most half your money and 5 gold a visit (both settings); "Ask first" to
+  confirm each time; Shift skips it. Leaves to Buffy the reagents Buffy restocks.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.

@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), and the ninth, the training reminder (#27); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), and the tenth, restock (#14); the day-one
 probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
@@ -31,11 +31,11 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 `Libs\HereBeDragons-2.0\HereBeDragons-Pins-2.0.lua` → `Compat.lua` → `Theme.lua` → `UI.lua` →
 `AccountSync.lua` → `Pearls.lua` → `SettingsSync.lua` → `Core\ToolItems.lua` → `Core\Bags.lua` →
 `Core\Merchant.lua` → `Core\AuraAlert.lua` →
-`Data\Landmarks.lua` → `Data\SpellRanks.lua` → `Data\AuraDurations.lua` → `Data\Training.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
+`Data\Landmarks.lua` → `Data\SpellRanks.lua` → `Data\AuraDurations.lua` → `Data\Training.lua` → `Data\Restock.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
 `Pearls\BagsFull.lua` → `Pearls\Landmarks.lua` → `Pearls\SpellRanksFrame.lua` →
 `Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua` → `Pearls\FixateFrame.lua` →
 `Pearls\Fixate.lua` → `Pearls\Uncrushable.lua` → `Pearls\BuffsFrame.lua` → `Pearls\Buffs.lua` → `Pearls\PaladinTank.lua` → `Pearls\TrainingFrame.lua` →
-`Pearls\Training.lua`)* →
+`Pearls\Training.lua` → `Pearls\RestockFrame.lua` → `Pearls\Restock.lua`)* →
 `Options.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
@@ -58,7 +58,7 @@ order) and before the options window and bootstrap.
   the contract is `..\GlassUI\docs\SUITE.md`. No glass of our own choosing (owner). Helpers:
   `Window`, `Reading`, `Control`, `Accent`, `NewGlass`; `Active`, `Following`, `Glass`.
 - **`UI.lua`**: the shared widgets (`Label`, `Header`, `Tooltip`, `Button`, `Check`, `Gear`,
-  `Radios`, `Search`), Blizzard templates in both looks; a value control returns a `refresh`.
+  `Radios`, `Number`, `Search`), Blizzard templates in both looks; a value control returns a `refresh`.
 - **`Pearls.lua`**: the registry. `Pearls.Register{ key, name, desc, default, category, section,
   Enable, Disable, defaults, configure, help, onReset, onSettingChanged }` (the last after any
   change of its settings, from any route, sync included: for a pearl that must rebuild); `IsOn`, `IsLive`, `NeedsReload`,
@@ -105,10 +105,13 @@ order) and before the options window and bootstrap.
   `ItemFacts`, `Eligible(slot, opts)` and `Candidates(opts)`: what may be destroyed, on **known data
   only** (anything uncached, unread or secret makes a stack ineligible), cheapest first by
   `sellPrice × stackCount`, greys first when asked.
-- **`Core\Merchant.lua`**: the merchant session for any pearl (#15; #14 may reuse it): `IsOpen`,
+- **`Core\Merchant.lua`**: the merchant session for any pearl (#15, #14): `IsOpen`,
   `Session` (a counter per visit), `On(key, fn)` (registers `MERCHANT_SHOW` / `MERCHANT_CLOSED` when
   the first pearl listens; a repeated close is told once), `Current(s)`, `After(delay, s, fn)` (only
-  if visit `s` is still open). Deliberately small: what a pearl does at a merchant stays in it.
+  if visit `s` is still open), and one pearl's outcome for a visit that another waits for:
+  `Report(key, s, outcome)` (the first counts; another or a closed visit's is ignored) and
+  `Await(key, s, seconds, fn)` (told the report, or "skip" after `seconds`; nothing once closed).
+  Deliberately small: what a pearl does at a merchant stays in it.
 - **`Pearls\Junk.lua`**: sell junk & repair (#15, pearl `junk`, Loot & Bags > Merchant, on by
   default). Junk, on known data only (bags 0-4): greys with a price, and the sell list (sync set
   `junk.sell`) up to rare. Never: the keep list (`junk.keep`), quest items, tools, equipment-set
@@ -125,7 +128,10 @@ order) and before the options window and bootstrap.
   what's left once the first settled (the cost read again changed, on
   `UPDATE_INVENTORY_DURABILITY`, within 2 s), or "my money only"; `[noautorepair]` in the guild
   info, or an unreadable one, never charges the guild. Commands `/gpearls sell [item]`, `keep`,
-  `forget` (the pearl key `junk` is its on/off). Unmeasured until day one.
+  `forget` (the pearl key `junk` is its on/off). It reports each visit's outcome
+  (`Merchant.Report`) for restock: "skip" when a sale or repair may still land (a run ended
+  unconfirmed, by the buyback check, refused or by combat; an unconfirmed repair; combat; switched
+  off mid-visit), "ready" otherwise, from every terminal path. Unmeasured until day one.
 - **`Core\AuraAlert.lua`**: what the aura-alert pearls share (#21). `AA.Read(id)`: one player aura by
   ID inside one pcall, answering present (plain table and fields, with its source unit), absent (nil
   AND `C_Secrets.ShouldSpellAuraBeSecret(id)` plainly false) or unknown. `AA.Sounds.New(failKey)`:
@@ -175,6 +181,37 @@ order) and before the options window and bootstrap.
   the next ranks, from the trainer list. Unmeasured until day one.
 - **`Pearls\TrainingFrame.lua`**: its toast (icon rows with the rank in the corner, text lines, OK,
   gone after 30 s unless the mouse is on it, position per character) and its panel.
+- **`Data\Restock.lua`**: **generated** by `Tools\gen_restock.py` (never edit it) from the client's
+  Item, ItemSparse, ItemXItemEffect, ItemEffect, SpellEffect, SpellMisc, SpellDuration,
+  SpellReagents, SkillLineAbility and SpellLevels tables: food (use spell aura 84) and water (85; alcohol has
+  neither; the Manna Biscuits trigger both), `value` = the total restored (points × duration / 5 s,
+  as the tooltips say), `bop` (bind on pickup: Forever's level-1 copies of high-end food are),
+  `conjured`; ammo (2 arrows, 3 bullets) with its level; per class the reagents its own spells
+  consume, only from the audited allowlist `Tools\restock\reagents.csv` (default targets), rune
+  copies dropped; `higher`: the poison recipes' higher ranks (by the numeral in the name, checked
+  against their levels), since the Poisons line isn't in `Data\SpellRanks.lua`.
+  `Tools\restock\report.txt` lists the vendor lines' order, the poison ranks and every drop.
+- **`Pearls\Restock.lua`**: restock (#14, pearl `restock`, Loot & Bags > Merchant, on by default).
+  At a merchant, after the junk seller reports "ready" (`Merchant.Await`, 10 s; "skip" or nothing
+  means no restock this visit; 0.3 s after the show when Junk is off), never with Shift or in
+  combat. `R.Plan`: an offer is a merchant item in the data, plain, priced below Blizzard's high
+  price line, no extended cost or currency, purchasable, usable, in stock (`C_MerchantFrame
+  .GetItemInfo`: price per pack of `stackCount`; `GetMerchantItemInfo` is gone); food and water (mana
+  classes) the usable offer that restores most, never bind on pickup; ammo for a hunter's bow,
+  crossbow or gun, the highest level; reagents of this class whose spell at its **highest known
+  rank** consumes them, never while Buffy restocks them (read in a pcall; unreadable: its fixed
+  list). Owned counts only **as good or better** (conjured included); `R.Count` reads every slot of
+  bags 0-4, locked ones too, and is nil (the line skipped) if one can't be read. Wanted in whole
+  packs rounded up. `R.Run`: one purchase in flight, each step reading the offer, the settings (a
+  kind switched off ends its line, a lower target counts, by hand or by sync), the recount, room
+  (`Bags.Fits`, fresh) and both limits (`budget`% of the money at the start, `maxSpend` gold; spent
+  = the larger of the confirmed prices and the money observed gone) again; a chunk is whole packs,
+  at most the merchant's max stack; confirmed only when the count reaches before + chunk within 2 s,
+  anything else stops the run. "Ask first" (`mode`) shows the lines and buys from Buy's click, the
+  shown counts as the most. Settings: the four kinds, three targets, mode, two limits, and one
+  synced integer per allowlisted reagent (`r<itemID>`). Unmeasured until day one.
+- **`Pearls\RestockFrame.lua`**: its "ask first" window (beside Blizzard's merchant frame, read for
+  its position) and its panel (the kinds and targets, mode, limits, this class's reagents).
 - **`Pearls\Fixate.lua`**: the fixate alert (#17, pearl `fixate`, Combat > Alerts, on by default).
   **Every client language: spell IDs only, never a name**; the alert's words are the client's
   (`C_Spell.GetSpellName` / `GetSpellTexture`). The IDs are the client's four spells named
@@ -288,7 +325,8 @@ order) and before the options window and bootstrap.
    string setting its `choices` and an integer one its `ranges`, or it won't travel. A list (a
    keep list) is a sync set: `SettingsSync.RegisterSet("<key>.<name>")` at file scope. Mind the
    budget: `test_sync_budget` fails if the known keys outgrow their 12 KB or the whole, every part
-   full, its 31 KB (about 23.5 KB with #27, known keys 4.5 KB: room for ~100 more synced settings).
+   full, its 31 KB, and the registry its 128 keys (with #14: 99 keys, known keys 7.5 KB, the whole
+   about 26.5 KB; ~29 keys left).
 5. Slash commands of its own: `commands = { name = { help, run(arg) } }` (`/gpearls <name>`, listed
    by `/gpearls help`).
 6. A test file `tests\test_<name>.lua` (the bags-full helper's four are the model), and a line in
@@ -358,7 +396,8 @@ and ChatThrottleLib for LibAccountSync, `WoW.installGlassUI` for a scriptable Gl
 macros, known spells, overrides and a spell on the cursor (`WoW.actions`, `WoW.known`,
 `WoW.placeHook`, ...), and a merchant: selling, the buyback page, repair and guild funds
 (`WoW.openMerchant`, `WoW.money`, `WoW.buyback`, `WoW.repairCost`, `WoW.guild`, `WoW.salesAsync`,
-...), and player auras with the client's aura sounds and per-spell secrecy (`WoW.auras`,
+...) and its goods (`WoW.goods`, `BuyMerchantItem` into the bags, `WoW.buysAsync`, `WoW.buyShort`,
+`WoW.buyRefuses`, `WoW.equipped`, `WoW.loadedAddOns`), and player auras with the client's aura sounds and per-spell secrecy (`WoW.auras`,
 `WoW.spellAuraSecret`, `WoW.auraSounds`; `GetAuraDataBySpellName` throws, so no name lookup
 survives a test), and the character panel's stats (`WoW.stats`, `CharacterStatsPaneScrollBox`,
 `PaperDollFrame_UpdateStats`)), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for

@@ -1065,6 +1065,95 @@ function RepairAllItems(guild)
 end
 
 --------------------------------------------------------------------------------
+-- The merchant's goods, for the restock pearl (#14). In the 70532 dump:
+-- C_MerchantFrame.GetItemInfo (MerchantItemInfo, MerchantFrameDocumentation.lua:126)
+-- and C_AddOns.IsAddOnLoaded documented; GetMerchantNumItems,
+-- GetMerchantItemID, GetMerchantItemMaxStack, BuyMerchantItem and
+-- GetInventoryItemID in its _G walk. ERR_NOT_ENOUGH_MONEY is Blizzard's
+-- global string. Blizzard's "buy multiple" reads price per pack of
+-- stackCount and buys in items (MerchantFrame.lua:713).
+--   WoW.goods = { { id, price, pack, stock = -1, maxStack, purchasable,
+--                   usable, extended, currencyID } }  (a field may be a WoW.Secret)
+--   BuyMerchantItem(i, n): n items into the bags (partial stacks first, then
+--     empty slots of a matching family, then general ones), price * n / pack
+--     taken, PLAYER_MONEY and BAG_UPDATE_DELAYED. WoW.buysAsync: waits for
+--     WoW.applyBuys(); WoW.buyRefuses = errorType: that UI error, nothing
+--     bought; WoW.buyShort = k: k fewer items arrive. Calls in WoW.calls.
+--   WoW.equipped[slot] = itemID; WoW.loadedAddOns[name] = true
+--------------------------------------------------------------------------------
+
+WoW.goods, WoW.equipped, WoW.loadedAddOns, WoW.pendingBuys = {}, {}, {}, {}
+ERR_NOT_ENOUGH_MONEY = "You don't have enough money."
+WoW.errorNames[53] = "ERR_NOT_ENOUGH_MONEY"
+C_AddOns.IsAddOnLoaded = function(name)
+    local loaded = WoW.loadedAddOns[name] == true
+    return loaded, loaded
+end
+function GetInventoryItemID(unit, slot) if unit == "player" then return WoW.equipped[slot] end end
+function GetMerchantNumItems() return WoW.merchant and #WoW.goods or 0 end
+function GetMerchantItemID(i) local g = WoW.merchant and WoW.goods[i]; return g and g.id end
+function GetMerchantItemMaxStack(i) local g = WoW.goods[i]; return g and (g.maxStack or 20) end
+C_MerchantFrame = {}
+function C_MerchantFrame.GetItemInfo(i)
+    local g = WoW.merchant and WoW.goods[i]
+    if not g then return nil end
+    local function default(v, d) if v == nil then return d end return v end
+    return { name = "item " .. g.id, texture = 134400, price = g.price, stackCount = g.pack or 1,
+             numAvailable = g.stock or -1, isPurchasable = default(g.purchasable, true),
+             isUsable = default(g.usable, true), hasExtendedCost = g.extended == true,
+             currencyID = g.currencyID, isQuestStartItem = false }
+end
+local function receive(id, n)
+    local it = WoW.items[id] or {}
+    local max = it.maxStack or 20
+    for bag = 0, 4 do
+        local b = WoW.bags[bag]
+        for _, st in pairs(b and b.items or {}) do
+            if n > 0 and st.id == id and st.count < max then
+                local k = math.min(n, max - st.count)
+                st.count, n = st.count + k, n - k
+            end
+        end
+    end
+    for pass = 1, 2 do
+        for bag = 0, 4 do
+            local b = WoW.bags[bag]
+            local fam = b and (b.family or 0) or 0
+            local fits = b and ((pass == 1 and fam ~= 0 and it.family and bit.band(fam, it.family) ~= 0)
+                or (pass == 2 and fam == 0))
+            for slot = 1, fits and b.size or 0 do
+                if n > 0 and not b.items[slot] then
+                    local k = math.min(n, max)
+                    b.items[slot], n = { id = id, count = k }, n - k
+                end
+            end
+        end
+    end
+end
+local function buy(i, n)
+    local g = WoW.goods[i]
+    receive(g.id, n - (WoW.buyShort or 0))
+    WoW.money = WoW.money - g.price * n / (g.pack or 1)
+    WoW.fire("PLAYER_MONEY")
+    WoW.fire("BAG_UPDATE_DELAYED")
+end
+function BuyMerchantItem(i, n)
+    n = n or ((WoW.goods[i] or {}).pack or 1)
+    call("BuyMerchantItem", i, n)
+    if not (WoW.merchant and WoW.goods[i]) then return end
+    if WoW.buyRefuses then
+        WoW.fire("UI_ERROR_MESSAGE", WoW.buyRefuses, rawget(_G, WoW.errorNames[WoW.buyRefuses]) or "?")
+        return
+    end
+    if WoW.buysAsync then table.insert(WoW.pendingBuys, { i, n }) else buy(i, n) end
+end
+function WoW.applyBuys()
+    local pending = WoW.pendingBuys
+    WoW.pendingBuys = {}
+    for _, b in ipairs(pending) do buy(b[1], b[2]) end
+end
+
+--------------------------------------------------------------------------------
 -- Player auras and the client's aura sounds, for the fixate alert (#17). In
 -- the 70532 dump: C_UnitAuras.GetPlayerAuraBySpellID / AddAuraSound /
 -- RemoveAuraSound, C_Secrets.ShouldSpellAuraBeSecret / ShouldAurasBeSecret /

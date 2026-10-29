@@ -127,6 +127,29 @@ function UI.Radios(parent, anchor, choices, get, set)
     return prev, group, refresh
 end
 
+-- A whole number with its label after the box (InputBoxTemplate). Enter or
+-- leaving the box commits it, clamped to lo..hi; anything not a number goes
+-- back to the saved value. Returns the box and its refresh.
+function UI.Number(parent, text, get, set, lo, hi, width)
+    local box = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
+    box:SetAutoFocus(false)
+    box:SetNumeric(true)
+    box:SetSize(width or 50, 20)
+    local fs = UI.Label(parent, text)
+    fs:SetPoint("LEFT", box, "RIGHT", 6, 0)
+    box.label = fs
+    local function refresh() box:SetText(tostring(get() or "")) end
+    local function commit(self)
+        local n = tonumber(self:GetText() or "")
+        if n then set(math.max(lo, math.min(hi, math.floor(n)))) end
+        refresh()
+    end
+    box:SetScript("OnEnterPressed", function(self) commit(self); self:ClearFocus() end)
+    box:SetScript("OnEditFocusLost", commit)
+    box:SetScript("OnEscapePressed", function(self) refresh(); self:ClearFocus() end)
+    return box, refresh
+end
+
 -- The search box: SearchBoxTemplate (its clear button and instructions) when
 -- the client has it, else a plain input box. onChange(text) on every edit.
 function UI.Search(parent, width, instructions, onChange)

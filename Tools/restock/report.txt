@@ -1,0 +1,124 @@
+gen_restock.py, build 1.60.1.70532
+
+226 food, 42 water (Manna Biscuits and the like are both), 36 ammo
+
+Classic vendor lines, value beside required level (each should rise):
+  water: Refreshing Spring Water 151@1, Ice Cold Milk 437@5, Melon Juice 835@15, Sweet Nectar 1345@25, Moonberry Juice 1992@35, Morning Glory Dew 2934@45
+  bread: Tough Hunk of Bread 61@1, Freshly Baked Bread 244@5, Moist Cornbread 552@15, Mulgore Spice Bread 875@25, Soft Banana Bread 1392@35, Homemade Cherry Pie 2148@45
+  meat: Tough Jerky 61@1, Haunch of Meat 244@5, Mutton Chop 552@15, Wild Hog Shank 875@25, Cured Ham Steak 1392@35, Roasted Quail 2148@45
+
+Bind on pickup (never bought, counted when carried):
+  13810 Blessed Sunfruit (level 45)
+  19301 Alterac Manna Biscuit (level 51)
+  20031 Essence Mango (level 55)
+  23160 Friendship Bread (level 45)
+  262433 Ketharas' Hyjal Stew (level 0)
+  287963 Roasted Quail (level 1)
+  287964 Morning Glory Dew (level 1)
+  287973 Tender Wolf Steak (level 1)
+  287974 Grilled Squid (level 1)
+
+Dropped food & drink:
+  1072 Full Moonshine: restores neither health nor mana (alcohol, buff food)
+  1165 Test Food: restores neither health nor mana (alcohol, buff food)
+  2593 Flask of Stormwind Tawny: restores neither health nor mana (alcohol, buff food)
+  2594 Flagon of Dwarven Honeymead: restores neither health nor mana (alcohol, buff food)
+  2595 Jug of Badlands Bourbon: restores neither health nor mana (alcohol, buff food)
+  2596 Skin of Dwarven Stout: restores neither health nor mana (alcohol, buff food)
+  2686 Thunder Ale: restores neither health nor mana (alcohol, buff food)
+  2723 Bottle of Dalaran Noir: restores neither health nor mana (alcohol, buff food)
+  2894 Rhapsody Malt: restores neither health nor mana (alcohol, buff food)
+  3703 Southshore Stout: restores neither health nor mana (alcohol, buff food)
+  4595 Junglevine Wine: restores neither health nor mana (alcohol, buff food)
+  4600 Cherry Grog: restores neither health nor mana (alcohol, buff food)
+  5265 Watered-down Beer: restores neither health nor mana (alcohol, buff food)
+  5342 Raptor Punch: restores neither health nor mana (alcohol, buff food)
+  6522 Deviate Fish: restores neither health nor mana (alcohol, buff food)
+  6657 Savory Deviate Delight: restores neither health nor mana (alcohol, buff food)
+  7676 Thistle Tea: restores neither health nor mana (alcohol, buff food)
+  8243 Scooby Snack: restores neither health nor mana (alcohol, buff food)
+  9360 Cuergo's Gold: restores neither health nor mana (alcohol, buff food)
+  9361 Cuergo's Gold with Worm: restores neither health nor mana (alcohol, buff food)
+  11846 Wizbang's Special Brew: restores neither health nor mana (alcohol, buff food)
+  11951 Whipper Root Tuber: restores neither health nor mana (alcohol, buff food)
+  12003 Dark Dwarven Lager: restores neither health nor mana (alcohol, buff food)
+  12217 Dragonbreath Chili: restores neither health nor mana (alcohol, buff food)
+  17196 Holiday Spirits: restores neither health nor mana (alcohol, buff food)
+  17402 Greatfather's Winter Ale: restores neither health nor mana (alcohol, buff food)
+  17403 Steamwheedle Fizzy Spirits: restores neither health nor mana (alcohol, buff food)
+  18287 Evermurky: restores neither health nor mana (alcohol, buff food)
+  18288 Molasses Firewater: restores neither health nor mana (alcohol, buff food)
+  19221 Darkmoon Special Reserve: restores neither health nor mana (alcohol, buff food)
+  19222 Cheap Beer: restores neither health nor mana (alcohol, buff food)
+  19696 Harvest Bread: restores neither health nor mana (alcohol, buff food)
+  19994 Harvest Fruit: restores neither health nor mana (alcohol, buff food)
+  19995 Harvest Boar: restores neither health nor mana (alcohol, buff food)
+  19996 Harvest Fish: restores neither health nor mana (alcohol, buff food)
+  20516 Bobbing Apple: restores neither health nor mana (alcohol, buff food)
+  20709 Rumsey Rum Light: restores neither health nor mana (alcohol, buff food)
+  21114 Rumsey Rum Dark: restores neither health nor mana (alcohol, buff food)
+  21151 Rumsey Rum Black Label: restores neither health nor mana (alcohol, buff food)
+  21215 Graccu's Mince Meat Fruitcake: restores neither health nor mana (alcohol, buff food)
+  21235 Winter Veil Roast: restores neither health nor mana (alcohol, buff food)
+  21236 UNUSED ITEM: restores neither health nor mana (alcohol, buff food)
+  21240 UNUSED ITEM: restores neither health nor mana (alcohol, buff food)
+  21254 Winter Veil Cookie: restores neither health nor mana (alcohol, buff food)
+  21721 Moonglow: restores neither health nor mana (alcohol, buff food)
+  23172 Refreshing Red Apple: restores neither health nor mana (alcohol, buff food)
+  247824 Thunder Applejack: restores neither health nor mana (alcohol, buff food)
+  260629 Spectral Spirits: restores neither health nor mana (alcohol, buff food)
+  260631 Arcane Wine: restores neither health nor mana (alcohol, buff food)
+  260632 Slushberry Brandy: restores neither health nor mana (alcohol, buff food)
+  260633 Sip of Lemonale: restores neither health nor mana (alcohol, buff food)
+  281282 A Little Somethin': restores neither health nor mana (alcohol, buff food)
+  282018 Restorative Bread: restores neither health nor mana (alcohol, buff food)
+  287416 Truskis' Cheesecake Slice: restores neither health nor mana (alcohol, buff food)
+  287972 Rumsey Rum Dark: restores neither health nor mana (alcohol, buff food)
+
+Reagents kept, per class:
+  DRUID 17021 Wild Berries (target 20): Gift of the Wild
+  DRUID 17026 Wild Thornroot (target 20): Gift of the Wild
+  DRUID 17034 Maple Seed (target 5): Rebirth
+  DRUID 17035 Stranglethorn Seed (target 5): Rebirth
+  DRUID 17036 Ashwood Seed (target 5): Rebirth
+  DRUID 17037 Hornbeam Seed (target 5): Rebirth
+  DRUID 17038 Ironwood Seed (target 5): Rebirth
+  MAGE 17020 Arcane Powder (target 20): Arcane Brilliance
+  MAGE 17031 Rune of Teleportation (target 10): Teleport: Dalaran, Teleport: Darnassus, Teleport: Ironforge, Teleport: Orgrimmar, Teleport: Stormwind, Teleport: Thunder Bluff, Teleport: Undercity
+  MAGE 17032 Rune of Portals (target 10): Portal: Darnassus, Portal: Ironforge, Portal: Orgrimmar, Portal: Stormwind, Portal: Thunder Bluff, Portal: Undercity
+  MAGE 17056 Light Feather (target 20): Slow Fall
+  PALADIN 17033 Symbol of Divinity (target 5): Divine Intervention
+  PALADIN 21177 Symbol of Kings (target 100): Greater Blessing of Kings, Greater Blessing of Light, Greater Blessing of Might, Greater Blessing of Might, Greater Blessing of Wisdom, Greater Blessing of Wisdom, Mass Salvation
+  PRIEST 17028 Holy Candle (target 20): Prayer of Fortitude
+  PRIEST 17029 Sacred Candle (target 20): Prayer of Fortitude, Prayer of Shadow Protection, Prayer of Spirit
+  PRIEST 17056 Light Feather (target 20): Levitate
+  ROGUE 2928 Dust of Decay (target 20): Instant Poison, Instant Poison II, Mind-numbing Poison, Mind-numbing Poison II
+  ROGUE 2930 Essence of Pain (target 20): Crippling Poison, Mind-numbing Poison, Mind-numbing Poison II, Wound Poison, Wound Poison II
+  ROGUE 3371 Empty Vial (target 20): Crippling Poison, Instant Poison, Mind-numbing Poison
+  ROGUE 3372 Leaded Vial (target 20): Deadly Poison, Deadly Poison II, Instant Poison II, Instant Poison III, Mind-numbing Poison II, Wound Poison, Wound Poison II
+  ROGUE 5140 Flash Powder (target 20): Vanish, Vanish
+  ROGUE 5173 Deathweed (target 20): Deadly Poison, Deadly Poison II, Deadly Poison III, Deadly Poison IV, Deadly Poison V, Occult Poison I, Occult Poison II, Wound Poison, Wound Poison II, Wound Poison III, Wound Poison IV
+  ROGUE 8923 Essence of Agony (target 20): Crippling Poison II, Mind-numbing Poison III, Numbing Poison, Occult Poison I, Sebacious Poison, Wound Poison III, Wound Poison IV
+  ROGUE 8924 Dust of Deterioration (target 20): Atrophic Poison, Instant Poison III, Instant Poison IV, Instant Poison V, Instant Poison VI, Mind-numbing Poison III, Numbing Poison
+  ROGUE 8925 Crystal Vial (target 20): Atrophic Poison, Crippling Poison II, Deadly Poison III, Deadly Poison IV, Deadly Poison V, Instant Poison IV, Instant Poison V, Instant Poison VI, Mind-numbing Poison III, Numbing Poison, Occult Poison I, Occult Poison II, Sebacious Poison, Wound Poison III, Wound Poison IV
+  SHAMAN 17030 Ankh (target 5): Reincarnation, Reincarnation
+  SHAMAN 17057 Shiny Fish Scales (target 10): Water Breathing
+  SHAMAN 17058 Fish Oil (target 10): Water Walking
+  WARLOCK 5565 Infernal Stone (target 5): Inferno
+  WARLOCK 16583 Demonic Figurine (target 5): Ritual of Doom
+
+Poison recipes, lowest rank first (only the highest known buys its reagents):
+  Atrophic Poison: Atrophic Poison 439503
+  Crippling Poison: Crippling Poison 3420, Crippling Poison II 3421
+  Deadly Poison: Deadly Poison 2835, Deadly Poison II 2837, Deadly Poison III 11357, Deadly Poison IV 11358, Deadly Poison V 25347
+  Instant Poison: Instant Poison 8681, Instant Poison II 8687, Instant Poison III 8691, Instant Poison IV 11341, Instant Poison V 11342, Instant Poison VI 11343
+  Mind-numbing Poison: Mind-numbing Poison 5763, Mind-numbing Poison II 8694, Mind-numbing Poison III 11400
+  Numbing Poison: Numbing Poison 439505
+  Occult Poison: Occult Poison I 458822, Occult Poison II 1214168
+  Sebacious Poison: Sebacious Poison 439500
+  Wound Poison: Wound Poison 13220, Wound Poison II 13228, Wound Poison III 13229, Wound Poison IV 13230
+
+Reagents of class spells not on the allowlist (not bought):
+  3818 Fadeleaf: ROGUE Blinding Powder
+  5530 Blinding Powder: ROGUE Blind
+  6265 Soul Shard: WARLOCK Create Firestone, WARLOCK Create Healthstone, WARLOCK Create Soulstone, WARLOCK Create Spellstone, WARLOCK Portal of Summoning, WARLOCK Ritual of Summoning, WARLOCK Shadowburn, WARLOCK Soul Fire, WARLOCK Subjugate Demon, WARLOCK Summon Felhunter, WARLOCK Summon Incubus, WARLOCK Summon Succubus, WARLOCK Summon Voidwalker
