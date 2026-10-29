@@ -64,6 +64,25 @@ LootSlot = function(i) realLoot(i); WoW.closeLoot() end
 coins({ "money", "message" }, nil, { autoloot = true, noOpened = true })
 check(shown(), "the window closed during the pass: still shown when the money comes")
 LootSlot = realLoot
+-- Everything inside LootSlot itself: the money, the message and the close.
+LootSlot = function(i)
+    realLoot(i)
+    earn(250)
+    WoW.fire("CHAT_MSG_MONEY", "You loot 2 Silver 50 Copper")
+    WoW.closeLoot()
+end
+coins({}, nil, { autoloot = true, noOpened = true })
+check(shown() and FR._test.frame().amount == 250, "money, message and close all inside the loot call: shown, the right amount")
+LootSlot = realLoot
+-- The same with an item beside the coins: the provisional record is dropped.
+WoW.items[10] = { name = "Linen", maxStack = 20 }
+LootSlot = function(i)
+    realLoot(i)
+    if i == 1 then earn(250); WoW.fire("CHAT_MSG_MONEY", "x"); WoW.closeLoot() end
+end
+coins({}, { { kind = T.Money }, { id = 10 } }, { autoloot = true, noOpened = true })
+check(not shown(), "money, message and close inside the first call, an item unread after it: no coin text")
+LootSlot = realLoot
 -- Not shown.
 coins({ "money", "close", 3, "message" })
 check(not shown(), "no loot-money message within 2 s: nothing")
@@ -82,10 +101,10 @@ check(not shown(), "money and an item: no coin text")
 -- A new corpse cancels a pending one; so does switching off; so does the setting.
 coins({ "money" })
 WoW.closeLoot()
-WoW.openLoot({ { id = 10 } }, AUTO)
+WoW.openLoot({ { id = 10 } }, { autoloot = false })     -- looted by hand: no pass of its own
 WoW.fire("CHAT_MSG_MONEY", "x")
 WoW.closeLoot()
-check(not shown(), "a new corpse cancels the pending coin text")
+check(not shown(), "a new corpse cancels the pending coin text (even one looted by hand)")
 coins({ "money", "message" })
 P.Set("fastloot", false)
 WoW.closeLoot()

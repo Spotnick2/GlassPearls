@@ -239,7 +239,8 @@ order) and before the options window and bootstrap.
   expected to run beside it: a day-one check. **Coin text** (setting `coins`, on): a coins-only
   pass floats up the sum of the positive `PLAYER_MONEY` changes seen while a `CHAT_MSG_MONEY` came
   (its text never read), shown only when the window closed, the message came and the sum is
-  positive within 2 s; else it expires silently. `/gpearls fastloot`: the last pass (loot calls
+  positive within 2 s; else it expires silently. Its record starts, provisional, before the first
+  `LootSlot` (the game may credit the money inside the call) and is confirmed only for a coins-only pass. `/gpearls fastloot`: the last pass (loot calls
   made, what was left by reason). Unmeasured until day one.
 - **`Pearls\FastLootFrame.lua`**: its coin text (click-through, at the cursor, rises and fades,
   `TrainingFrame.Money` for the coins) and its panel (the `coins` switch).

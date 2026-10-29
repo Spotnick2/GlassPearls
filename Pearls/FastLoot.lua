@@ -152,7 +152,7 @@ end
 
 local function coinCheck()
     local c = state.coin
-    if not (c and c.closed and c.message and c.sum > 0) then return end
+    if not (c and not c.provisional and c.closed and c.message and c.sum > 0) then return end
     state.coin = nil
     Frame().Show(c.sum, c.x, c.y)
 end
@@ -170,6 +170,13 @@ local function pass(kind, payload)
     if not wholeNumber(n) then state.why = "the slot count can't be read"; return end
     if n == 0 and kind == "ready" then return end      -- the slots come at LOOT_OPENED
     s.consumed = true
+    -- The coin record starts before the first LootSlot: the game may credit
+    -- the money (and close the window) before the call returns. It stays
+    -- provisional until the pass knows the window held only money.
+    if setting("coins") then
+        coinStart()
+        if state.coin then state.coin.provisional = true end
+    end
     local snap = GP.Bags.Snapshot(true)
     local result = { calls = 0, skipped = {}, slots = n }
     local onlyMoney, read = n > 0, 0
@@ -188,10 +195,11 @@ local function pass(kind, payload)
     end
     state.last = result
     state.why = "a pass ran"
-    if onlyMoney and read == n and setting("coins") then
-        coinStart()
-        -- The window may have closed during the pass: the coin text knows.
-        if state.coin and state.session ~= s then state.coin.closed = true end
+    -- Not coins only: the provisional record never shows, and expires.
+    local c = state.coin
+    if c and onlyMoney and read == n then
+        c.provisional = false
+        coinCheck()                                       -- everything may have come during the pass
     end
 end
 
