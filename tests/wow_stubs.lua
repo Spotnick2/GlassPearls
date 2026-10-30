@@ -1684,6 +1684,93 @@ function IsModifiedClick(action) return WoW.modified[action] == true end
 C_PartyInfo = C_PartyInfo or {}
 function C_PartyInfo.GetLootMethod() return WoW.lootMethod, nil, nil end
 
+--------------------------------------------------------------------------------
+-- Low-rank buffs (#42). In the 70532 dump: UnitLevel, UnitClass,
+-- UnitIsPlayer, UnitIsDeadOrGhost, IsInInstance, UnitInParty, UnitInRaid
+-- (an index), UnitIsInMyGuild, C_FriendList.IsFriend(guid),
+-- C_ChatInfo.SendChatMessage / InChatMessagingLockdown,
+-- C_RestrictedActions.GetAddOnRestrictionState documented; GetUnitName in its
+-- _G walk (UnitFrame.lua:1094: on Camelot the first name and the surname,
+-- NameUtil.lua:4); Enum.AddOnRestrictionType / State from
+-- RestrictedActionsConstantsDocumentation.lua:6-31.
+--   WoW.unitLevels[unit], WoW.unitClasses[unit] = classFile, WoW.players[unit] = true
+--   WoW.fullNames[unit] (GetUnitName); WoW.dead; WoW.inInstance
+--   WoW.partyMembers[unit] = true, WoW.raidIndex[unit] = n, WoW.guildMembers[unit] = true,
+--   WoW.friends[guid] = true
+--   WoW.sentChat = { { msg, chatType, lang, target } }; WoW.chatSendThrows; WoW.chatLockdown;
+--   WoW.chatRestriction (an Enum.AddOnRestrictionState value; default Inactive)
+--   WoW.auraReads[spellID]: GetPlayerAuraBySpellID calls, counted per ID
+-- Each value may be set to a WoW.Secret(...) to model a secret answer.
+--------------------------------------------------------------------------------
+
+WoW.unitLevels, WoW.unitClasses, WoW.players, WoW.fullNames = {}, {}, {}, {}
+WoW.partyMembers, WoW.raidIndex, WoW.guildMembers, WoW.friends, WoW.sentChat = {}, {}, {}, {}, {}
+WoW.auraReads = {}
+Enum.AddOnRestrictionType = { Combat = 0, Encounter = 1, ChallengeMode = 2, PvPMatch = 3, Map = 4, Chat = 5 }
+Enum.AddOnRestrictionState = { Inactive = 0, Activating = 1, Active = 2 }
+
+local playerAuraRead = C_UnitAuras.GetPlayerAuraBySpellID
+C_UnitAuras.GetPlayerAuraBySpellID = function(id)
+    WoW.auraReads[id] = (WoW.auraReads[id] or 0) + 1
+    return playerAuraRead(id)
+end
+local playerLevel = UnitLevel
+function UnitLevel(unit)
+    if WoW.unitLevels[unit] ~= nil then return WoW.unitLevels[unit] end
+    return playerLevel(unit)
+end
+local playerClass = UnitClass
+function UnitClass(unit)
+    local c = WoW.unitClasses[unit]
+    if c ~= nil then return "Class", c, 1 end
+    return playerClass(unit)
+end
+function UnitIsPlayer(unit)
+    if unit == "player" then return true end
+    local v = WoW.players[unit]
+    if v == nil then return false end
+    return v
+end
+function GetUnitName(unit, showServer)
+    local v = WoW.fullNames[unit]
+    if v ~= nil then return v end
+    return (UnitName(unit))
+end
+function UnitIsDeadOrGhost(unit) return unit == "player" and WoW.dead == true end
+function IsInInstance()
+    if WoW.inInstance == nil then return false, "none" end
+    return WoW.inInstance, "party"
+end
+function UnitInParty(unit)
+    local v = WoW.partyMembers[unit]
+    if v == nil then return false end
+    return v
+end
+function UnitInRaid(unit) return WoW.raidIndex[unit] end
+function UnitIsInMyGuild(unit)
+    local v = WoW.guildMembers[unit]
+    if v == nil then return false end
+    return v
+end
+C_FriendList = { IsFriend = function(guid)
+    local v = WoW.friends[guid]
+    if v == nil then return false end
+    return v
+end }
+C_ChatInfo.SendChatMessage = function(msg, chatType, lang, target)
+    if WoW.chatSendThrows then error("chat refused") end
+    table.insert(WoW.sentChat, { msg = msg, chatType = chatType, lang = lang, target = target })
+end
+C_ChatInfo.InChatMessagingLockdown = function()
+    if WoW.chatLockdown == nil then return false end
+    return WoW.chatLockdown
+end
+C_RestrictedActions = { GetAddOnRestrictionState = function(kind)
+    if kind ~= Enum.AddOnRestrictionType.Chat then return Enum.AddOnRestrictionState.Inactive end
+    if WoW.chatRestriction == nil then return Enum.AddOnRestrictionState.Inactive end
+    return WoW.chatRestriction
+end }
+
 function WoW.calledCount(name)
     local n = 0
     for _, c in ipairs(WoW.calls) do if c[1] == name then n = n + 1 end end

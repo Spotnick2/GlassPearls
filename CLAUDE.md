@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), and the thirteenth, faster loot (#36); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), and the fourteenth, low-rank buffs (#42); the day-one
 probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
@@ -37,7 +37,7 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 `Pearls\Fixate.lua` → `Pearls\Uncrushable.lua` → `Pearls\BuffsFrame.lua` → `Pearls\Buffs.lua` → `Pearls\PaladinTank.lua` → `Pearls\TrainingFrame.lua` →
 `Pearls\Training.lua` → `Pearls\RestockFrame.lua` → `Pearls\Restock.lua` → `Pearls\MarkWheelFrame.lua` →
 `Pearls\MarkWheel.lua` → `Pearls\AutoGossipFrame.lua` → `Pearls\AutoGossip.lua` → `Pearls\FastLootFrame.lua` →
-`Pearls\FastLoot.lua`)* →
+`Pearls\FastLoot.lua` → `Pearls\LowBuffs.lua`)* →
 `Options.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
@@ -244,6 +244,29 @@ order) and before the options window and bootstrap.
   made, what was left by reason). Unmeasured until day one.
 - **`Pearls\FastLootFrame.lua`**: its coin text (click-through, at the cursor, rises and fades,
   `TrainingFrame.Money` for the coins) and its panel (the `coins` switch).
+- **`Pearls\LowBuffs.lua`**: low-rank buffs (#42, pearl `lowbuffs`, Social > Group, on by default;
+  its two-control panel in the same file). When another player's **single-target** buff lands on
+  you at a lower rank than they could cast, a chat line says so, once per caster (GUID) and buff a
+  session. `LB.WATCH`: the first ranks of Fortitude, Arcane Intellect, Mark of the Wild, Thorns,
+  the Blessings of Might, Wisdom and Light, Divine Spirit and Shadow Protection (group buffs left
+  out: the downrank rule is established for single-target ones); `SpellRankData.ranks[id]` is a
+  positional `{ group, rank, level }`. **Expected rank**: the highest of the group the caster's
+  class trainer lists (`TrainingData`: book ranks never), at most the caster's level minus a
+  grace (0 below 10, 3 at 10-19, 2 to 49, 1 at 50-59, 0 at 60; a reference addon's, MIT) and at
+  most **your level + 10** (the downrank rule: lower on a low-level player is correct). Only
+  casters at or above `minLevel` (60, the owner); a caster seen at a higher level than before
+  this session is never judged (sticky, recorded before any other exit). **Detection, out of
+  combat only**: `UNIT_AURA` (payload untouched) queues one check a frame later; each watched ID
+  is uninitialized, absent or present; a baseline (Enable, `PLAYER_ENTERING_WORLD`,
+  `PLAYER_REGEN_ENABLED`) makes all uninitialized and reads at once; only absent → present is
+  judged, everything about the caster read in that same check (`sourceUnit`, plain `UnitGUID`,
+  `UnitIsPlayer`, not you by `UnitIsUnit`, `UnitLevel`, `UnitClass`, `GetUnitName(unit, false)`:
+  the first name and surname on Camelot). **Whisper** (setting `whisper`, off): only to people
+  you positively know (`UnitInParty`, `UnitInRaid` a positive index, `UnitIsInMyGuild`,
+  `C_FriendList.IsFriend(guid)`), once per caster a session, 10 s apart, consumed at the attempt,
+  never queued; refused in combat, dead, in an instance, under `InChatMessagingLockdown`, or
+  unless the chat add-on restriction is plainly `Inactive`; `C_ChatInfo.SendChatMessage` in a
+  pcall. `/gpearls lowbuffs`: the last 10 flags and skip counts. Unmeasured until day one.
 - **`Pearls\AutoGossip.lua`**: auto gossip (#47, pearl `autogossip`, Automation > NPCs, on by
   default). **Gossip only**: nothing while the NPC has quest business. Scope: ordinary gossip with an
   NPC (`GOSSIP_SHOW`'s `textureKit` plainly nil, `UnitExists("npc")` plainly true; a refresh keeps
@@ -418,8 +441,8 @@ order) and before the options window and bootstrap.
    string setting its `choices` and an integer one its `ranges`, or it won't travel. A list (a
    keep list) is a sync set: `SettingsSync.RegisterSet("<key>.<name>")` at file scope. Mind the
    budget: `test_sync_budget` fails if the known keys outgrow their 12 KB or the whole, every part
-   full, its 31 KB, and the registry its 128 keys (with #36: 107 keys and 6 of 8 sets, known keys 7.9 KB,
-   the whole about 27 KB; ~21 keys left).
+   full, its 31 KB, and the registry its 128 keys (with #42: 110 keys and 6 of 8 sets, known keys 8.1 KB,
+   the whole about 27 KB; ~18 keys left).
 5. Slash commands of its own: `commands = { name = { help, run(arg) } }` (`/gpearls <name>`, listed
    by `/gpearls help`).
 6. A test file `tests\test_<name>.lua` (the bags-full helper's four are the model), and a line in
@@ -502,7 +525,9 @@ menu (`WoW.openMenu`, `WoW.menuButton`), Blizzard's gossip frame for auto gossip
 `WoW.playerPicks`, `WoW.closeGossip`, its own lone pick in either order, pooled option buttons,
 `WoW.gossipOnSelect` for events inside a select), faster loot's loot window (`WoW.openLoot(rows, { autoloot,
 noReady, emptyReady, noOpened })`, locked, quality and money rows, `WoW.lootMethod`, `WoW.lootThreshold`,
-`WoW.modified`, unreadable bag families and locks), a clock (`WoW.advance`), and atlases with sizes (`WoW.atlases`; `SetAtlas` returns
+`WoW.modified`, unreadable bag families and locks), low-rank buffs' casters and chat (`WoW.unitLevels`,
+`WoW.unitClasses`, `WoW.players`, `WoW.fullNames`, `WoW.partyMembers`, `WoW.raidIndex`, `WoW.guildMembers`,
+`WoW.friends`, `WoW.sentChat`, `WoW.chatLockdown`, `WoW.chatRestriction`, `WoW.auraReads` per ID), a clock (`WoW.advance`), and atlases with sizes (`WoW.atlases`; `SetAtlas` returns
 nothing, as on the client)), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
 registering test pearls, `opts.pearls = false` to leave the shipped pearls out of a framework
 test, `newChat`, `chatHas`). Bags, items, the cursor and the loot window are modelled too
