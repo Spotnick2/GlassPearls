@@ -33,6 +33,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #47 | Auto gossip (pearl `autogossip`): lone options by a setting, and the options you keep choosing; gossip only | built; the icons, the event order, the button hook and the picks wait for day one |
 | #36 | Faster loot (pearl `fastloot`): every slot that safely fits, as the loot window opens; the coins-only text | built; the race with the client's auto loot, the events and the loot methods wait for day one |
 | #42 | Low-rank buffs (pearl `lowbuffs`): a single-target buff on you at a lower rank than its caster could cast; the opt-in whisper to people you know | built; the source units, the downrank rule and the whisper wait for day one |
+| #43 | Instance gear reminders (pearl `instancegear`): the Argent Dawn trinket in Scholomance and Stratholme | built; the instance and standing reads, the bank count and the event order wait for day one |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -282,6 +283,21 @@ story NPC, a multi-page NPC)
 - [ ] The whisper (opt-in): delivered to a party member by the `GetUnitName` form; refused in an
       instance; `InChatMessagingLockdown` and the chat restriction state in the open world; no
       taint, no forbidden action.
+
+**Instance gear reminders (#43)** (a character below Exalted with the Argent Dawn and the Commission)
+- [ ] `GetInstanceInfo()` in Scholomance and both sides of Stratholme: `instanceType` and
+      `instanceID` (289 / 329), plain.
+- [ ] `GetFactionDataByID(529).reaction`, plain, on a character who has met the Argent Dawn and one
+      who hasn't.
+- [ ] `GetInventoryItemID` on slots 13 and 14 with the Commission worn: nothing said.
+- [ ] `GetItemCount(12846, true)` away from the bank with the Commission banked: counted after a
+      full client exit and a fresh login? After a bank visit?
+- [ ] The `PLAYER_ENTERING_WORLD` / `PLAYER_LEAVING_WORLD` order and payloads at login, a reload, an
+      ordinary entry, a corpse return, a summon into the instance, a logout to character select, a
+      disconnect and relogin.
+- [ ] The reminder 5 s after the loading screen, once; none after a `/reload` inside.
+- [ ] The centre text: its first show in combat, beside the fixate alert, the buff alerts and a moved
+      raid warning frame.
 
 **The probe (#5):** its steps are added here by its PR.
 

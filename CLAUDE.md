@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), and the fourteenth, low-rank buffs (#42); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), and the fifteenth, instance gear reminders (#43); the day-one
 probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
@@ -37,7 +37,7 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 `Pearls\Fixate.lua` → `Pearls\Uncrushable.lua` → `Pearls\BuffsFrame.lua` → `Pearls\Buffs.lua` → `Pearls\PaladinTank.lua` → `Pearls\TrainingFrame.lua` →
 `Pearls\Training.lua` → `Pearls\RestockFrame.lua` → `Pearls\Restock.lua` → `Pearls\MarkWheelFrame.lua` →
 `Pearls\MarkWheel.lua` → `Pearls\AutoGossipFrame.lua` → `Pearls\AutoGossip.lua` → `Pearls\FastLootFrame.lua` →
-`Pearls\FastLoot.lua` → `Pearls\LowBuffs.lua`)* →
+`Pearls\FastLoot.lua` → `Pearls\LowBuffs.lua` → `Pearls\InstanceGearFrame.lua` → `Pearls\InstanceGear.lua`)* →
 `Options.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
@@ -267,6 +267,25 @@ order) and before the options window and bootstrap.
   never queued; refused in combat, dead, in an instance, under `InChatMessagingLockdown`, or
   unless the chat add-on restriction is plainly `Inactive`; `C_ChatInfo.SendChatMessage` in a
   pcall. `/gpearls lowbuffs`: the last 10 flags and skip counts. Unmeasured until day one.
+- **`Pearls\InstanceGear.lua`**: instance gear reminders (#43, pearl `instancegear`, Combat > Instances, on
+  by default). `IG.CASES`, one small table (keys and resistance gear will need their own design): the
+  Argent Dawn trinket (setting `argentdawn`) in Scholomance 289 and Stratholme 329 (`GetInstanceInfo`'s
+  8th return, `instanceType` plainly not `"none"`: it answers the continent outdoors), below Exalted with
+  faction 529 (`C_Reputation.GetFactionDataByID(529).reaction`, plain integer 1-8; setting `exalted`:
+  also at Exalted), when none of 23206, 23207, 19812, 13209, 12846 (every trinket whose spell allows
+  Scourgestones; the Seal and Rune not in ItemSparse yet) is in slot 13 or 14. Then the first carried
+  (`C_Item.GetItemCount`, which counts carried **and worn**, read only once nothing listed is worn) gives
+  "Equip your <name>", else the first banked (`GetItemCount(id, true)` minus that) gives "is in your
+  bank", else silence. Every unreadable read is silence; an unreadable count skips that item, never
+  zero. **One check per entry**: `PLAYER_ENTERING_WORLD` opens an entry (a duplicate while one is open is
+  ignored) and schedules a check 5 s later only when `isReloadingUi` is plainly false;
+  `PLAYER_LEAVING_WORLD` and `Disable` close it, and a check runs only for the open entry's token, reading
+  everything again. A chat line (the client's item and faction names, with fallbacks) and the centre
+  text. `/gpearls instancegear [test]`: what it reads here (counts labelled "carried + worn" and "with
+  bank"). Unmeasured until day one.
+- **`Pearls\InstanceGearFrame.lua`**: its centre text (our own, click-through, `CENTER` +200 under the
+  fixate alert, held 6 s then faded, replaced by a new one; never Blizzard's raid warning, whose
+  `AddMessage` runs `UpdateCenterScreenAnchors` and moves the private-aura anchor) and its panel.
 - **`Pearls\AutoGossip.lua`**: auto gossip (#47, pearl `autogossip`, Automation > NPCs, on by
   default). **Gossip only**: nothing while the NPC has quest business. Scope: ordinary gossip with an
   NPC (`GOSSIP_SHOW`'s `textureKit` plainly nil, `UnitExists("npc")` plainly true; a refresh keeps
@@ -441,8 +460,8 @@ order) and before the options window and bootstrap.
    string setting its `choices` and an integer one its `ranges`, or it won't travel. A list (a
    keep list) is a sync set: `SettingsSync.RegisterSet("<key>.<name>")` at file scope. Mind the
    budget: `test_sync_budget` fails if the known keys outgrow their 12 KB or the whole, every part
-   full, its 31 KB, and the registry its 128 keys (with #42: 110 keys and 6 of 8 sets, known keys 8.1 KB,
-   the whole about 27 KB; ~18 keys left).
+   full, its 31 KB, and the registry its 128 keys (with #43: 113 keys and 6 of 8 sets, known keys 8.4 KB,
+   the whole about 27 KB; ~15 keys left).
 5. Slash commands of its own: `commands = { name = { help, run(arg) } }` (`/gpearls <name>`, listed
    by `/gpearls help`).
 6. A test file `tests\test_<name>.lua` (the bags-full helper's four are the model), and a line in
@@ -527,7 +546,8 @@ menu (`WoW.openMenu`, `WoW.menuButton`), Blizzard's gossip frame for auto gossip
 noReady, emptyReady, noOpened })`, locked, quality and money rows, `WoW.lootMethod`, `WoW.lootThreshold`,
 `WoW.modified`, unreadable bag families and locks), low-rank buffs' casters and chat (`WoW.unitLevels`,
 `WoW.unitClasses`, `WoW.players`, `WoW.fullNames`, `WoW.partyMembers`, `WoW.raidIndex`, `WoW.guildMembers`,
-`WoW.friends`, `WoW.sentChat`, `WoW.chatLockdown`, `WoW.chatRestriction`, `WoW.auraReads` per ID), a clock (`WoW.advance`), and atlases with sizes (`WoW.atlases`; `SetAtlas` returns
+`WoW.friends`, `WoW.sentChat`, `WoW.chatLockdown`, `WoW.chatRestriction`, `WoW.auraReads` per ID), instance gear's instance, standing and counts (`WoW.instance`, `WoW.factions`,
+`WoW.itemCounts` with what `WoW.equipped` wears, `WoW.itemCountThrows`), a clock (`WoW.advance`), and atlases with sizes (`WoW.atlases`; `SetAtlas` returns
 nothing, as on the client)), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
 registering test pearls, `opts.pearls = false` to leave the shipped pearls out of a framework
 test, `newChat`, `chatHas`). Bags, items, the cursor and the loot window are modelled too

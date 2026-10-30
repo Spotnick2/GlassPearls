@@ -100,4 +100,9 @@
   on a lower-level player is the game's rule and never said, and book ranks are never expected.
   Casters from level 60 by default (a setting). Optionally a polite whisper, only to your group,
   guild or friends. `/gpearls lowbuffs` shows what was said.
+- **Instance gear reminders** (Combat, on by default): entering Scholomance or Stratholme without
+  an Argent Dawn trinket equipped (Scourgestones drop only while one is), below Exalted, a line in
+  your chat and a short text in the middle of the screen say "Equip your Argent Dawn Commission",
+  or that it's in your bank. Once per entry, not after a `/reload` inside. "Also at Exalted" is a
+  setting. `/gpearls instancegear` shows what it reads.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.

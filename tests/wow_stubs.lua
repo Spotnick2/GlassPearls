@@ -1771,6 +1771,44 @@ C_RestrictedActions = { GetAddOnRestrictionState = function(kind)
     return WoW.chatRestriction
 end }
 
+--------------------------------------------------------------------------------
+-- Instance gear reminders (#43). In the 70532 dump: GetInstanceInfo,
+-- C_Reputation.GetFactionDataByID (a FactionData struct,
+-- ReputationInfoDocumentation.lua:341: reaction 1-8), C_Item.GetItemCount
+-- (carried and worn; includeBank adds the character bank,
+-- ItemDocumentation.lua:451).
+--   WoW.instance = { name, type, id }  (default: the continent outdoors, as
+--     the client answers: "none", porting guide)
+--   WoW.factions[id] = { name, reaction } (or a WoW.Secret)
+--   WoW.itemCounts[id] = { bags = n, bank = n } (either may be a WoW.Secret;
+--     the item worn in WoW.equipped counts too); WoW.itemCountThrows[id]
+-- Each may be set to a WoW.Secret(...) to model a secret answer.
+--------------------------------------------------------------------------------
+
+WoW.factions, WoW.itemCounts, WoW.itemCountThrows = {}, {}, {}
+function GetInstanceInfo()
+    local i = WoW.instance or { name = "Eastern Kingdoms", type = "none", id = 0 }
+    return i.name, i.type, 0, "", 5, 0, false, i.id, 5, nil, false
+end
+C_Reputation = { GetFactionDataByID = function(id)
+    local f = WoW.factions[id]
+    if type(f) ~= "table" then return f end
+    return { factionID = id, name = f.name, description = "", reaction = f.reaction, currentStanding = 0,
+        atWarWith = false, isHeader = false }
+end }
+function C_Item.GetItemCount(x, includeBank)
+    local id = type(x) == "number" and x or tonumber(tostring(x):match("item:(%d+)"))
+    if WoW.itemCountThrows[id] then error("item count refused") end
+    local c = WoW.itemCounts[id] or {}
+    local bags, bank = c.bags or 0, c.bank or 0
+    if issecretvalue(bags) then return bags end
+    if includeBank and issecretvalue(bank) then return bank end
+    local n = bags
+    for _, worn in pairs(WoW.equipped) do if worn == id then n = n + 1 end end
+    if includeBank then n = n + bank end
+    return n
+end
+
 function WoW.calledCount(name)
     local n = 0
     for _, c in ipairs(WoW.calls) do if c[1] == name then n = n + 1 end end
