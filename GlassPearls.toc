@@ -58,5 +58,7 @@ Pearls\FastLoot.lua
 Pearls\LowBuffs.lua
 Pearls\InstanceGearFrame.lua
 Pearls\InstanceGear.lua
+Pearls\PetCareFrame.lua
+Pearls\PetCare.lua
 Options.lua
 GlassPearls.lua

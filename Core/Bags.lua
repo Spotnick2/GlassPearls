@@ -189,14 +189,17 @@ function Bags.SetItems()
     return out
 end
 
--- An item's sell price, quality, class and subclass from the cache, or nil
--- on a miss (GetItemInfo returns nothing then: porting guide).
+-- An item's sell price, quality, class, subclass and item level from the
+-- cache, or nil on a miss (GetItemInfo returns nothing then: porting guide).
+-- The level is nil when it isn't a plain number.
 function Bags.ItemFacts(itemID)
-    local ok, name, _, quality, _, _, _, _, _, _, _, price, classID, subclassID = pcall(C_Item.GetItemInfo, itemID)
+    local ok, name, _, quality, level, _, _, _, _, _, _, price, classID, subclassID = pcall(C_Item.GetItemInfo, itemID)
     if not ok or name == nil then return nil end
     price, quality, classID, subclassID = plain(price), plain(quality), plain(classID), plain(subclassID)
     if type(price) ~= "number" or type(quality) ~= "number" or type(classID) ~= "number" then return nil end
-    return { price = price, quality = quality, classID = classID, subclassID = subclassID }
+    level = plain(level)
+    return { price = price, quality = quality, classID = classID, subclassID = subclassID,
+             level = type(level) == "number" and level or nil }
 end
 
 -- Does the item have a use spell? true, false, or nil when it can't be told.

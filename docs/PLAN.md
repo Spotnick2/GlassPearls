@@ -34,6 +34,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #36 | Faster loot (pearl `fastloot`): every slot that safely fits, as the loot window opens; the coins-only text | built; the race with the client's auto loot, the events and the loot methods wait for day one |
 | #42 | Low-rank buffs (pearl `lowbuffs`): a single-target buff on you at a lower rank than its caster could cast; the opt-in whisper to people you know | built; the source units, the downrank rule and the whisper wait for day one |
 | #43 | Instance gear reminders (pearl `instancegear`): the Argent Dawn trinket in Scholomance and Stratholme | built; the instance and standing reads, the bank count and the event order wait for day one |
+| #38 | Hunter pet care (pearl `petcare`): the feeding reminder and Feed button, what the pet eats, the missing, dead or Passive checks | built; the Feed button, the bag marks, the Passive read and the level band wait for day one |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -298,6 +299,27 @@ story NPC, a multi-page NPC)
 - [ ] The reminder 5 s after the loading screen, once; none after a `/reload` inside.
 - [ ] The centre text: its first show in combat, beside the fixate alert, the buff alerts and a moved
       raid warning frame.
+
+**Hunter pet care (#38)** (a hunter with a pet; food in and out of its diet)
+- [ ] `C_PetInfo.GetPetHappiness` and `HasPetUI` as happiness falls, plain; `UNIT_HAPPINESS`'s timing
+      and payload.
+- [ ] `CanPetEatItem` on foods in and out of the pet's diet, plain; the tooltip line.
+- [ ] The Feed button: casts Feed Pet and feeds the chosen bag slot through `target-bag` /
+      `target-slot` (does Feed Pet enter item targeting at once on this build?); no
+      `ADDON_ACTION_BLOCKED`; the happiness rises. A failed cast; repeated clicks while feeding.
+- [ ] The level band: food 10, 20 and 30+ levels below the pet: accepted? Happiness gained?
+- [ ] The bag marks on Blizzard's bags, separate and combined; the `UI-PetHappiness` atlas. No taint:
+      open the bags in combat after the hooks ran, and use an item from them in combat.
+- [ ] `GetPetActionInfo`: the Passive token slot, `PET_PASSIVE_TEXTURE`, its `isActive`; readable
+      inside `PLAYER_REGEN_DISABLED` and at a `READY_CHECK` in combat?
+- [ ] The pet unit when dead: does `UnitExists("pet")` stay true with `UnitIsDead`? Does `UNIT_FLAGS`
+      fire on its death? After a taxi, a loading screen and a resurrection: the 10 s check.
+- [ ] "Away" stays quiet mounted, feigning death, under Eyes of the Beast and at the stable master;
+      it warns once after Dismiss Pet.
+- [ ] The window hidden as a fight starts; nothing refused (`ADDON_ACTION_BLOCKED`) with the Feed
+      button its child.
+- [ ] Taint checks: mind the measured `taintLog` bug (porting guide); compare with logging off and
+      finish with it off.
 
 **The probe (#5):** its steps are added here by its PR.
 

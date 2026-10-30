@@ -105,4 +105,15 @@
   your chat and a short text in the middle of the screen say "Equip your Argent Dawn Commission",
   or that it's in your bank. Once per entry, not after a `/reload` inside. "Also at Exalted" is a
   setting. `/gpearls instancegear` shows what it reads.
+- **Hunter pet care** (Combat, on by default; hunters only):
+  - **Feeding:** when your pet drops to Content (or, by a setting, only Unhappy), a line in your
+    chat and a small window with a **Feed** button. One click feeds it the food chosen from your
+    bags: the cheapest within 10 levels of your pet, else the highest level. "Never feed this"
+    leaves a food out, on all your characters. Out of combat only; closed, it stays closed until
+    your pet has been happy again.
+  - **What your pet eats:** a line in item tooltips (the default), a mark on your bag buttons, both,
+    or neither.
+  - **Pet checks:** "Your pet is dead", "You have no pet out" or "Your pet is on Passive", at the
+    start of a fight and at a ready check (both on), or out of combat when it disappears (off).
+  - `/gpearls petcare` shows what it reads; `never` and `forget` manage the list.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.
