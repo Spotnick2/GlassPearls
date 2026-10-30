@@ -1,6 +1,6 @@
 -- Pearls/InstanceGear.lua: instance gear reminders (#43). On entering an
 -- instance, a reminder for the gear it calls for: a chat line and a short
--- centre text (Pearls/InstanceGearFrame.lua), nothing to click.
+-- centre text (Core/Notice.lua), nothing to click.
 --
 -- The first case: Scholomance (map 289) and Stratholme (329) without an
 -- Argent Dawn trinket worn, below Exalted with the Argent Dawn (faction 529;
@@ -135,7 +135,7 @@ function IG.Check(token)
         if r then
             local line, short = IG.Texts(case, r)
             API.Print(line)
-            GP.InstanceGearFrame.Show(short)
+            GP.Notice.Show(short)
         end
     end
 end
@@ -158,7 +158,7 @@ end)
 
 local function report(arg)
     if arg == "test" then
-        GP.InstanceGearFrame.Show("Equip your " .. IG.CASES[1].fallback)
+        GP.Notice.Show("Equip your " .. IG.CASES[1].fallback)
         API.Print("Instance gear: the centre text, as a test.")
         return
     end

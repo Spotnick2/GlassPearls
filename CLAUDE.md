@@ -30,7 +30,7 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 → `Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua` → `Libs\HereBeDragons-2.0\HereBeDragons-2.0.lua` →
 `Libs\HereBeDragons-2.0\HereBeDragons-Pins-2.0.lua` → `Compat.lua` → `Theme.lua` → `UI.lua` →
 `AccountSync.lua` → `Pearls.lua` → `SettingsSync.lua` → `Core\ToolItems.lua` → `Core\Bags.lua` →
-`Core\Merchant.lua` → `Core\AuraAlert.lua` →
+`Core\Merchant.lua` → `Core\AuraAlert.lua` → `Core\Notice.lua` →
 `Data\Landmarks.lua` → `Data\SpellRanks.lua` → `Data\AuraDurations.lua` → `Data\Training.lua` → `Data\Restock.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
 `Pearls\BagsFull.lua` → `Pearls\Landmarks.lua` → `Pearls\SpellRanksFrame.lua` →
 `Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua` → `Pearls\FixateFrame.lua` →
@@ -149,6 +149,10 @@ order) and before the options window and bootstrap.
   shown), gone, or unknown; the entry shows while any ID is present and clears once every ID that
   made it show is gone; an unknown read keeps a known expiration (the countdown runs on); expiry is
   evidence, never a forced clear. Fixate uses its read and sounds.
+- **`Core\Notice.lua`**: the centre text any pearl shows (`Notice.Show(text)`): our own,
+  click-through, `CENTER` +200 under the fixate alert, held 6 s then faded, replaced by a new one;
+  never Blizzard's raid warning, whose `AddMessage` runs `UpdateCenterScreenAnchors` and moves the
+  private-aura anchor.
 - **`Data\AuraDurations.lua`**: **generated** by `Tools\gen_durations.py` (SpellMisc → SpellDuration):
   each watched aura's full duration in seconds, for the approximate (`~`) timer.
 - **`Pearls\Buffs.lua`**: buff alerts (#21, pearl `buffs`, Combat > Alerts, on by default):
@@ -283,9 +287,7 @@ order) and before the options window and bootstrap.
   everything again. A chat line (the client's item and faction names, with fallbacks) and the centre
   text. `/gpearls instancegear [test]`: what it reads here (counts labelled "carried + worn" and "with
   bank"). Unmeasured until day one.
-- **`Pearls\InstanceGearFrame.lua`**: its centre text (our own, click-through, `CENTER` +200 under the
-  fixate alert, held 6 s then faded, replaced by a new one; never Blizzard's raid warning, whose
-  `AddMessage` runs `UpdateCenterScreenAnchors` and moves the private-aura anchor) and its panel.
+- **`Pearls\InstanceGearFrame.lua`**: its panel (the centre text is `Core\Notice.lua`).
 - **`Pearls\AutoGossip.lua`**: auto gossip (#47, pearl `autogossip`, Automation > NPCs, on by
   default). **Gossip only**: nothing while the NPC has quest business. Scope: ordinary gossip with an
   NPC (`GOSSIP_SHOW`'s `textureKit` plainly nil, `UnitExists("npc")` plainly true; a refresh keeps
