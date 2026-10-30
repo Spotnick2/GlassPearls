@@ -32,6 +32,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #34 | Raid mark wheel (pearl `markwheel`): the eight marks at the cursor, from a key or a unit's menu; pings stay the client's own | built; the secure click, the menu entry and the art wait for day one |
 | #47 | Auto gossip (pearl `autogossip`): lone options by a setting, and the options you keep choosing; gossip only | built; the icons, the event order, the button hook and the picks wait for day one |
 | #36 | Faster loot (pearl `fastloot`): every slot that safely fits, as the loot window opens; the coins-only text | built; the race with the client's auto loot, the events and the loot methods wait for day one |
+| #42 | Low-rank buffs (pearl `lowbuffs`): a single-target buff on you at a lower rank than its caster could cast; the opt-in whisper to people you know | built; the source units, the downrank rule and the whisper wait for day one |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -268,6 +269,19 @@ story NPC, a multi-page NPC)
       all; closing and reopening with loot outstanding; server throttling with no gaps.
 - [ ] The coin text: the right amount at the corpse, rising and fading; `PLAYER_MONEY` and
       `CHAT_MSG_MONEY` within 2 s with the window closed, solo and for a group share.
+
+**Low-rank buffs (#42)** (a level-60 priest, mage, druid and paladin on alts of 37, 38, 50 and 60)
+- [ ] `sourceUnit` on a buff from a party member, a raid member, a targeted stranger, a stranger
+      with only a nameplate, and a stranger with no token (unattributed: nothing said).
+- [ ] The caster's `UnitGUID`, `UnitLevel`, `UnitClass`, `UnitIsPlayer` and `GetUnitName(unit, false)`
+      plain out of combat; the name is the first name and surname.
+- [ ] The downrank rule: a 60's Fortitude lands at rank 4 on a 37 and rank 5 on a 38, and nothing
+      is said; a lower rank cast on a 60 is said once, and a recast says nothing more.
+- [ ] The trainer ranks of Fortitude and the Blessings need no book on Forever.
+- [ ] Buffs gained in combat are never judged after it; no read in combat.
+- [ ] The whisper (opt-in): delivered to a party member by the `GetUnitName` form; refused in an
+      instance; `InChatMessagingLockdown` and the chat restriction state in the open world; no
+      taint, no forbidden action.
 
 **The probe (#5):** its steps are added here by its PR.
 

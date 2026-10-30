@@ -94,4 +94,10 @@
   bags is taken the moment the loot window opens. Bind-on-pickup still asks you; a group's rolls and
   master loot, and anything that may not fit, are left to the game. When a corpse has only money,
   the amount floats up where you clicked (a setting). `/gpearls fastloot` shows the last pass.
+- **Low-rank buffs** (Social, on by default): when another player's Fortitude, Arcane Intellect,
+  Mark of the Wild, Thorns, Blessing, Divine Spirit or Shadow Protection lands on you at a lower
+  rank than they could cast, a chat line says so, once per person and buff a session. A lower rank
+  on a lower-level player is the game's rule and never said, and book ranks are never expected.
+  Casters from level 60 by default (a setting). Optionally a polite whisper, only to your group,
+  guild or friends. `/gpearls lowbuffs` shows what was said.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.

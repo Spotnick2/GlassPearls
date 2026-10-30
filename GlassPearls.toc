@@ -54,5 +54,6 @@ Pearls\AutoGossipFrame.lua
 Pearls\AutoGossip.lua
 Pearls\FastLootFrame.lua
 Pearls\FastLoot.lua
+Pearls\LowBuffs.lua
 Options.lua
 GlassPearls.lua
