@@ -60,5 +60,6 @@ Pearls\InstanceGearFrame.lua
 Pearls\InstanceGear.lua
 Pearls\PetCareFrame.lua
 Pearls\PetCare.lua
+Pearls\Sparkle.lua
 Options.lua
 GlassPearls.lua

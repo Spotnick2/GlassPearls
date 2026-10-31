@@ -116,4 +116,8 @@
   - **Pet checks:** "Your pet is dead", "You have no pet out" or "Your pet is on Passive", at the
     start of a fight and at a ready check (both on), or out of combat when it disappears (off).
   - `/gpearls petcare` shows what it reads; `never` and `forget` manage the list.
+- **Quest loot sparkle** (Loot & Bags, off by default): keeps the game's sparkle on lootable quest items by
+  turning the outline mode off, and again after a graphics preset puts it back. Switched off, your own
+  outline settings come back (the game may need a restart to show them). `/gpearls sparkle` shows the
+  settings; `/gpearls sparkle restore` finishes putting yours back if a change was refused.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.
