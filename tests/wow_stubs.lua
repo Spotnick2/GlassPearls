@@ -691,7 +691,7 @@ function C_Container.GetContainerItemInfo(bag, slot)
     if not s then return nil end
     local it = WoW.items[s.id]
     local onCursor = WoW.cursor and WoW.cursor.bag == bag and WoW.cursor.slot == slot
-    local locked = onCursor or s.locked == true
+    local locked = onCursor or s.locked == true or s.pendingSale == true
     if s.lockSecret then locked = WoW.Secret("isLocked") end
     return { iconFileID = it and it.icon or 134400, stackCount = s.count or 1, isLocked = locked,
              quality = s.quality or (it and it.quality), isReadable = false, hasLoot = false,
@@ -1027,20 +1027,25 @@ function Methods.SetSpellByID(t, id) t._lines = { "spell:" .. tostring(id) } end
 -- ItemLocation:CreateFromBagAndSlot is Blizzard_ObjectAPI's; the buyback page
 -- holds 12 (MerchantFrame.lua:2); GetBuybackItemInfo's 4th return is the
 -- quantity (MerchantFrame.lua:556).
---   WoW.openMerchant({ repairs = true }) / WoW.closeMerchant()
---   WoW.money (copper); WoW.buyback = { { link, count } } (oldest first)
+--   WoW.openMerchant({ repairs = true }) / WoW.closeMerchant();
+--     WoW.merchantGone(): the merchant gone with no MERCHANT_CLOSED (audit #61)
+--   WoW.money (copper); WoW.buyback = { { link, count } } (oldest first; the
+--     newest is the highest index, as Blizzard's buyback button reads it)
 --   a bag stack's own fields: refundable, bound, guid
 --   WoW.repairCost; WoW.guild = { member, mayRepair, info, allowance }
 --   WoW.merchantRefuses = errorType: UseContainerItem raises that UI error
---     and sells nothing; WoW.salesAsync: a sale waits for WoW.applySales();
---     WoW.repairSilent: RepairAllItems does nothing
+--     and sells nothing; WoW.salesAsync: a sale waits for WoW.applySales(),
+--     and its slot reads locked meanwhile (the client locks a stack with a
+--     pending action); WoW.repairSilent: RepairAllItems does nothing
+--   UseContainerItem with no merchant open USES the item on the client (eats,
+--     equips, opens it): recorded in WoW.usedItems as { bag, slot, id }
 -- RepairAllItems(true) pays from the guild allowance and takes the rest from
 -- the player when it can (Blizzard's guild repair tooltip, MerchantFrame.xml:345).
 --------------------------------------------------------------------------------
 
 WoW.money, WoW.buyback, WoW.repairCost, WoW.merchant = 0, {}, 0, nil
 WoW.guild = { member = false, mayRepair = false, info = "", allowance = 0 }
-WoW.pendingSales = {}
+WoW.pendingSales, WoW.usedItems = {}, {}
 ERR_VENDOR_DOESNT_BUY = "The merchant doesn't want that item."
 ERR_TOO_MUCH_GOLD = "You have too much gold."
 WoW.errorNames[51] = "ERR_VENDOR_DOESNT_BUY"
@@ -1078,6 +1083,7 @@ function WoW.closeMerchant()
     WoW.merchant = nil
     WoW.fire("MERCHANT_CLOSED")
 end
+function WoW.merchantGone() WoW.merchant = nil end
 local function sell(bag, slot)
     local b = WoW.bags[bag]
     local s = b and b.items[slot]
@@ -1092,12 +1098,22 @@ local function sell(bag, slot)
 end
 function C_Container.UseContainerItem(bag, slot)
     call("UseContainerItem", bag, slot)
-    if not WoW.merchant then return end
+    local s = WoW.bags[bag] and WoW.bags[bag].items[slot]
+    if not WoW.merchant then
+        -- No merchant: the client uses the item instead.
+        table.insert(WoW.usedItems, { bag = bag, slot = slot, id = s and s.id })
+        return
+    end
     if WoW.merchantRefuses then
         WoW.fire("UI_ERROR_MESSAGE", WoW.merchantRefuses, rawget(_G, WoW.errorNames[WoW.merchantRefuses]) or "?")
         return
     end
-    if WoW.salesAsync then table.insert(WoW.pendingSales, { bag, slot }) else sell(bag, slot) end
+    if WoW.salesAsync then
+        if s then s.pendingSale = true end
+        table.insert(WoW.pendingSales, { bag, slot })
+    else
+        sell(bag, slot)
+    end
 end
 function WoW.applySales()
     local pending = WoW.pendingSales

@@ -7,7 +7,13 @@
 -- there (selling, confirming, repairing, buying) stays in the pearl.
 --
 -- MERCHANT_SHOW / MERCHANT_CLOSED (MerchantFrameDocumentation). The events are
--- registered when the first pearl listens (its Enable), never at load.
+-- registered when the first pearl listens (its Enable), never at load. A visit
+-- also ends when the client never said so: a MERCHANT_SHOW while one is open
+-- (a vendor opened straight from another) and PLAYER_ENTERING_WORLD (no visit
+-- survives a loading screen) first tell the listeners MERCHANT_CLOSED for the
+-- open visit, so every pearl's close path runs, and a step of that visit never
+-- does (audit #61). A close the client never sends at all can't be seen here:
+-- a day-one question (docs/PLAN.md).
 
 GlassPearls = GlassPearls or {}
 local GP = GlassPearls
@@ -20,17 +26,28 @@ local listeners = {}
 local outcomes, waiters = {}, {}   -- this visit's: key -> outcome, key -> { fn, ... }
 local events = CreateFrame("Frame")
 
-events:SetScript("OnEvent", function(_, event)
-    if event == "MERCHANT_SHOW" then
-        session, open = session + 1, true
-        outcomes, waiters = {}, {}
-    elseif event == "MERCHANT_CLOSED" then
-        if not open then return end   -- the client sends it more than once
-        open = false
-    end
+local function tell(event)
     for key, fn in pairs(listeners) do
         local ok, err = pcall(fn, event, session)
         if not ok then API.Fail("merchant " .. key, err) end
+    end
+end
+
+-- The open visit ends, told once (the client sends MERCHANT_CLOSED more than once).
+local function close()
+    if not open then return end
+    open = false
+    tell("MERCHANT_CLOSED")
+end
+
+events:SetScript("OnEvent", function(_, event)
+    if event == "MERCHANT_SHOW" then
+        close()   -- a show with no close before it: that visit ends first
+        session, open = session + 1, true
+        outcomes, waiters = {}, {}
+        tell("MERCHANT_SHOW")
+    else      -- MERCHANT_CLOSED, PLAYER_ENTERING_WORLD
+        close()
     end
 end)
 
@@ -42,7 +59,7 @@ function Merchant.Session() return session end
 function Merchant.On(key, fn)
     listeners[key] = fn
     if fn and not events:IsEventRegistered("MERCHANT_SHOW") then
-        API.RegisterEvents(events, { "MERCHANT_SHOW", "MERCHANT_CLOSED" })
+        API.RegisterEvents(events, { "MERCHANT_SHOW", "MERCHANT_CLOSED", "PLAYER_ENTERING_WORLD" })
     end
 end
 

@@ -13,15 +13,18 @@
 --
 -- Selling, at MERCHANT_SHOW (+0.2 s), out of combat, with an empty cursor;
 -- Shift held skips the visit. Cheapest first, so the last sales (the ones the
--- buyback page keeps) are the most valuable. One sale in flight: the slot is
--- read again just before (same GUID, ID, count, link; not locked; still junk),
+-- buyback page keeps) are the most valuable. One sale in flight: before each,
+-- the visit is still the open one, selling is still on, and the slot is read
+-- again (same GUID, ID, count, link; a lock read as unlocked; still junk),
 -- then C_Container.UseContainerItem, then the next only once the slot reads
--- empty or the buyback page grew (BAG_UPDATE_DELAYED; 1 s without, it stops).
--- A refusal stops it (UI_ERROR_MESSAGE by GetGameMessageInfo name, or the
--- localized text as a fallback), only while one of our sales is in flight.
--- Buyback-safe: at most the room left on the buyback page at the start; the
--- promise holds provided the player sells nothing meanwhile, and a best-effort
--- check of the page's links stops the run if one of ours seems gone.
+-- empty or holds another stack, or the buyback page grew with this sale as
+-- its newest entry (BAG_UPDATE_DELAYED; 1 s without, it stops: growth alone
+-- could be the player's own sale, audit #61). A refusal stops it
+-- (UI_ERROR_MESSAGE by GetGameMessageInfo name, or the localized text as a
+-- fallback), only while one of our sales is in flight. Buyback-safe: at most
+-- the room left on the buyback page at the start; the promise holds provided
+-- the player sells nothing meanwhile, and a best-effort check of the page's
+-- links stops the run if one of ours seems gone.
 --
 -- Money is reported as observed while selling and while repairing: the sale
 -- phase settles (no PLAYER_MONEY for 0.5 s, 2 s at most) before repair reads
@@ -30,10 +33,13 @@
 -- Repair, after selling: guild funds first (RepairAllItems(true), as
 -- Blizzard's guild repair button; it may take the player's money for what the
 -- allowance doesn't cover), then once that settled (the cost read again has
--- changed, on UPDATE_INVENTORY_DURABILITY, within 2 s) the rest from the
--- player's money if it covers it; or the player's money only. A guild whose
--- info text says [noautorepair] is never charged. An unsettled repair stops:
--- never a second payment on stale data. Unmeasured until 2026-11-04.
+-- FALLEN, on UPDATE_INVENTORY_DURABILITY, within 2 s: a cost that rose is a
+-- hit or a gear swap, not the repair) the rest from the player's money if it
+-- covers it, with the visit, the setting and combat read again first; or the
+-- player's money only. A guild whose info text says [noautorepair] is never
+-- charged. An unsettled repair stops: never a second payment on stale data.
+-- Nothing starts once the pearl is off, a settle wait still pending included.
+-- Unmeasured until 2026-11-04.
 --
 -- The visit's outcome, for the restock pearl (#14), through Merchant.Report:
 -- "ready" once selling and repairing ended with nothing that may still land;
@@ -132,6 +138,7 @@ end
 -- A stack (Bags.Slot) as junk: { ..., price, value, why }, or nil and why not.
 function J.Judge(s, setItems)
     if not s then return nil, "empty" end
+    if not s.lockKnown then return nil, "unknown lock" end
     if s.locked then return nil, "locked" end
     if s.noValue then return nil, "no value" end
     if type(s.quality) ~= "number" then return nil, "unknown quality" end
@@ -219,6 +226,16 @@ local function buybackPage()
     return page
 end
 
+-- Is the page's newest entry (the highest index: Blizzard's buyback button
+-- reads GetNumBuybackItems()) this sale's link and count? Best effort: a match
+-- is not proof; a miss, or a page that can't be read, is no evidence.
+local function newestBuybackIs(n, e)
+    local okL, link = pcall(GetBuybackItemLink, n)
+    local okI, _, _, _, qty = pcall(GetBuybackItemInfo, n)
+    if not okL or not okI or API.IsSecret(link) or API.IsSecret(qty) then return false end
+    return link == e.link and qty == e.count
+end
+
 -- Best effort: is every sale of this run still on the page? A match is not
 -- proof (two identical links can't be told apart); a miss stops the run.
 local function salesOnPage(sold)
@@ -294,7 +311,9 @@ local function onDurability()
     local step = r and r.step
     if not step then return end
     local cost = repairCost()
-    if cost == nil or cost == step.cost then return end   -- not settled yet
+    -- Settled only once the cost fell. Unchanged: not yet. Risen: a hit or a
+    -- gear swap, not the repair (the timeout stops the run; audit #61).
+    if cost == nil or cost >= step.cost then return end
     r.step = nil
     step.after(cost)
 end
@@ -316,7 +335,7 @@ end
 
 -- unsafe: the selling run before it ended in a way that may still land a sale.
 function J.Repair(s, unsafe)
-    if not Merchant.Current(s) then return end
+    if not (J.enabled and Merchant.Current(s)) then return end   -- off meanwhile (a settle wait ends here too)
     if API.InCombat() then return outcome(s, "skip") end
     if not setting("autoRepair") then return outcome(s, "ready", unsafe) end
     local okM, can = pcall(CanMerchantRepair)
@@ -325,8 +344,12 @@ function J.Repair(s, unsafe)
     if not cost or cost <= 0 or not canRepair then return outcome(s, "ready", unsafe) end
     local r = { session = s, before = getMoney(), guild = guildCanPay(), unsafe = unsafe }
     state.repair = r
-    -- The player's money: only when it covers what's left.
+    -- The player's money: only when it covers what's left, and (after the
+    -- guild step) only with the pearl still on, the visit still open, the
+    -- setting still on, out of combat.
     local function personal(left)
+        if not (J.enabled and Merchant.Current(s) and setting("autoRepair")) then return finishRepair(r, nil, "skip") end
+        if API.InCombat() then return finishRepair(r, "Combat: the repair stopped.", "skip") end
         local m = getMoney()
         if not m or m < left then
             return finishRepair(r, (r.guild and "Guild funds covered part; not enough money for the rest ("
@@ -403,8 +426,10 @@ local function confirm(r)
         local now = guidOf(e.bag, e.slot)
         gone = now ~= nil and now ~= e.guid
     end
+    -- The buyback page grew: evidence only with this sale as its newest entry
+    -- (the player may have sold something meanwhile).
     local n = buybackCount()
-    local grew = n and e.buybackBefore and n > e.buybackBefore
+    local grew = n and e.buybackBefore and n > e.buybackBefore and newestBuybackIs(n, e)
     if not (gone or grew) then return end
     r.inFlight = nil
     r.sold[#r.sold + 1] = { link = e.link, count = e.count }
@@ -415,6 +440,10 @@ end
 
 nextSale = function(r)
     if r.ended or state.run ~= r then return end
+    -- The visit and the setting again: a sale after the merchant is gone would
+    -- use the item instead (audit #61).
+    if not (J.enabled and Merchant.Current(r.session)) then return endRun(r, "closed") end
+    if not setting("autoSell") then return endRun(r, nil) end
     if API.InCombat() then return endRun(r, "combat") end
     local e = r.queue[r.i]
     if not e then

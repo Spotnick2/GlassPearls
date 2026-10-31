@@ -155,10 +155,10 @@ soon()   -- the runes wait
 WoW.applyBuys()
 soon()   -- the first five feathers wait
 eq(buys()[2], 5, "five feathers asked for")
-WoW.bags[0].items[12] = { id = 17056, count = 15 }
-WoW.applyBuys()
+WoW.applyBuys()                                       -- the five land
+WoW.bags[0].items[12] = { id = 17056, count = 15 }   -- fifteen more arrive before the next chunk (during one: audit, R1)
 soon()
-eq(buys()[3], 20, "  fifteen more arrived meanwhile: the feathers are done, the water next")
+eq(buys()[3], 20, "  fifteen more arrived between chunks: the feathers are done, the water next")
 WoW.pendingBuys = {}
 reset()
 
