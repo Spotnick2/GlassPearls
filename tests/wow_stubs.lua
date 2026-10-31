@@ -1992,6 +1992,263 @@ function WoW.showBag(frame, slots)
     frame:UpdateItems()
 end
 
+--------------------------------------------------------------------------------
+-- Social automation (#37). In the 70532 dump: C_SummonInfo.ConfirmSummon /
+-- GetSummonConfirmTimeLeft / GetSummonConfirmAreaName, PlayerCanTeleport,
+-- UnitAffectingCombat, AcceptResurrect, ResurrectGetOfferer,
+-- ResurrectHasSickness, GetCorpseRecoveryDelay, C_GameRules.IsHardcoreActive,
+-- C_BattleNet.GetAccountInfoByGUID documented; CancelDuel, AcceptGroup,
+-- WillAcceptInviteRemoveQueues, IsGuildMember (SocialQueue.lua:204, with a
+-- GUID) in its _G walk; StaticPopup_Visible is Blizzard's (StaticPopup.lua:179:
+-- the dialog's name, or nil).
+--   WoW.popups[which] = true: Blizzard's popup `which` is shown (WoW.popupThrows)
+--   WoW.summon = { left, area }; WoW.canTeleport (default true); WoW.unitCombat[unit] = true
+--   WoW.resOffer = { offerer, sickness, delay }; WoW.hardcore
+--   WoW.bnetFriends[guid], WoW.guildGUIDs[guid] = true; WoW.queueRemoval
+--   WoW.socialCalls = { "ConfirmSummon" | "AcceptResurrect" | "CancelDuel" | "AcceptGroup", ... }
+-- Each value may be set to a WoW.Secret(...) to model a secret answer.
+--------------------------------------------------------------------------------
+
+WoW.popups, WoW.unitCombat, WoW.bnetFriends, WoW.guildGUIDs, WoW.socialCalls = {}, {}, {}, {}, {}
+local function social(name) table.insert(WoW.socialCalls, name) end
+function StaticPopup_Visible(which)
+    if WoW.popupThrows then error("popup read refused") end
+    local v = WoW.popups[which]
+    if v == true then return "StaticPopup1", {} end
+    if v ~= nil and v ~= false then return v end          -- a secret
+    return nil
+end
+C_SummonInfo = {
+    GetSummonConfirmTimeLeft = function() return WoW.summon and WoW.summon.left or 0 end,
+    GetSummonConfirmAreaName = function() return WoW.summon and WoW.summon.area or "" end,
+    ConfirmSummon = function() social("ConfirmSummon") end,
+    CancelSummon = function() social("CancelSummon") end,
+}
+function PlayerCanTeleport()
+    if WoW.canTeleport == nil then return true end
+    return WoW.canTeleport
+end
+function UnitAffectingCombat(unit)
+    local v = WoW.unitCombat[unit]
+    if v == nil then return false end
+    return v
+end
+function AcceptResurrect() social("AcceptResurrect") end
+function ResurrectGetOfferer() return WoW.resOffer and WoW.resOffer.offerer or nil end
+function ResurrectHasSickness()
+    if not WoW.resOffer or WoW.resOffer.sickness == nil then return false end
+    return WoW.resOffer.sickness
+end
+function GetCorpseRecoveryDelay() return WoW.resOffer and WoW.resOffer.delay or 0 end
+C_GameRules = { IsHardcoreActive = function()
+    if WoW.hardcore == nil then return false end
+    return WoW.hardcore
+end }
+C_BattleNet.GetAccountInfoByGUID = function(guid)
+    local v = WoW.bnetFriends[guid]
+    if v == true then return { accountName = "Friend#1234", bnetAccountID = 1 } end
+    return v
+end
+function IsGuildMember(guid)
+    local v = WoW.guildGUIDs[guid]
+    if v == nil then return false end
+    return v
+end
+function CancelDuel() social("CancelDuel") end
+function AcceptGroup() social("AcceptGroup") end
+function WillAcceptInviteRemoveQueues()
+    if WoW.queueRemoval == nil then return false end
+    return WoW.queueRemoval
+end
+
+--------------------------------------------------------------------------------
+-- Easy delete (#40). In the 70532 dump: DELETE_ITEM_CONFIRM(itemName,
+-- qualityID, bonding, questWarn, itemGUID), C_Cursor.GetCursorItem,
+-- C_Item.GetItemLinkByGUID documented. Blizzard's: StaticPopup_FindVisible
+-- (StaticPopup.lua:156), the DELETE_GOOD_ITEM dialog's edit box and its
+-- EditBoxOnTextChanged -> StaticPopup_StandardConfirmationTextHandler
+-- (GameDialogDefs.lua:572, StaticPopup.lua:140), DELETE_ITEM_CONFIRM_STRING
+-- (GlobalStrings), InputUtil.IsGamepadUIEnabled.
+--   WoW.showDeleteDialog(which, guid) -> the dialog (its data and fields read-only: a
+--     write is an error); dialog.editBox:GetText(); dialog.yes (Button1 enabled)
+--   WoW.gamepad; WoW.itemLinks[guid] = "|cff...|h[...]|h|r" (GetItemLinkByGUID)
+--------------------------------------------------------------------------------
+
+DELETE_ITEM_CONFIRM_STRING = "DELETE"
+WoW.dialogs, WoW.itemLinks = {}, {}
+InputUtil = { IsGamepadUIEnabled = function()
+    if WoW.gamepad == nil then return false end
+    return WoW.gamepad
+end }
+C_Cursor = { GetCursorItem = function()
+    local c = WoW.cursor
+    if c and c.kind == nil and c.bag then return { bag = c.bag, slot = c.slot } end
+    return nil
+end }
+C_Item.GetItemLinkByGUID = function(guid) return WoW.itemLinks[guid] end
+local function readOnly(t, label)
+    return setmetatable({}, { __index = t, __newindex = function(_, k) error(label .. ": wrote " .. tostring(k)) end })
+end
+function WoW.showDeleteDialog(which, guid)
+    local state = { text = "", yes = false }
+    local box = { GetText = function() return state.text end }
+    function box:SetText(text)
+        state.text = text
+        state.yes = text == DELETE_ITEM_CONFIRM_STRING      -- Blizzard's confirmation handler
+    end
+    local d = { which = which, data = readOnly({ itemGUID = guid }, "dialog data") }
+    function d:GetEditBox() return box end
+    function d:GetButton1() return { IsEnabled = function() return state.yes end } end
+    d.state = state
+    WoW.dialogs[which] = readOnly(d, "dialog")
+    return WoW.dialogs[which]
+end
+function StaticPopup_FindVisible(which)
+    if WoW.popupThrows then error("popup read refused") end
+    return WoW.dialogs[which]
+end
+
+--------------------------------------------------------------------------------
+-- Quest loot sparkle (#44). In the 70532 dump: C_CVar.GetCVar(name) -> optional
+-- string, C_CVar.SetCVar(name, value) -> success (nil on a failed precondition,
+-- CVarDocumentation.lua), CVAR_UPDATE(eventName, value), GX_RESTARTED.
+--   WoW.cvarValues[name] = "2" (nil: unknown to the client; a WoW.Secret)
+--   WoW.cvarRefuse[name] = false | "nil" | "throw" | "throwRead"; WoW.cvarSets = { { name, value } };
+--   WoW.cvarReads counts GetCVar calls
+--   WoW.cvarEventsLater: CVAR_UPDATE queued in WoW.cvarQueue instead of fired inside SetCVar
+--------------------------------------------------------------------------------
+
+WoW.cvarValues, WoW.cvarRefuse, WoW.cvarSets, WoW.cvarQueue = {}, {}, {}, {}
+C_CVar = C_CVar or {}
+WoW.cvarReads = 0
+C_CVar.GetCVar = function(name)
+    WoW.cvarReads = WoW.cvarReads + 1
+    if WoW.cvarRefuse[name] == "throwRead" then error("read refused") end
+    return WoW.cvarValues[name]
+end
+C_CVar.SetCVar = function(name, value)
+    local r = WoW.cvarRefuse[name]
+    if r == "throw" then error("set refused") end
+    if r == false then return false end
+    if r == "nil" then return nil end
+    WoW.cvarValues[name] = value
+    table.insert(WoW.cvarSets, { name, value })
+    if WoW.cvarEventsLater then
+        table.insert(WoW.cvarQueue, { name, value })
+    else
+        WoW.fire("CVAR_UPDATE", name, value)
+    end
+    return true
+end
+
+--------------------------------------------------------------------------------
+-- Trade summary (#45). In the 70532 dump: TRADE_SHOW / _UPDATE / _MONEY_CHANGED /
+-- _PLAYER_ITEM_CHANGED / _TARGET_ITEM_CHANGED / _ACCEPT_UPDATE / _CLOSED,
+-- UI_INFO_MESSAGE(errorType, message), PLAYER_MONEY; GetPlayerTradeMoney,
+-- GetTargetTradeMoney, GetTradePlayerItemInfo / Link, GetTradeTargetItemInfo /
+-- Link in its _G walk (TradeFrame.lua:100: name, texture, numItems, ...).
+-- ERR_TRADE_COMPLETE is GlobalStrings'; its message index is ours (WoW.TRADE_COMPLETE).
+--   WoW.trade = { mine = { money, items = { [slot] = { link, count } | "secret" } }, theirs = { ... } };
+--   the partner is GetUnitName("NPC") (WoW.fullNames.NPC)
+--------------------------------------------------------------------------------
+
+ERR_TRADE_COMPLETE = "Trade complete."
+WoW.TRADE_COMPLETE = 230
+WoW.errorNames[WoW.TRADE_COMPLETE] = "ERR_TRADE_COMPLETE"
+local function tradeSide(which) return WoW.trade and WoW.trade[which] or { items = {} } end
+local function tradeItem(which, i)
+    local it = tradeSide(which).items[i]
+    if it == "secret" then return WoW.Secret("trade item"), nil, WoW.Secret("count") end
+    if it then return "Item", 134400, it.count == "secret" and WoW.Secret("count") or it.count end
+    return nil
+end
+local function tradeLink(which, i)
+    local it = tradeSide(which).items[i]
+    return type(it) == "table" and it.link or nil
+end
+function GetTradePlayerItemInfo(i) return tradeItem("mine", i) end
+function GetTradeTargetItemInfo(i) return tradeItem("theirs", i) end
+function GetTradePlayerItemLink(i) return tradeLink("mine", i) end
+function GetTradeTargetItemLink(i) return tradeLink("theirs", i) end
+function GetPlayerTradeMoney() return tradeSide("mine").money or 0 end
+function GetTargetTradeMoney() return tradeSide("theirs").money or 0 end
+
+--------------------------------------------------------------------------------
+-- Train all (#39). In the 70532 dump: C_Trainer.GetTrainerType (Enum.TrainerType:
+-- General 0, TalentsObsolete 1, Tradeskills 2, Pet 3, TrainerConstantsDocumentation.lua),
+-- C_TooltipInfo.GetTrainerService, TRAINER_SHOW / _UPDATE / _CLOSED, SPELLS_CHANGED
+-- documented; GetNumTrainerServices, GetTrainerServiceInfo (name, serviceType, ...,
+-- Blizzard_TrainerUI.lua:484), GetTrainerServiceCost (moneyCost, isProfession, :708),
+-- BuyTrainerService in its _G walk (IsTradeskillTrainer is the spell ranks block's: WoW.tradeTrainer).
+-- ClassTrainerFrame and
+-- ClassTrainerTrainButton are Blizzard_TrainerUI's (load on demand: WoW.loadTrainerUI()).
+--   WoW.trainer = { type = 0, services = { { id, kind = "available", cost,
+--     profession = false, tipType = 1, name } } } (any field may be a WoW.Secret)
+--   WoW.trainSettle = "sync" (default: money, known spell, row and events inside the buy) |
+--     "manual" (WoW.trainPending = the bought service; the test settles it: WoW.settleTrain(what)) |
+--     "silent" (settled inside the buy, no event)
+--   WoW.trainRefuses = true: BuyTrainerService throws; WoW.bought = { id, ... }
+--------------------------------------------------------------------------------
+
+WoW.bought = {}
+Enum.TrainerType = { General = 0, TalentsObsolete = 1, Tradeskills = 2, Pet = 3 }
+local function services() return WoW.trainer and WoW.trainer.services or {} end
+C_Trainer = { GetTrainerType = function() return WoW.trainer and WoW.trainer.type end }
+function GetNumTrainerServices() return #services() end
+function GetTrainerServiceInfo(i)
+    local s = services()[i]
+    if s then return s.name or "Spell", s.kind or "available", 136243, 1, "", "Class" end
+end
+function GetTrainerServiceCost(i)
+    local s = services()[i]
+    if s then
+        local prof = s.profession
+        if prof == nil then prof = false end
+        return s.cost, prof
+    end
+end
+C_TooltipInfo = C_TooltipInfo or {}
+C_TooltipInfo.GetTrainerService = function(i)
+    local s = services()[i]
+    if not s then return nil end
+    if s.tip == "secret" then return WoW.Secret("tooltip") end
+    return { type = s.tipType == nil and Enum.TooltipDataType.Spell or s.tipType, id = s.id, lines = {} }
+end
+-- What a purchase changes; each part on its own so tests can order them.
+function WoW.settleTrain(what, s)
+    s = s or WoW.trainPending
+    if what == "money" then
+        WoW.money = WoW.money - s.cost
+        WoW.fire("PLAYER_MONEY")
+    elseif what == "known" then
+        WoW.known[s.id] = true
+        WoW.fire("SPELLS_CHANGED")
+    elseif what == "row" then
+        s.kind = "used"
+        WoW.fire("TRAINER_UPDATE")
+    end
+end
+function BuyTrainerService(i)
+    if WoW.trainRefuses then error("not now") end
+    local s = services()[i]
+    if not s then return end
+    table.insert(WoW.bought, s.id)
+    WoW.trainPending = s
+    if WoW.trainSettle == "silent" then              -- settled, but no event says so
+        WoW.money, WoW.known[s.id], s.kind = WoW.money - s.cost, true, "used"
+    elseif WoW.trainSettle ~= "manual" then
+        WoW.settleTrain("money", s)
+        WoW.settleTrain("known", s)
+        WoW.settleTrain("row", s)
+    end
+end
+function WoW.loadTrainerUI()
+    ClassTrainerFrame = CreateFrame("Frame", "ClassTrainerFrame", UIParent)
+    ClassTrainerTrainButton = CreateFrame("Button", "ClassTrainerTrainButton", ClassTrainerFrame,
+        "MagicButtonTemplate")
+    WoW.fire("ADDON_LOADED", "Blizzard_TrainerUI")
+end
+
 function WoW.calledCount(name)
     local n = 0
     for _, c in ipairs(WoW.calls) do if c[1] == name then n = n + 1 end end
