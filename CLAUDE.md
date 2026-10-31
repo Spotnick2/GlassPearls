@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and train all (#39); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39); the day-one
 probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
@@ -342,6 +342,41 @@ order) and before the options window and bootstrap.
   `UpdateItems`, once; our own child frame per button in a weak table (nothing written on Blizzard's
   buttons; the button's bag and slot read every time, they're pooled); none created in combat (made
   after the fight).
+- **`Pearls\Social.lua`**: social automation (#37, pearl `social`, Automation > Players, **off** by default; its
+  panel inside). Answers four popups through the API their own button calls (`C_SummonInfo.ConfirmSummon`,
+  `AcceptResurrect`, `CancelDuel`, `AcceptGroup`), never showing, hiding, clicking or writing a popup (the
+  invite's is left to Blizzard). A token per kind, replaced by every new event before any filtering; each
+  deferred step checks the token, the switch, Shift and `StaticPopup_Visible` for that popup. Summons: only
+  Blizzard's ordinary `CONFIRM_SUMMON` popup, 2 s, out of combat, `PlayerCanTeleport`. Resurrections: polled
+  each second within Blizzard's window, the same offerer, no sickness, the corpse delay over, you and your group
+  out of combat. Duels (off): declined unless the challenger (by `GetUnitName(unit, false)`, first name and
+  surname) is someone you know. Invites: someone you know (`S.Known(guid)`: Battle.net friend, friend,
+  `IsGuildMember`, your group), no roles, not in a group or a queue. Unmeasured until day one.
+- **`Pearls\EasyDelete.lua`**: easy delete (#40, pearl `easydelete`, Loot & Bags > Bags, **off** by default; its
+  panel inside). At `DELETE_ITEM_CONFIRM` (a token, replaced before any filtering), a frame later: the quality
+  a whole number from Rare (3) to the current `upTo` (`rare` | `epic` | `legendary`, Heirloom 7 above all),
+  the gamepad UI plainly off, `StaticPopup_FindVisible("DELETE_GOOD_ITEM")` (or the quest one) whose
+  `data.itemGUID`, the payload's and the cursor item's GUID agree, the edit box empty, the link readable;
+  then the box's own `SetText(DELETE_ITEM_CONFIRM_STRING)` (Blizzard's handler enables Yes) and a chat line
+  with the link. Never a write on the dialog, never the delete itself. Unmeasured until day one.
+- **`Pearls\Sparkle.lua`**: quest loot sparkle (#44, pearl `sparkle`, Loot & Bags > Loot, **off** by default; no
+  settings, no panel: its trade-off is in `desc`). `SP.WANTED`: `outlineModeShowLootEffectWhenDisabled` "1" and
+  the four outline modes "0" (a reference addon's facts). Applied out of combat at Enable, each loading screen
+  and 1 s after any `CVAR_UPDATE` / `GX_RESTARTED` (one token; payloads unread); the player's values
+  remembered once (`GlassPearlsDB.sparkle.before`). Disable restores, per CVar, only where it still reads ours
+  (a set must answer a plain true), deferred past combat (`PLAYER_REGEN_ENABLED` kept while off), cancelled by
+  switching back on; what can't be restored stays and `/gpearls sparkle restore` (while off) finishes it.
+  Unmeasured until day one.
+- **`Pearls\Trades.lua`**: trade summary (#45, pearl `trades`, Social > Trade, **off** by default; its panel, the
+  log, inside). Completion only on the info message named `ERR_TRADE_COMPLETE` (by `GetGameMessageInfo`;
+  the localized text as fallback). The money is the observed net change of `GetMoney` from `TRADE_SHOW` to
+  `PLAYER_MONEY` after completion (or 2 s, or the next `TRADE_SHOW`); the window's offers only choose the
+  wording ("You gave" / "You received") when one side offered and the purse moved by exactly that. The
+  window (slots 1-6; 7 is the enchant slot) is read at every update while open. Two records, the active one
+  and at most one closed one waiting 2 s for its message; `TRADE_SHOW` empties that slot (a confirmed one
+  said, an unconfirmed one dropped) and a trade opened then, or within 2 s of a line, is **ambiguous and never
+  reported** (the message names no trade). The log: the last 10 lines in `GlassPearlsCharDB.trades`, never
+  synced. Unmeasured until day one.
 - **`Pearls\AutoGossip.lua`**: auto gossip (#47, pearl `autogossip`, Automation > NPCs, on by
   default). **Gossip only**: nothing while the NPC has quest business. Scope: ordinary gossip with an
   NPC (`GOSSIP_SHOW`'s `textureKit` plainly nil, `UnitExists("npc")` plainly true; a refresh keeps

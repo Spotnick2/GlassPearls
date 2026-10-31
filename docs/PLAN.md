@@ -35,6 +35,10 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #42 | Low-rank buffs (pearl `lowbuffs`): a single-target buff on you at a lower rank than its caster could cast; the opt-in whisper to people you know | built; the source units, the downrank rule and the whisper wait for day one |
 | #43 | Instance gear reminders (pearl `instancegear`): the Argent Dawn trinket in Scholomance and Stratholme | built; the instance and standing reads, the bank count and the event order wait for day one |
 | #38 | Hunter pet care (pearl `petcare`): the feeding reminder and Feed button, what the pet eats, the missing, dead or Passive checks | built; the Feed button, the bag marks, the Passive read and the level band wait for day one |
+| #37 | Social automation (pearl `social`, off by default): summons, resurrections, invites from people you know, declining duels | built; each call from addon code and whether each popup closes itself wait for day one |
+| #40 | Easy delete (pearl `easydelete`, off by default): DELETE filled in for good items up to a chosen quality | built; the fill from addon code and taint wait for day one |
+| #44 | Quest loot sparkle (pearl `sparkle`, off by default): the outline mode kept off so quest loot sparkles | built; the CVars, their effect and the restore wait for day one |
+| #45 | Trade summary (pearl `trades`, off by default): the money and items of each completed trade, in chat and a local log | built; the completion message and the event order wait for day one |
 | #39 | Train all (pearl `trainall`, off by default): a Train all button at the class trainer | built; `BuyTrainerService` from addon code and the trainer tooltip's identity wait for day one |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
@@ -321,6 +325,38 @@ story NPC, a multi-page NPC)
       button its child.
 - [ ] Taint checks: mind the measured `taintLog` bug (porting guide); compare with logging off and
       finish with it off.
+
+**Social automation (#37)** (two accounts in a group, a guild mate, a friend; a warlock or a meeting stone)
+- [ ] Each call from addon code: `C_SummonInfo.ConfirmSummon`, `AcceptResurrect`, `CancelDuel`,
+      `AcceptGroup`; no `ADDON_ACTION_BLOCKED`.
+- [ ] Whether each popup closes itself after our answer: the summon (`CANCEL_SUMMON` or the loading
+      screen), the resurrection (`PLAYER_ALIVE`), the duel (`DUEL_FINISHED`), and above all the invite
+      (`PARTY_INVITE_CANCEL`?); once grouped, what the invite popup's timeout or a Decline click does.
+- [ ] The payloads plain: `CONFIRM_SUMMON`'s, `RESURRECT_REQUEST`'s, `PARTY_INVITE_REQUEST`'s GUID and
+      roles; `DUEL_REQUESTED`'s name format (first name and surname, as `GetUnitName(unit, false)`?).
+- [ ] `IsGuildMember(guid)` and `C_BattleNet.GetAccountInfoByGUID` for a guild mate and a Battle.net
+      friend; the duel challenger found by unit (targeted, grouped, on a nameplate).
+- [ ] `StaticPopup_Visible` for each popup name while shown; a summon with combat in the 2 s.
+
+**Easy delete (#40)** (an epic and a rare to destroy, one of them a quest item)
+- [ ] The fill from addon code: Yes enabled; delete through Yes and through Enter, for the ordinary and
+      the quest popup; cancel and reopen; the popup frame reused by another popup afterwards.
+- [ ] Taint: with the taint log on and off (porting guide: compare, finish with it off).
+- [ ] `DELETE_ITEM_CONFIRM`'s payload (the GUID present), its order against Blizzard's handler.
+
+**Quest loot sparkle (#44)** (a quest with loot on corpses or objects)
+- [ ] The five CVars on Forever, their values and `GetCVarInfo` flags (coupled: a graphics CVar changing
+      its engine one?); the sparkle shown on quest loot after the apply.
+- [ ] `CVAR_UPDATE`'s payload; whether a graphics preset fires it; `GX_RESTARTED`. The graphics panel's
+      Apply and Cancel (its outline dropdowns commit on Apply: an Apply can overwrite ours, re-applied 1 s
+      later); raid settings.
+- [ ] `SetCVar` from the timer; what the restore shows before and after a full restart.
+
+**Trade summary (#45)** (two characters trading money and items)
+- [ ] `ERR_TRADE_COMPLETE` by `GetGameMessageInfo` after a trade; its order against `TRADE_CLOSED` and
+      `PLAYER_MONEY` (does the ambiguous order, a message after the next window opened, ever happen?).
+- [ ] Accept, change an offer, accept again: do the accepts reset (the last read is taken as traded)?
+- [ ] `GetUnitName("NPC", false)` during a trade; the item getters' returns (name, texture, count).
 
 **Train all (#39)** (a character with spells waiting at its class trainer)
 - [ ] `BuyTrainerService` from addon code, repeated outside the click: if it needs a hardware event,

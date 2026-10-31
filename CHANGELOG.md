@@ -116,6 +116,21 @@
   - **Pet checks:** "Your pet is dead", "You have no pet out" or "Your pet is on Passive", at the
     start of a fight and at a ready check (both on), or out of combat when it disappears (off).
   - `/gpearls petcare` shows what it reads; `never` and `forget` manage the list.
+- **Social automation** (Automation, off by default): answers Blizzard's popups for you, each with its own
+  switch: accepts a summon after 2 seconds (hold Shift to stay), a resurrection once you and your group are
+  out of combat, and a group invite from a friend, a guild mate or your group; optionally declines duels from
+  anyone not positively known. Never a group finder invite, a scenario summon or a resurrection with
+  sickness. `/gpearls social` shows what it did.
+- **Easy delete** (Loot & Bags, off by default): when the game asks you to type DELETE to destroy a Rare
+  or better item, it is filled in and the item named in your chat, so one click on Yes confirms. Up to Epic
+  by default (a setting: Rare, Epic or Legendary); above it you still type it.
+- **Quest loot sparkle** (Loot & Bags, off by default): keeps the game's sparkle on lootable quest items by
+  turning the outline mode off, and again after a graphics preset puts it back. Switched off, your own
+  outline settings come back (the game may need a restart to show them). `/gpearls sparkle` shows the
+  settings; `/gpearls sparkle restore` finishes putting yours back if a change was refused.
+- **Trade summary** (Social, off by default): after each completed trade, one line in your chat: "You gave
+  12g to Name" or "You received 3g from Name" (or how your money changed, when both sides offered), and
+  the items each way. The last 10 are kept in its panel, on that character only; `/gpearls trades`.
 - **Train all** (Combat, off by default): a Train all button on your class trainer's window learns every
   class spell it offers, cheapest first, while your money lasts; its tooltip shows the count and the cost.
   Only class spells: never riding, weapon skills, pet training or professions. `/gpearls trainall`.
