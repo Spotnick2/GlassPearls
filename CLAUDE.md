@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37); the day-one
 probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
@@ -331,6 +331,16 @@ order) and before the options window and bootstrap.
   `UpdateItems`, once; our own child frame per button in a weak table (nothing written on Blizzard's
   buttons; the button's bag and slot read every time, they're pooled); none created in combat (made
   after the fight).
+- **`Pearls\Social.lua`**: social automation (#37, pearl `social`, Automation > Players, **off** by default; its
+  panel inside). Answers four popups through the API their own button calls (`C_SummonInfo.ConfirmSummon`,
+  `AcceptResurrect`, `CancelDuel`, `AcceptGroup`), never showing, hiding, clicking or writing a popup (the
+  invite's is left to Blizzard). A token per kind, replaced by every new event before any filtering; each
+  deferred step checks the token, the switch, Shift and `StaticPopup_Visible` for that popup. Summons: only
+  Blizzard's ordinary `CONFIRM_SUMMON` popup, 2 s, out of combat, `PlayerCanTeleport`. Resurrections: polled
+  each second within Blizzard's window, the same offerer, no sickness, the corpse delay over, you and your group
+  out of combat. Duels (off): declined unless the challenger (by `GetUnitName(unit, false)`, first name and
+  surname) is someone you know. Invites: someone you know (`S.Known(guid)`: Battle.net friend, friend,
+  `IsGuildMember`, your group), no roles, not in a group or a queue. Unmeasured until day one.
 - **`Pearls\AutoGossip.lua`**: auto gossip (#47, pearl `autogossip`, Automation > NPCs, on by
   default). **Gossip only**: nothing while the NPC has quest business. Scope: ordinary gossip with an
   NPC (`GOSSIP_SHOW`'s `textureKit` plainly nil, `UnitExists("npc")` plainly true; a refresh keeps
