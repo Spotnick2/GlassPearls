@@ -141,7 +141,7 @@ function CreateFrame(ftype, name, parent, template)
         w.Instructions = Methods.CreateFontString(w)
     end
     -- SecureTemplates.xml:4: protected, with Blizzard's OnClick (WoW.secureActionClick).
-    if template == "SecureActionButtonTemplate" then
+    if template and template:find("SecureActionButtonTemplate", 1, true) then
         w._protected = true
         w._scripts.OnClick = function(...) return WoW.secureActionClick(...) end
     end
@@ -455,12 +455,12 @@ end
 
 -- The client's secure hook replaces t[name] with a wrapper: the sanctioned way
 -- to hook a Blizzard method. WoW.hooked records it, so the "no field written"
--- checks can tell it from a field the addon wrote.
+-- checks can tell it from a field the addon wrote; the value counts the hooks.
 WoW.hooked = {}
 function hooksecurefunc(t, name, fn)
     if type(t) == "string" then t, name, fn = _G, t, name end
     WoW.hooked[t] = WoW.hooked[t] or {}
-    WoW.hooked[t][name] = true
+    WoW.hooked[t][name] = (WoW.hooked[t][name] or 0) + 1
     local orig = rawget(t, name) or t[name]
     rawset(t, name, function(...)
         local r = { orig(...) }
@@ -646,7 +646,7 @@ ChatThrottleLib = {
 --
 --   WoW.bags[bag] = { size = n, family = 0, items = { [slot] = { id, count } } }
 --   WoW.items[id] = { name, price, quality, classID, subclassID, maxStack,
---                     family, spell, icon }    -- nil: not in the item cache
+--                     family, spell, icon, level }    -- nil: not in the item cache
 --   WoW.quest["bag:slot"] = { isQuestItem, questID }   (WoW.questUnreadable)
 --   WoW.loot = { { id, qty, isQuest, questID } }        WoW.openLoot / closeLoot
 --   WoW.sets[setID] = { itemIDs }
@@ -737,7 +737,7 @@ function C_Item.GetItemInfo(x)
     local id = idOf(x)
     local it = id and WoW.items[id]
     if not it then return end   -- a cache miss returns nothing (porting guide)
-    return it.name, itemLink(id), it.quality, 10, 1, "Type", "Subtype", it.maxStack or 20, "", it.icon or 134400,
+    return it.name, itemLink(id), it.quality, it.level or 10, 1, "Type", "Subtype", it.maxStack or 20, "", it.icon or 134400,
         it.price or 0, it.classID or 15, it.subclassID or 0, 0, 0, nil, false, ""
 end
 function C_Item.GetItemInfoInstant(x)
@@ -1451,8 +1451,28 @@ function WoW.secureActionClick(self, inputButton, down, isKeyPress, isSecureActi
     local kind
     if clickAction then kind = self:GetAttribute("type")
     elseif release then kind = self:GetAttribute("typerelease") end
-    if kind == nil then return end
-    table.insert(WoW.secureActions, { kind = kind, down = down })
+    if kind ~= nil then
+        table.insert(WoW.secureActions, { kind = kind, down = down })
+        WoW.secureAction(self, kind)
+    end
+    -- OnActionButtonClick (SecureTemplates.lua:772): after the action, on the
+    -- acting edge, whatever the action was (none included), a spell awaiting
+    -- an item takes the button's target-bag / target-slot.
+    if clickAction and (SpellCanTargetItem() or SpellCanTargetItemID()) then
+        local bag, slot = self:GetAttribute("target-bag"), self:GetAttribute("target-slot")
+        if slot and bag then C_Container.UseContainerItem(bag, slot) end
+    end
+end
+
+-- The secure actions modelled: raidtarget (SecureTemplates.lua:582) and
+-- spell (:396, by ID).
+function WoW.secureAction(self, kind)
+    if kind == "spell" then
+        WoW.inSecureAction = true
+        CastSpellByID(tonumber(self:GetAttribute("spell")), self:GetAttribute("unit"))
+        WoW.inSecureAction = false
+        return
+    end
     if kind ~= "raidtarget" then return end
     local unit = self:GetAttribute("unit") or "target"
     local marker = tonumber(self:GetAttribute("marker")) or 1
@@ -1807,6 +1827,168 @@ function C_Item.GetItemCount(x, includeBank)
     for _, worn in pairs(WoW.equipped) do if worn == id then n = n + 1 end end
     if includeBank then n = n + bank end
     return n
+end
+
+--------------------------------------------------------------------------------
+-- Hunter pet care (#38). In the 70532 dump: C_PetInfo.GetPetHappiness /
+-- CanPetEatItem, UnitIsDead, UnitOnTaxi, IsMounted, UnitIsFeignDeath,
+-- UnitIsPossessed, HasFullControl, C_Spell.IsSpellUsable,
+-- C_Container.GetContainerItemID / UseContainerItem documented; HasPetUI,
+-- GetPetActionInfo, SpellIsTargeting, SpellCanTargetItem(ID), CastSpellByID,
+-- ContainerFrameCombinedBags in its _G walk. Blizzard's: PET_HAPPINESS1-3
+-- (GlobalStrings, PetHappiness.lua:12), NUM_PET_ACTION_SLOTS
+-- (PetActionBar.lua:1), ContainerFrameContainer and its ContainerFrames
+-- (Mainline/ContainerFrame.xml:229-231), ContainerFrameMixin:UpdateItems
+-- (:1191) over EnumerateValidItems (:575), ContainerFrameItemButtonMixin
+-- :GetBagID (:1830).
+--   WoW.pet = { dead, hunter (default true), happiness, level, guid, possessed } or nil
+--     (no pet); any field may be a WoW.Secret; WoW.petExistsSecret
+--   WoW.petBar[i] = { name, texture, isToken, isActive } (GetPetActionInfo);
+--     WoW.petBarThrows
+--   WoW.edible[itemID] = true | false | a secret (CanPetEatItem)
+--   WoW.onTaxi, WoW.mounted, WoW.feign, WoW.fullControl (default true)
+--   WoW.spellUsable[id] = false (C_Spell.IsSpellUsable; default usable)
+--   WoW.spellTargeting = "item" | "unit" | nil: a spell awaiting its target
+--   WoW.feedNoTarget: CastSpellByID(6991) doesn't enter item targeting
+--   WoW.fed = { { bag, slot, id } }: UseContainerItem while targeting an item
+--   WoW.containerFrames[i], ContainerFrameCombinedBags: Blizzard's bag frames;
+--     WoW.showBag(frame, bag, size) fills and shows one and runs its UpdateItems
+--------------------------------------------------------------------------------
+
+WoW.petBar, WoW.edible, WoW.spellUsable, WoW.fed = {}, {}, {}, {}
+PET_HAPPINESS1, PET_HAPPINESS2, PET_HAPPINESS3 = "Unhappy", "Content", "Happy"
+NUM_PET_ACTION_SLOTS = 10
+
+local unitExistsBefore = UnitExists
+function UnitExists(token)
+    if token == "pet" then
+        if WoW.petExistsSecret then return WoW.Secret("UnitExists pet") end
+        if WoW.pet then return true end
+    end
+    return unitExistsBefore(token)
+end
+function UnitIsDead(unit)
+    if unit == "pet" then
+        if not WoW.pet or WoW.pet.dead == nil then return false end
+        return WoW.pet.dead
+    end
+    return unit == "player" and WoW.dead == true
+end
+local unitGUIDBefore = UnitGUID
+function UnitGUID(token)
+    if token == "pet" then return WoW.pet and WoW.pet.guid end
+    return unitGUIDBefore(token)
+end
+local unitLevelBefore = UnitLevel
+function UnitLevel(unit)
+    if unit == "pet" then return WoW.pet and WoW.pet.level end
+    return unitLevelBefore(unit)
+end
+function HasPetUI()
+    if not WoW.pet then return false, false end
+    if WoW.pet.hunter == nil then return true, true end
+    return true, WoW.pet.hunter
+end
+C_PetInfo = {
+    GetPetHappiness = function()
+        if WoW.pet then return WoW.pet.happiness, 0, 0 end
+    end,
+    CanPetEatItem = function(id)
+        local v = WoW.edible[id]
+        if v == nil then return false end
+        return v
+    end,
+}
+function GetPetActionInfo(i)
+    if WoW.petBarThrows then error("pet bar refused") end
+    local s = WoW.petBar[i]
+    if s then return s.name, s.texture, s.isToken, s.isActive, false, false, nil end
+end
+function UnitOnTaxi(unit) if unit ~= "player" or WoW.onTaxi == nil then return false end return WoW.onTaxi end
+function IsMounted() if WoW.mounted == nil then return false end return WoW.mounted end
+function UnitIsFeignDeath(unit) if unit ~= "player" or WoW.feign == nil then return false end return WoW.feign end
+function UnitIsPossessed(unit)
+    if unit == "pet" and WoW.pet and WoW.pet.possessed ~= nil then return WoW.pet.possessed end
+    return false
+end
+function HasFullControl() if WoW.fullControl == nil then return true end return WoW.fullControl end
+C_Spell.IsSpellUsable = function(id)
+    local v = WoW.spellUsable[id]
+    if v == nil then return true, false end
+    return v, false
+end
+function SpellIsTargeting() return WoW.spellTargeting ~= nil end
+function SpellCanTargetItem() return WoW.spellTargeting == "item" end
+function SpellCanTargetItemID() return false end
+-- Protected: only from a secure action. Feed Pet (6991) waits for an item.
+function CastSpellByID(id, unit)
+    call("CastSpellByID", id, unit)
+    if not WoW.inSecureAction then
+        table.insert(WoW.forbidden, "CastSpellByID")
+        WoW.fire("ADDON_ACTION_FORBIDDEN", "GlassPearls", "CastSpellByID()")
+        return
+    end
+    if WoW.spellUsable[id] == false then return end   -- the cast fails
+    if id == 6991 and not WoW.feedNoTarget then WoW.spellTargeting = "item" end
+end
+function C_Container.GetContainerItemID(bag, slot)
+    local b = WoW.bags[bag]
+    local s = b and b.items[slot]
+    return s and s.id
+end
+-- Using an item while a spell awaits one targets it; otherwise the
+-- merchant's use (selling) above.
+local useAtMerchant = C_Container.UseContainerItem
+function C_Container.UseContainerItem(bag, slot)
+    if WoW.spellTargeting ~= "item" then return useAtMerchant(bag, slot) end
+    local b = WoW.bags[bag]
+    local s = b and b.items[slot]
+    call("UseContainerItem", bag, slot)
+    table.insert(WoW.fed, { bag = bag, slot = slot, id = s and s.id })
+    WoW.spellTargeting = nil
+end
+
+-- Blizzard's bag frames: buttons with GetBagID / GetID, a frame whose
+-- UpdateItems walks its valid buttons (reading them, as Blizzard's does).
+local function newBagButton(frame)
+    local b = CreateFrame("Button", nil, frame)
+    b.GetBagID = function(self) return self._bag end   -- the mixin's method
+    return b
+end
+local function newBagFrame(name)
+    local f = CreateFrame("Frame", name, UIParent)
+    f._shown = false
+    f.Items, f._size = {}, 0
+    f.GetBagSize = function(self) return self._size end
+    f.EnumerateValidItems = function(self)
+        local i = 0
+        return function()
+            i = i + 1
+            if i <= self._size then return i, self.Items[i] end
+        end
+    end
+    f.UpdateItems = function(self)
+        for _, b in self:EnumerateValidItems() do C_Container.GetContainerItemInfo(b:GetBagID(), b:GetID()) end
+    end
+    return f
+end
+ContainerFrameContainer = CreateFrame("Frame", "ContainerFrameContainer", UIParent)
+ContainerFrameContainer.ContainerFrames = {}
+for i = 1, 6 do ContainerFrameContainer.ContainerFrames[i] = newBagFrame("ContainerFrame" .. i) end
+WoW.containerFrames = ContainerFrameContainer.ContainerFrames
+ContainerFrameCombinedBags = newBagFrame("ContainerFrameCombinedBags")
+-- Show `frame` holding `slots` ({ { bag, slot }, ... }, pooled buttons reused
+-- in order), then run its UpdateItems as Blizzard does on open.
+function WoW.showBag(frame, slots)
+    for i, s in ipairs(slots) do
+        local b = frame.Items[i] or newBagButton(frame)
+        frame.Items[i] = b
+        b._bag = s[1]
+        b:SetID(s[2])
+    end
+    frame._size = #slots
+    frame:Show()
+    frame:UpdateItems()
 end
 
 function WoW.calledCount(name)

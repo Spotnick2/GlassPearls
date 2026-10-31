@@ -1,55 +1,11 @@
--- Pearls/InstanceGearFrame.lua: the instance gear reminders' centre text and
--- Configuration Panel (#43). The logic is Pearls/InstanceGear.lua.
---
--- The centre text is our own, not Blizzard's raid warning: adding a message
--- there from addon code would run its UpdateCenterScreenAnchors, which moves
--- DeadlyDebuffFrame and the private-aura anchor (RaidWarningUtil.lua:36).
--- Click-through, held, then faded; a new one replaces the old. The same in
--- both looks (text over the world).
+-- Pearls/InstanceGearFrame.lua: the instance gear reminders' Configuration
+-- Panel (#43). The logic is Pearls/InstanceGear.lua; its centre text is
+-- Core/Notice.lua.
 
 GlassPearls = GlassPearls or {}
 local GP = GlassPearls
 local Frame = {}
 GP.InstanceGearFrame = Frame
-
-Frame.NAME = "GlassPearlsInstanceGearText"
-Frame.HOLD, Frame.FADE = 6, 1
-Frame.Y = 200            -- below the fixate alert's default (+260)
-
-local f    -- built on first show
-
-local function build()
-    f = CreateFrame("Frame", Frame.NAME, UIParent)
-    f:SetSize(600, 40)
-    f:SetPoint("CENTER", UIParent, "CENTER", 0, Frame.Y)
-    f:SetFrameStrata("HIGH")
-    f:EnableMouse(false)
-    f:Hide()
-    f.text = f:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-    f.text:SetPoint("CENTER", f, "CENTER")
-    f.text:SetShadowOffset(1, -1)
-    local ag = f:CreateAnimationGroup()
-    local fade = ag:CreateAnimation("Alpha")
-    fade:SetFromAlpha(1)
-    fade:SetToAlpha(0)
-    fade:SetStartDelay(Frame.HOLD)
-    fade:SetDuration(Frame.FADE)
-    ag:SetScript("OnFinished", function() f:Hide() end)
-    f.anim = ag
-end
-
-function Frame.Show(text)
-    if not f then build() end
-    f.anim:Stop()
-    f.text:SetText(text)
-    f:SetAlpha(1)
-    f:Show()
-    f.anim:Play()
-end
-
-function Frame.IsShown() return f ~= nil and f:IsShown() end
-function Frame.Text() return f and f.text:GetText() end
-Frame._test = { frame = function() return f end }
 
 --------------------------------------------------------------------------------
 -- The Configuration Panel

@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), and the fifteenth, instance gear reminders (#43); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38); the day-one
 probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
@@ -30,14 +30,15 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 → `Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua` → `Libs\HereBeDragons-2.0\HereBeDragons-2.0.lua` →
 `Libs\HereBeDragons-2.0\HereBeDragons-Pins-2.0.lua` → `Compat.lua` → `Theme.lua` → `UI.lua` →
 `AccountSync.lua` → `Pearls.lua` → `SettingsSync.lua` → `Core\ToolItems.lua` → `Core\Bags.lua` →
-`Core\Merchant.lua` → `Core\AuraAlert.lua` →
+`Core\Merchant.lua` → `Core\AuraAlert.lua` → `Core\Notice.lua` →
 `Data\Landmarks.lua` → `Data\SpellRanks.lua` → `Data\AuraDurations.lua` → `Data\Training.lua` → `Data\Restock.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
 `Pearls\BagsFull.lua` → `Pearls\Landmarks.lua` → `Pearls\SpellRanksFrame.lua` →
 `Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua` → `Pearls\FixateFrame.lua` →
 `Pearls\Fixate.lua` → `Pearls\Uncrushable.lua` → `Pearls\BuffsFrame.lua` → `Pearls\Buffs.lua` → `Pearls\PaladinTank.lua` → `Pearls\TrainingFrame.lua` →
 `Pearls\Training.lua` → `Pearls\RestockFrame.lua` → `Pearls\Restock.lua` → `Pearls\MarkWheelFrame.lua` →
 `Pearls\MarkWheel.lua` → `Pearls\AutoGossipFrame.lua` → `Pearls\AutoGossip.lua` → `Pearls\FastLootFrame.lua` →
-`Pearls\FastLoot.lua` → `Pearls\LowBuffs.lua` → `Pearls\InstanceGearFrame.lua` → `Pearls\InstanceGear.lua`)* →
+`Pearls\FastLoot.lua` → `Pearls\LowBuffs.lua` → `Pearls\InstanceGearFrame.lua` → `Pearls\InstanceGear.lua` →
+`Pearls\PetCareFrame.lua` → `Pearls\PetCare.lua`)* →
 `Options.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
@@ -149,6 +150,10 @@ order) and before the options window and bootstrap.
   shown), gone, or unknown; the entry shows while any ID is present and clears once every ID that
   made it show is gone; an unknown read keeps a known expiration (the countdown runs on); expiry is
   evidence, never a forced clear. Fixate uses its read and sounds.
+- **`Core\Notice.lua`**: the centre text any pearl shows (`Notice.Show(text)`): our own,
+  click-through, `CENTER` +200 under the fixate alert, held 6 s then faded, replaced by a new one;
+  never Blizzard's raid warning, whose `AddMessage` runs `UpdateCenterScreenAnchors` and moves the
+  private-aura anchor.
 - **`Data\AuraDurations.lua`**: **generated** by `Tools\gen_durations.py` (SpellMisc → SpellDuration):
   each watched aura's full duration in seconds, for the approximate (`~`) timer.
 - **`Pearls\Buffs.lua`**: buff alerts (#21, pearl `buffs`, Combat > Alerts, on by default):
@@ -283,9 +288,48 @@ order) and before the options window and bootstrap.
   everything again. A chat line (the client's item and faction names, with fallbacks) and the centre
   text. `/gpearls instancegear [test]`: what it reads here (counts labelled "carried + worn" and "with
   bank"). Unmeasured until day one.
-- **`Pearls\InstanceGearFrame.lua`**: its centre text (our own, click-through, `CENTER` +200 under the
-  fixate alert, held 6 s then faded, replaced by a new one; never Blizzard's raid warning, whose
-  `AddMessage` runs `UpdateCenterScreenAnchors` and moves the private-aura anchor) and its panel.
+- **`Pearls\InstanceGearFrame.lua`**: its panel (the centre text is `Core\Notice.lua`).
+- **`Pearls\PetCare.lua`**: hunter pet care (#38, pearl `petcare`, Combat > Pets, on by default). **Hunters
+  only** (`UnitClass` classFile): any other class registers nothing, hooks nothing, builds nothing.
+  - **Feeding** (`feed`, `feedAt` = `content` | `unhappy`): a live hunter pet (`HasPetUI`'s second return)
+    whose `C_PetInfo.GetPetHappiness` is plainly at or below the threshold, out of combat. One drop:
+    the chat line once (`PET_HAPPINESS1-3`; "no eligible food: n left out by your never-feed list, n not
+    loaded yet", never "nothing to eat" when food was only left out), the window until happy, the pet
+    gone, combat (offered again after) or Close (dismissed for the drop). Re-armed when the happiness
+    reads plainly above, or a new pet (GUID) appears.
+  - **The food** (`PC.Candidates`): bags 0-4, `CanPetEatItem` plainly true, not in the sync set
+    `petcare.never`, cached (`Bags.ItemFacts` with a plain level; else `RequestLoadItemDataByID` once and
+    `GET_ITEM_INFO_RECEIVED` chooses again), lock plainly false. A heuristic: within 10 levels of the
+    pet, the cheapest per item first, else the highest level; ties by bag and slot.
+  - **`PC.CanFeed`** (the Feed button's click): the pearl and window, `GetCursorInfo` empty,
+    `SpellIsTargeting` plainly false, a live hunter pet still at or below the threshold (`PC.Mood()`
+    "hungry": the test window never feeds a Happy pet), the slot still holding the item unlocked, still
+    edible and not never-listed, `C_Spell.IsSpellUsable(6991)` plainly true. Refused: chosen again.
+  - **Pet checks** (`missing`, `passive`; when: `atFight`, `atReady`, `away`): "Your pet is dead", "You
+    have no pet out", "Your pet is on Passive" (the token slot whose texture key is
+    `"PET_PASSIVE_TEXTURE"`, active; a live hunter pet only), only for a hunter who plainly knows Call
+    Pet (883); chat plus `GP.Notice`. `PC.Warning` reads only what it needs and **never refuses because
+    combat was noted**: the fight start (inside `PLAYER_REGEN_DISABLED`) and a ready check in combat use
+    it. **Away** (off): 10 s after `UNIT_PET("player")`, `UNIT_FLAGS("pet")`, PEW, `PLAYER_ALIVE`,
+    `PLAYER_UNGHOST`, `PLAYER_CONTROL_GAINED` (a newer trigger replaces it; expired in combat, checked
+    at `PLAYER_REGEN_ENABLED`; stale on leaving the world or switching off); missing or dead only, once
+    per absence (re-armed by a live pet; never silences the other two); quiet when dead, on a taxi,
+    mounted, feigning death, without full control, the pet possessed, or at the stable master (an
+    unreadable one counts as quiet). Payloads compared only when plain. `/gpearls petcare [never | forget |
+    test]`. Unmeasured until day one.
+- **`Pearls\PetCareFrame.lua`**: its window (position per character, the Feed button, Never feed this,
+  Close), the tooltip line and the bag marks, and its panel. **The Feed button** is a
+  `SecureActionButtonTemplate` (with `UIPanelButtonTemplate`), the window's child: `type` "spell", 6991,
+  and `target-bag` / `target-slot`, which Blizzard's `OnActionButtonClick` uses after the action **whatever
+  the action was** (`SecureTemplates.lua:772`), so it is **disarmed (all four cleared) whenever no click
+  is in progress**; both edges, `useOnKeyDown` false, the release's PreClick arms it (type last), PostClick
+  disarms. The window is protected in combat through its child: shown and hidden only out of combat
+  (hidden inside `PLAYER_REGEN_DISABLED`), never in `UISpecialFrames`. **Tooltip** (`food` = `tooltip` |
+  `both`): one `TooltipDataProcessor` item post-call. **Bag marks** (`bags` | `both`): `hooksecurefunc`
+  on each `ContainerFrameContainer.ContainerFrames` frame's and `ContainerFrameCombinedBags`'s
+  `UpdateItems`, once; our own child frame per button in a weak table (nothing written on Blizzard's
+  buttons; the button's bag and slot read every time, they're pooled); none created in combat (made
+  after the fight).
 - **`Pearls\AutoGossip.lua`**: auto gossip (#47, pearl `autogossip`, Automation > NPCs, on by
   default). **Gossip only**: nothing while the NPC has quest business. Scope: ordinary gossip with an
   NPC (`GOSSIP_SHOW`'s `textureKit` plainly nil, `UnitExists("npc")` plainly true; a refresh keeps
@@ -460,8 +504,8 @@ order) and before the options window and bootstrap.
    string setting its `choices` and an integer one its `ranges`, or it won't travel. A list (a
    keep list) is a sync set: `SettingsSync.RegisterSet("<key>.<name>")` at file scope. Mind the
    budget: `test_sync_budget` fails if the known keys outgrow their 12 KB or the whole, every part
-   full, its 31 KB, and the registry its 128 keys (with #43: 113 keys and 6 of 8 sets, known keys 8.4 KB,
-   the whole about 27 KB; ~15 keys left).
+   full, its 31 KB, and the registry its 128 keys (with #38: 122 keys and 7 of 8 sets, known keys 9.0 KB,
+   the whole about 28 KB; 6 keys left).
 5. Slash commands of its own: `commands = { name = { help, run(arg) } }` (`/gpearls <name>`, listed
    by `/gpearls help`).
 6. A test file `tests\test_<name>.lua` (the bags-full helper's four are the model), and a line in
@@ -547,7 +591,11 @@ noReady, emptyReady, noOpened })`, locked, quality and money rows, `WoW.lootMeth
 `WoW.modified`, unreadable bag families and locks), low-rank buffs' casters and chat (`WoW.unitLevels`,
 `WoW.unitClasses`, `WoW.players`, `WoW.fullNames`, `WoW.partyMembers`, `WoW.raidIndex`, `WoW.guildMembers`,
 `WoW.friends`, `WoW.sentChat`, `WoW.chatLockdown`, `WoW.chatRestriction`, `WoW.auraReads` per ID), instance gear's instance, standing and counts (`WoW.instance`, `WoW.factions`,
-`WoW.itemCounts` with what `WoW.equipped` wears, `WoW.itemCountThrows`), a clock (`WoW.advance`), and atlases with sizes (`WoW.atlases`; `SetAtlas` returns
+`WoW.itemCounts` with what `WoW.equipped` wears, `WoW.itemCountThrows`), pet care's pet, pet bar and food (`WoW.pet`,
+`WoW.petExistsSecret`, `WoW.petBar`, `WoW.edible`, `WoW.onTaxi`, `WoW.mounted`, `WoW.feign`, `WoW.fullControl`,
+`WoW.spellUsable`), Feed Pet's item targeting through the secure `spell` action and its `target-bag` /
+`target-slot` block (`WoW.spellTargeting`, `WoW.fed`), Blizzard's bag frames (`WoW.containerFrames`,
+`ContainerFrameCombinedBags`, `WoW.showBag`; `WoW.hooked` counts each secure hook), a clock (`WoW.advance`), and atlases with sizes (`WoW.atlases`; `SetAtlas` returns
 nothing, as on the client)), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
 registering test pearls, `opts.pearls = false` to leave the shipped pearls out of a framework
 test, `newChat`, `chatHas`). Bags, items, the cursor and the loot window are modelled too

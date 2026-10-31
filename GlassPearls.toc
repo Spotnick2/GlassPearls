@@ -26,6 +26,7 @@ Core\ToolItems.lua
 Core\Bags.lua
 Core\Merchant.lua
 Core\AuraAlert.lua
+Core\Notice.lua
 Data\Landmarks.lua
 Data\SpellRanks.lua
 Data\AuraDurations.lua
@@ -57,5 +58,7 @@ Pearls\FastLoot.lua
 Pearls\LowBuffs.lua
 Pearls\InstanceGearFrame.lua
 Pearls\InstanceGear.lua
+Pearls\PetCareFrame.lua
+Pearls\PetCare.lua
 Options.lua
 GlassPearls.lua

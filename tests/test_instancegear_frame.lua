@@ -1,6 +1,6 @@
--- Instance gear reminders' centre text and panel (#43): click-through, held
--- then faded, replaced by a new one, in both looks (an argument "glass" runs
--- it under Glass UI's glass); the panel's two switches; `test`.
+-- Instance gear reminders' panel (#43), in both looks (an argument "glass" runs
+-- it under Glass UI's glass): the panel's two switches; `test` shows the
+-- centre text (Core/Notice.lua, test_notice.lua).
 dofile("tests/wow_stubs.lua")
 dofile("tests/harness.lua")
 
@@ -11,31 +11,12 @@ if glass then
         accent = { 0.9, 0.7, 0.2 } })
 end
 local GP = loadAddon()
-local FR, P = GP.InstanceGearFrame, GP.Pearls
-
-check(not FR.IsShown(), "nothing shown at login outdoors")
-FR.Show("Equip your Argent Dawn Commission")
-local f = FR._test.frame()
-check(FR.IsShown(), "shown")
-eq(f.text:GetText(), "Equip your Argent Dawn Commission", "  the text")
-eq(f._mouse, false, "  click-through")
-local p = f._points[#f._points]
-check(p[1] == "CENTER" and p[3] == "CENTER" and p[5] == FR.Y, "  in the middle, below the fixate alert")
-check(FR.Y < 260, "  (+200 below +260)")
-check(f.anim:IsPlaying(), "  held, then fading")
-f.anim._scripts.OnFinished(f.anim)
-check(not FR.IsShown(), "  then gone")
-FR.Show("one")
-f:SetAlpha(0.3)                                  -- mid-fade
-FR.Show("two")
-eq(f.text:GetText(), "two", "a new one replaces the old")
-eq(f:GetAlpha(), 1, "  at full alpha")
-f.anim._scripts.OnFinished(f.anim)
+local P, N = GP.Pearls, GP.Notice
 
 -- `test`.
 P.Command("instancegear").run("test")
-check(FR.IsShown() and f.text:GetText() == "Equip your Argent Dawn trinket", "/gpearls instancegear test: shown")
-f.anim._scripts.OnFinished(f.anim)
+check(N.IsShown() and N.Text() == "Equip your Argent Dawn trinket", "/gpearls instancegear test: shown")
+N._test.frame().anim._scripts.OnFinished(N._test.frame().anim)
 
 -- The panel.
 GP.Options.Open("cat:Combat")

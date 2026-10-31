@@ -17,7 +17,7 @@ local GP = loadAddon({ before = function()
     WoW.itemCounts[COMMISSION] = { bags = 1 }
     WoW.items[COMMISSION] = { name = "Argent Dawn Commission" }
 end })
-local IG, P, FR = GP.InstanceGear, GP.Pearls, GP.InstanceGearFrame
+local IG, P, N = GP.InstanceGear, GP.Pearls, GP.Notice
 local CASE = IG.CASES[1]
 WoW.now = WoW.now or 0
 newChat()
@@ -28,8 +28,8 @@ local lines = newChat()
 eq(#lines, 1, "  then said")
 check(lines[1] and lines[1]:find("Equip your Argent Dawn Commission: Scourgestones drop only while it's on "
     .. "(you're below Exalted with the Argent Dawn).", 1, true), "  the chat line, with the client's names")
-eq(FR.Text(), "Equip your Argent Dawn Commission", "  and the centre text")
-check(FR.IsShown(), "  shown")
+eq(N.Text(), "Equip your Argent Dawn Commission", "  and the centre text")
+check(N.IsShown(), "  shown")
 
 -- The data.
 for _, case in ipairs(IG.CASES) do
