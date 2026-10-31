@@ -31,7 +31,7 @@
 -- 32 KB wire ceiling; test_sync_budget fills every part with the longest
 -- values): known keys <= 12 KB (asserted on the real registry); set entries
 -- <= 200 in all sets together, each line <= 69 B (~13.8 KB; 300 until #29); unknown keys
--- <= 32, each line <= 155 B (~5 KB); up to 8 set headers and the format line < 0.4 KB.
+-- <= 32, each line <= 155 B (~5 KB); up to 10 set headers and the format line < 0.4 KB.
 --
 -- Format "GPS1", one record per line, tab-separated, data never run:
 --   GPS1
@@ -51,9 +51,9 @@ SS.WIRE_MAX = 32768          -- LibAccountSync's ceiling (AccountSync.lua asks f
 SS.BUDGET = 31 * 1024        -- what an encoded snapshot may use
 SS.ID_MAX, SS.ORIGIN_MAX, SS.VALUE_MAX = 32, 32, 64
 SS.SET_MAX = 200             -- entries in all sets together, members and tombstones (300 until #29)
-SS.SETS_MAX = 8                -- sets; the 200 entries are shared, so more sets cost only their headers (raised before v0.1.0, #15)
+SS.SETS_MAX = 10               -- sets; the 200 entries are shared, so more sets cost only their headers (4 to 8 in #15, 10 in #53, before v0.1.0)
 SS.FOREIGN_MAX = 32
-SS.KNOWN_MAX = 128           -- V lines for known keys
+SS.KNOWN_MAX = 160           -- V lines for known keys (128 until #53, before v0.1.0)
 SS.DEBOUNCE, SS.LOGIN_DELAY, SS.PEER_CHECK = 2, 5, 60
 SS.BACKOFF = { 30, 60, 120, 240 }
 

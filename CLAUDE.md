@@ -95,10 +95,11 @@ order) and before the options window and bootstrap.
   so its next appearance sends again; turning sharing back on sends at once. Replies only when
   holding something newer. Receiving applies
   through the same setters with stamping suppressed. A fixed byte budget per part (see the file's
-  header; `test_sync_budget` fills every part). Up to `SETS_MAX` (8) sets share the `SET_MAX` (200)
-  entries (sets raised from 4, #15; entries lowered from 300 after v0.1.0-alpha1, #29, to give the
-  known keys room). The format's decoder rejects more of either, so change them only before a
-  release or with a format change. The store is `GlassPearlsDB.sync`; integers are
+  header; `test_sync_budget` fills every part). Up to `SETS_MAX` (10) sets share the `SET_MAX` (200)
+  entries, and the registry holds up to `KNOWN_MAX` (160) keys (sets raised from 4, #15, and to 10
+  with the keys from 128, #53; entries lowered from 300 after v0.1.0-alpha1, #29, to give the known
+  keys room). The format's decoder rejects more of any of them (alpha1 more than 160 values or 8
+  sets), so change them only before a release or with a format change. The store is `GlassPearlsDB.sync`; integers are
   written with `%.0f` (Lua 5.1's `%d` is 32-bit on Windows).
 - **`Core\ToolItems.lua`**: **generated** by `Tools\gen_tools.py` from the client's ItemSparse and
   TotemCategory tables (`References\Forever\db`, the `wago-tools` skill): every item the client
@@ -504,8 +505,8 @@ order) and before the options window and bootstrap.
    string setting its `choices` and an integer one its `ranges`, or it won't travel. A list (a
    keep list) is a sync set: `SettingsSync.RegisterSet("<key>.<name>")` at file scope. Mind the
    budget: `test_sync_budget` fails if the known keys outgrow their 12 KB or the whole, every part
-   full, its 31 KB, and the registry its 128 keys (with #38: 122 keys and 7 of 8 sets, known keys 9.0 KB,
-   the whole about 28 KB; 6 keys left).
+   full, its 31 KB, and the registry its 160 keys (with #38: 122 keys and 7 of 10 sets, known keys 9.0 KB,
+   the whole about 28 KB; the 12 KB share is the real limit, about 40 more keys).
 5. Slash commands of its own: `commands = { name = { help, run(arg) } }` (`/gpearls <name>`, listed
    by `/gpearls help`).
 6. A test file `tests\test_<name>.lua` (the bags-full helper's four are the model), and a line in
