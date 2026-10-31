@@ -134,4 +134,7 @@
 - **Train all** (Combat, off by default): a Train all button on your class trainer's window learns every
   class spell it offers, cheapest first, while your money lasts; its tooltip shows the count and the cost.
   Only class spells: never riding, weapon skills, pet training or professions. `/gpearls trainall`.
+- **Junk spotlight** (Loot & Bags, off by default): a coin on the bag items Sell junk & repair may sell at the
+  next merchant, and a tooltip line ("Eligible for automatic sale", with its value, or "Kept: on your keep
+  list"). By the seller's own rules and lists; it shows nothing while the seller doesn't sell.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.

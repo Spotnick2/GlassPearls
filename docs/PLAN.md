@@ -40,6 +40,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #44 | Quest loot sparkle (pearl `sparkle`, off by default): the outline mode kept off so quest loot sparkles | built; the CVars, their effect and the restore wait for day one |
 | #45 | Trade summary (pearl `trades`, off by default): the money and items of each completed trade, in chat and a local log | built; the completion message and the event order wait for day one |
 | #39 | Train all (pearl `trainall`, off by default): a Train all button at the class trainer | built; `BuyTrainerService` from addon code and the trainer tooltip's identity wait for day one |
+| #41 | Junk spotlight (pearl `junkspot`, off by default): what the junk seller may sell, marked in the bags and tooltips | built; the marks beside pet care's and the tooltip owner wait for day one |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -367,6 +368,13 @@ story NPC, a multi-page NPC)
 - [ ] The event order after a purchase (`PLAYER_MONEY`, `SPELLS_CHANGED`, `TRAINER_UPDATE`).
 - [ ] The button's place on Forever's trainer frame, with large totals and UI scale; riding and weapon
       masters show no button work (nothing of ours).
+
+**Junk spotlight (#41)** (greys, a listed white, a kept item, a quest item in the bags)
+- [ ] The coins on Blizzard's bags, separate and combined, beside pet care's marks (a hunter); the
+      `Coin-Gold` atlas; no taint (open the bags in combat after the hooks ran).
+- [ ] The tooltip line on a bag item: `GameTooltip:GetOwner()` is the bag button and its `GetBagID` /
+      `GetID` read; none on a merchant's, a link's or a comparison tooltip.
+- [ ] A lock (picking an item up) hides its coin and putting it back restores it (`ITEM_LOCK_CHANGED`).
 
 **The probe (#5):** its steps are added here by its PR.
 

@@ -267,6 +267,7 @@ Core.Count = countKeys
 --   strictly newer than the sender's, so it should reply).
 function Core.Merge(reg, store, rec, apply)
     local res = { applied = 0, skipped = {}, newerHere = false }
+    res.sets = {}                   -- the sets whose members changed
     local theirs, theirMembers = {}, {}
     for _, v in ipairs(rec.values) do
         theirs[v.id] = v.stamp
@@ -310,6 +311,7 @@ function Core.Merge(reg, store, rec, apply)
                 set[m.member] = { a = m.a, t = m.stamp.t, o = m.stamp.o, s = m.stamp.s }
                 store.sets[m.set] = set
                 res.applied = res.applied + 1
+                res.sets[m.set] = true
             end
         end
     end
@@ -473,6 +475,19 @@ function SS.SetMembers(id)
     return list
 end
 
+-- Listeners told after a set changed, here or by a received snapshot.
+local setListeners = {}
+function SS.OnSetChanged(id, fn)
+    setListeners[id] = setListeners[id] or {}
+    table.insert(setListeners[id], fn)
+end
+local function setChanged(id)
+    for _, fn in ipairs(setListeners[id] or {}) do
+        local ok, err = pcall(fn, id)
+        if not ok then API.Fail("settings sync listener " .. id, err) end
+    end
+end
+
 local function setWrite(id, member, present)
     local st = store()
     local spec = reg.sets[id]
@@ -485,6 +500,7 @@ local function setWrite(id, member, present)
     set[member] = { a = present and 1 or 0, t = stamp.t, o = stamp.o, s = stamp.s }
     st.sets[id] = set
     schedule(SS.DEBOUNCE)
+    setChanged(id)
     return true
 end
 
@@ -593,6 +609,7 @@ function SS.Receive(body, sender)
     local res = Core.Merge(reg, st, rec, apply)
     status.received = { t = now(), from = name, applied = res.applied, skipped = #res.skipped }
     if #res.skipped > 0 then report(#res.skipped .. " entries from " .. name .. " skipped: " .. res.skipped[1]) end
+    for id in pairs(res.sets) do setChanged(id) end
     if res.applied > 0 and GP.Options then GP.Options.Refresh() end
     if res.newerHere then schedule(SS.DEBOUNCE) end
     return res

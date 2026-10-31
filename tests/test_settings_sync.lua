@@ -143,6 +143,25 @@ for i = 1, SS.SET_MAX do store.sets["beta.keep"][100000 + i] = nil end
 WoW.flushTimers(SS.DEBOUNCE)
 sends = {}
 
+-- Set listeners: told after a local change that changed the set, and after a
+-- received one; not for a no-op.
+local told = 0
+SS.OnSetChanged("beta.keep", function() told = told + 1 end)
+SS.SetAdd("beta.keep", 7001)
+eq(told, 1, "OnSetChanged: a local add")
+SS.SetAdd("beta.keep", 7001)
+eq(told, 1, "  adding it again: no change, not told")
+SS.SetRemove("beta.keep", 7001)
+eq(told, 2, "  a local remove")
+deliver("GPS1\nS\tbeta.keep\nM\t7002\t1\t" .. (hi + 50) .. "\tPlayer-1-BBB\t9")
+eq(told, 3, "  a received member")
+check(SS.SetHas("beta.keep", 7002), "  (applied)")
+deliver("GPS1\nS\tbeta.keep\nM\t7002\t1\t" .. (hi + 50) .. "\tPlayer-1-BBB\t9")
+eq(told, 3, "  the same snapshot again: not told")
+SS.SetRemove("beta.keep", 7002)
+WoW.flushTimers(SS.DEBOUNCE)
+sends = {}
+
 -- Retries: a refused send backs off (30 s, 1, 2, 4 min), then waits for the peer check.
 nextResult = { nil, "no-peers" }
 P.SetSetting("beta", "size", 2)
