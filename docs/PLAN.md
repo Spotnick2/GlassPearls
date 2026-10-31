@@ -35,6 +35,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #42 | Low-rank buffs (pearl `lowbuffs`): a single-target buff on you at a lower rank than its caster could cast; the opt-in whisper to people you know | built; the source units, the downrank rule and the whisper wait for day one |
 | #43 | Instance gear reminders (pearl `instancegear`): the Argent Dawn trinket in Scholomance and Stratholme | built; the instance and standing reads, the bank count and the event order wait for day one |
 | #38 | Hunter pet care (pearl `petcare`): the feeding reminder and Feed button, what the pet eats, the missing, dead or Passive checks | built; the Feed button, the bag marks, the Passive read and the level band wait for day one |
+| #37 | Social automation (pearl `social`, off by default): summons, resurrections, invites from people you know, declining duels | built; each call from addon code and whether each popup closes itself wait for day one |
 | #40 | Easy delete (pearl `easydelete`, off by default): DELETE filled in for good items up to a chosen quality | built; the fill from addon code and taint wait for day one |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
@@ -321,6 +322,18 @@ story NPC, a multi-page NPC)
       button its child.
 - [ ] Taint checks: mind the measured `taintLog` bug (porting guide); compare with logging off and
       finish with it off.
+
+**Social automation (#37)** (two accounts in a group, a guild mate, a friend; a warlock or a meeting stone)
+- [ ] Each call from addon code: `C_SummonInfo.ConfirmSummon`, `AcceptResurrect`, `CancelDuel`,
+      `AcceptGroup`; no `ADDON_ACTION_BLOCKED`.
+- [ ] Whether each popup closes itself after our answer: the summon (`CANCEL_SUMMON` or the loading
+      screen), the resurrection (`PLAYER_ALIVE`), the duel (`DUEL_FINISHED`), and above all the invite
+      (`PARTY_INVITE_CANCEL`?); once grouped, what the invite popup's timeout or a Decline click does.
+- [ ] The payloads plain: `CONFIRM_SUMMON`'s, `RESURRECT_REQUEST`'s, `PARTY_INVITE_REQUEST`'s GUID and
+      roles; `DUEL_REQUESTED`'s name format (first name and surname, as `GetUnitName(unit, false)`?).
+- [ ] `IsGuildMember(guid)` and `C_BattleNet.GetAccountInfoByGUID` for a guild mate and a Battle.net
+      friend; the duel challenger found by unit (targeted, grouped, on a nameplate).
+- [ ] `StaticPopup_Visible` for each popup name while shown; a summon with combat in the 2 s.
 
 **Easy delete (#40)** (an epic and a rare to destroy, one of them a quest item)
 - [ ] The fill from addon code: Yes enabled; delete through Yes and through Enter, for the ordinary and

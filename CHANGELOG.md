@@ -116,6 +116,11 @@
   - **Pet checks:** "Your pet is dead", "You have no pet out" or "Your pet is on Passive", at the
     start of a fight and at a ready check (both on), or out of combat when it disappears (off).
   - `/gpearls petcare` shows what it reads; `never` and `forget` manage the list.
+- **Social automation** (Automation, off by default): answers Blizzard's popups for you, each with its own
+  switch: accepts a summon after 2 seconds (hold Shift to stay), a resurrection once you and your group are
+  out of combat, and a group invite from a friend, a guild mate or your group; optionally declines duels from
+  anyone not positively known. Never a group finder invite, a scenario summon or a resurrection with
+  sickness. `/gpearls social` shows what it did.
 - **Easy delete** (Loot & Bags, off by default): when the game asks you to type DELETE to destroy a Rare
   or better item, it is filled in and the item named in your chat, so one click on Yes confirms. Up to Epic
   by default (a setting: Rare, Epic or Legendary); above it you still type it.

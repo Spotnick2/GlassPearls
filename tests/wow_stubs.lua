@@ -1992,6 +1992,75 @@ function WoW.showBag(frame, slots)
 end
 
 --------------------------------------------------------------------------------
+-- Social automation (#37). In the 70532 dump: C_SummonInfo.ConfirmSummon /
+-- GetSummonConfirmTimeLeft / GetSummonConfirmAreaName, PlayerCanTeleport,
+-- UnitAffectingCombat, AcceptResurrect, ResurrectGetOfferer,
+-- ResurrectHasSickness, GetCorpseRecoveryDelay, C_GameRules.IsHardcoreActive,
+-- C_BattleNet.GetAccountInfoByGUID documented; CancelDuel, AcceptGroup,
+-- WillAcceptInviteRemoveQueues, IsGuildMember (SocialQueue.lua:204, with a
+-- GUID) in its _G walk; StaticPopup_Visible is Blizzard's (StaticPopup.lua:179:
+-- the dialog's name, or nil).
+--   WoW.popups[which] = true: Blizzard's popup `which` is shown (WoW.popupThrows)
+--   WoW.summon = { left, area }; WoW.canTeleport (default true); WoW.unitCombat[unit] = true
+--   WoW.resOffer = { offerer, sickness, delay }; WoW.hardcore
+--   WoW.bnetFriends[guid], WoW.guildGUIDs[guid] = true; WoW.queueRemoval
+--   WoW.socialCalls = { "ConfirmSummon" | "AcceptResurrect" | "CancelDuel" | "AcceptGroup", ... }
+-- Each value may be set to a WoW.Secret(...) to model a secret answer.
+--------------------------------------------------------------------------------
+
+WoW.popups, WoW.unitCombat, WoW.bnetFriends, WoW.guildGUIDs, WoW.socialCalls = {}, {}, {}, {}, {}
+local function social(name) table.insert(WoW.socialCalls, name) end
+function StaticPopup_Visible(which)
+    if WoW.popupThrows then error("popup read refused") end
+    local v = WoW.popups[which]
+    if v == true then return "StaticPopup1", {} end
+    if v ~= nil and v ~= false then return v end          -- a secret
+    return nil
+end
+C_SummonInfo = {
+    GetSummonConfirmTimeLeft = function() return WoW.summon and WoW.summon.left or 0 end,
+    GetSummonConfirmAreaName = function() return WoW.summon and WoW.summon.area or "" end,
+    ConfirmSummon = function() social("ConfirmSummon") end,
+    CancelSummon = function() social("CancelSummon") end,
+}
+function PlayerCanTeleport()
+    if WoW.canTeleport == nil then return true end
+    return WoW.canTeleport
+end
+function UnitAffectingCombat(unit)
+    local v = WoW.unitCombat[unit]
+    if v == nil then return false end
+    return v
+end
+function AcceptResurrect() social("AcceptResurrect") end
+function ResurrectGetOfferer() return WoW.resOffer and WoW.resOffer.offerer or nil end
+function ResurrectHasSickness()
+    if not WoW.resOffer or WoW.resOffer.sickness == nil then return false end
+    return WoW.resOffer.sickness
+end
+function GetCorpseRecoveryDelay() return WoW.resOffer and WoW.resOffer.delay or 0 end
+C_GameRules = { IsHardcoreActive = function()
+    if WoW.hardcore == nil then return false end
+    return WoW.hardcore
+end }
+C_BattleNet.GetAccountInfoByGUID = function(guid)
+    local v = WoW.bnetFriends[guid]
+    if v == true then return { accountName = "Friend#1234", bnetAccountID = 1 } end
+    return v
+end
+function IsGuildMember(guid)
+    local v = WoW.guildGUIDs[guid]
+    if v == nil then return false end
+    return v
+end
+function CancelDuel() social("CancelDuel") end
+function AcceptGroup() social("AcceptGroup") end
+function WillAcceptInviteRemoveQueues()
+    if WoW.queueRemoval == nil then return false end
+    return WoW.queueRemoval
+end
+
+--------------------------------------------------------------------------------
 -- Easy delete (#40). In the 70532 dump: DELETE_ITEM_CONFIRM(itemName,
 -- qualityID, bonding, questWarn, itemGUID), C_Cursor.GetCursorItem,
 -- C_Item.GetItemLinkByGUID documented. Blizzard's: StaticPopup_FindVisible
