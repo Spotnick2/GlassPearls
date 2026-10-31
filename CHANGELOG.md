@@ -116,4 +116,7 @@
   - **Pet checks:** "Your pet is dead", "You have no pet out" or "Your pet is on Passive", at the
     start of a fight and at a ready check (both on), or out of combat when it disappears (off).
   - `/gpearls petcare` shows what it reads; `never` and `forget` manage the list.
+- **Easy delete** (Loot & Bags, off by default): when the game asks you to type DELETE to destroy a Rare
+  or better item, it is filled in and the item named in your chat, so one click on Yes confirms. Up to Epic
+  by default (a setting: Rare, Epic or Legendary); above it you still type it.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.

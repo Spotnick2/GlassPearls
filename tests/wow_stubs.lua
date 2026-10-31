@@ -1991,6 +1991,53 @@ function WoW.showBag(frame, slots)
     frame:UpdateItems()
 end
 
+--------------------------------------------------------------------------------
+-- Easy delete (#40). In the 70532 dump: DELETE_ITEM_CONFIRM(itemName,
+-- qualityID, bonding, questWarn, itemGUID), C_Cursor.GetCursorItem,
+-- C_Item.GetItemLinkByGUID documented. Blizzard's: StaticPopup_FindVisible
+-- (StaticPopup.lua:156), the DELETE_GOOD_ITEM dialog's edit box and its
+-- EditBoxOnTextChanged -> StaticPopup_StandardConfirmationTextHandler
+-- (GameDialogDefs.lua:572, StaticPopup.lua:140), DELETE_ITEM_CONFIRM_STRING
+-- (GlobalStrings), InputUtil.IsGamepadUIEnabled.
+--   WoW.showDeleteDialog(which, guid) -> the dialog (its data and fields read-only: a
+--     write is an error); dialog.editBox:GetText(); dialog.yes (Button1 enabled)
+--   WoW.gamepad; WoW.itemLinks[guid] = "|cff...|h[...]|h|r" (GetItemLinkByGUID)
+--------------------------------------------------------------------------------
+
+DELETE_ITEM_CONFIRM_STRING = "DELETE"
+WoW.dialogs, WoW.itemLinks = {}, {}
+InputUtil = { IsGamepadUIEnabled = function()
+    if WoW.gamepad == nil then return false end
+    return WoW.gamepad
+end }
+C_Cursor = { GetCursorItem = function()
+    local c = WoW.cursor
+    if c and c.kind == nil and c.bag then return { bag = c.bag, slot = c.slot } end
+    return nil
+end }
+C_Item.GetItemLinkByGUID = function(guid) return WoW.itemLinks[guid] end
+local function readOnly(t, label)
+    return setmetatable({}, { __index = t, __newindex = function(_, k) error(label .. ": wrote " .. tostring(k)) end })
+end
+function WoW.showDeleteDialog(which, guid)
+    local state = { text = "", yes = false }
+    local box = { GetText = function() return state.text end }
+    function box:SetText(text)
+        state.text = text
+        state.yes = text == DELETE_ITEM_CONFIRM_STRING      -- Blizzard's confirmation handler
+    end
+    local d = { which = which, data = readOnly({ itemGUID = guid }, "dialog data") }
+    function d:GetEditBox() return box end
+    function d:GetButton1() return { IsEnabled = function() return state.yes end } end
+    d.state = state
+    WoW.dialogs[which] = readOnly(d, "dialog")
+    return WoW.dialogs[which]
+end
+function StaticPopup_FindVisible(which)
+    if WoW.popupThrows then error("popup read refused") end
+    return WoW.dialogs[which]
+end
+
 function WoW.calledCount(name)
     local n = 0
     for _, c in ipairs(WoW.calls) do if c[1] == name then n = n + 1 end end

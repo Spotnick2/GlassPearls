@@ -35,6 +35,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #42 | Low-rank buffs (pearl `lowbuffs`): a single-target buff on you at a lower rank than its caster could cast; the opt-in whisper to people you know | built; the source units, the downrank rule and the whisper wait for day one |
 | #43 | Instance gear reminders (pearl `instancegear`): the Argent Dawn trinket in Scholomance and Stratholme | built; the instance and standing reads, the bank count and the event order wait for day one |
 | #38 | Hunter pet care (pearl `petcare`): the feeding reminder and Feed button, what the pet eats, the missing, dead or Passive checks | built; the Feed button, the bag marks, the Passive read and the level band wait for day one |
+| #40 | Easy delete (pearl `easydelete`, off by default): DELETE filled in for good items up to a chosen quality | built; the fill from addon code and taint wait for day one |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -320,6 +321,12 @@ story NPC, a multi-page NPC)
       button its child.
 - [ ] Taint checks: mind the measured `taintLog` bug (porting guide); compare with logging off and
       finish with it off.
+
+**Easy delete (#40)** (an epic and a rare to destroy, one of them a quest item)
+- [ ] The fill from addon code: Yes enabled; delete through Yes and through Enter, for the ordinary and
+      the quest popup; cancel and reopen; the popup frame reused by another popup afterwards.
+- [ ] Taint: with the taint log on and off (porting guide: compare, finish with it off).
+- [ ] `DELETE_ITEM_CONFIRM`'s payload (the GUID present), its order against Blizzard's handler.
 
 **The probe (#5):** its steps are added here by its PR.
 
