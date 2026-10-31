@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39); the day-one
 probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
@@ -226,6 +226,17 @@ order) and before the options window and bootstrap.
   synced integer per allowlisted reagent (`r<itemID>`). Unmeasured until day one.
 - **`Pearls\RestockFrame.lua`**: its "ask first" window (beside Blizzard's merchant frame, read for
   its position) and its panel (the kinds and targets, mode, limits, this class's reagents).
+- **`Pearls\TrainAll.lua`**: train all (#39, pearl `trainall`, Combat > Spells, **off** by default; no settings).
+  Only a class trainer (`C_Trainer.GetTrainerType()` General, `IsTradeskillTrainer()` false) and only its
+  class spells: available, a plain whole cost, not a profession, `C_TooltipInfo.GetTrainerService(i)` a Spell
+  (type before id) whose ID `Data\Training.lua` has for this class, plainly unknown. A run (from the button)
+  buys the cheapest first while the money lasts, one in flight, the list read again each step (indexes shift;
+  the filter is never changed); confirmed only when the money reads exactly `before - cost` **and** the spell
+  reads known (`TRAINER_UPDATE`, `PLAYER_MONEY`, `SPELLS_CHANGED`, after the buy, and at the 2 s deadline);
+  the next step a frame later. Closing, combat and Disable end a run. Unmeasured until day one.
+- **`Pearls\TrainAllFrame.lua`**: its button: our own, 80 px, parented to `ClassTrainerFrame` left of
+  `ClassTrainerTrainButton` (read, never written), the count and cost in its tooltip (motion scripts while
+  disabled), made once after `Blizzard_TrainerUI` loads.
 - **`Pearls\FastLoot.lua`**: faster loot (#36, pearl `fastloot`, Loot & Bags > Loot, on by default).
   With auto loot on, takes every slot it safely can as the loot window opens. **One pass per loot
   session** (`LOOT_READY` / `LOOT_OPENED` to `LOOT_CLOSED`, a token per session), only when the

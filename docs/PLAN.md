@@ -39,6 +39,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #40 | Easy delete (pearl `easydelete`, off by default): DELETE filled in for good items up to a chosen quality | built; the fill from addon code and taint wait for day one |
 | #44 | Quest loot sparkle (pearl `sparkle`, off by default): the outline mode kept off so quest loot sparkles | built; the CVars, their effect and the restore wait for day one |
 | #45 | Trade summary (pearl `trades`, off by default): the money and items of each completed trade, in chat and a local log | built; the completion message and the event order wait for day one |
+| #39 | Train all (pearl `trainall`, off by default): a Train all button at the class trainer | built; `BuyTrainerService` from addon code and the trainer tooltip's identity wait for day one |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -356,6 +357,16 @@ story NPC, a multi-page NPC)
       `PLAYER_MONEY` (does the ambiguous order, a message after the next window opened, ever happen?).
 - [ ] Accept, change an offer, accept again: do the accepts reset (the last read is taken as traded)?
 - [ ] `GetUnitName("NPC", false)` during a trade; the item getters' returns (name, texture, count).
+
+**Train all (#39)** (a character with spells waiting at its class trainer)
+- [ ] `BuyTrainerService` from addon code, repeated outside the click: if it needs a hardware event,
+      the button becomes "Train next" (the cheapest per click); if it is forbidden even in our click, the
+      pearl is pointless. Pacing between purchases.
+- [ ] `C_TooltipInfo.GetTrainerService(i)`'s `type` and `id` for a class spell (a wrapper spell or
+      another type gets its own look, never a name fallback).
+- [ ] The event order after a purchase (`PLAYER_MONEY`, `SPELLS_CHANGED`, `TRAINER_UPDATE`).
+- [ ] The button's place on Forever's trainer frame, with large totals and UI scale; riding and weapon
+      masters show no button work (nothing of ours).
 
 **The probe (#5):** its steps are added here by its PR.
 

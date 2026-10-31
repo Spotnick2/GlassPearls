@@ -131,4 +131,7 @@
 - **Trade summary** (Social, off by default): after each completed trade, one line in your chat: "You gave
   12g to Name" or "You received 3g from Name" (or how your money changed, when both sides offered), and
   the items each way. The last 10 are kept in its panel, on that character only; `/gpearls trades`.
+- **Train all** (Combat, off by default): a Train all button on your class trainer's window learns every
+  class spell it offers, cheapest first, while your money lasts; its tooltip shows the count and the cost.
+  Only class spells: never riding, weapon skills, pet training or professions. `/gpearls trainall`.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.

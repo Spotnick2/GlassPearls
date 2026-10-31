@@ -47,6 +47,8 @@ Pearls\Buffs.lua
 Pearls\PaladinTank.lua
 Pearls\TrainingFrame.lua
 Pearls\Training.lua
+Pearls\TrainAllFrame.lua
+Pearls\TrainAll.lua
 Pearls\RestockFrame.lua
 Pearls\Restock.lua
 Pearls\MarkWheelFrame.lua
