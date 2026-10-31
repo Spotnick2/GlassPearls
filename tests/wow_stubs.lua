@@ -2107,6 +2107,39 @@ function StaticPopup_FindVisible(which)
     return WoW.dialogs[which]
 end
 
+--------------------------------------------------------------------------------
+-- Quest loot sparkle (#44). In the 70532 dump: C_CVar.GetCVar(name) -> optional
+-- string, C_CVar.SetCVar(name, value) -> success (nil on a failed precondition,
+-- CVarDocumentation.lua), CVAR_UPDATE(eventName, value), GX_RESTARTED.
+--   WoW.cvarValues[name] = "2" (nil: unknown to the client; a WoW.Secret)
+--   WoW.cvarRefuse[name] = false | "nil" | "throw" | "throwRead"; WoW.cvarSets = { { name, value } };
+--   WoW.cvarReads counts GetCVar calls
+--   WoW.cvarEventsLater: CVAR_UPDATE queued in WoW.cvarQueue instead of fired inside SetCVar
+--------------------------------------------------------------------------------
+
+WoW.cvarValues, WoW.cvarRefuse, WoW.cvarSets, WoW.cvarQueue = {}, {}, {}, {}
+C_CVar = C_CVar or {}
+WoW.cvarReads = 0
+C_CVar.GetCVar = function(name)
+    WoW.cvarReads = WoW.cvarReads + 1
+    if WoW.cvarRefuse[name] == "throwRead" then error("read refused") end
+    return WoW.cvarValues[name]
+end
+C_CVar.SetCVar = function(name, value)
+    local r = WoW.cvarRefuse[name]
+    if r == "throw" then error("set refused") end
+    if r == false then return false end
+    if r == "nil" then return nil end
+    WoW.cvarValues[name] = value
+    table.insert(WoW.cvarSets, { name, value })
+    if WoW.cvarEventsLater then
+        table.insert(WoW.cvarQueue, { name, value })
+    else
+        WoW.fire("CVAR_UPDATE", name, value)
+    end
+    return true
+end
+
 function WoW.calledCount(name)
     local n = 0
     for _, c in ipairs(WoW.calls) do if c[1] == name then n = n + 1 end end

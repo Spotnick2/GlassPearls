@@ -37,6 +37,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #38 | Hunter pet care (pearl `petcare`): the feeding reminder and Feed button, what the pet eats, the missing, dead or Passive checks | built; the Feed button, the bag marks, the Passive read and the level band wait for day one |
 | #37 | Social automation (pearl `social`, off by default): summons, resurrections, invites from people you know, declining duels | built; each call from addon code and whether each popup closes itself wait for day one |
 | #40 | Easy delete (pearl `easydelete`, off by default): DELETE filled in for good items up to a chosen quality | built; the fill from addon code and taint wait for day one |
+| #44 | Quest loot sparkle (pearl `sparkle`, off by default): the outline mode kept off so quest loot sparkles | built; the CVars, their effect and the restore wait for day one |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -340,6 +341,14 @@ story NPC, a multi-page NPC)
       the quest popup; cancel and reopen; the popup frame reused by another popup afterwards.
 - [ ] Taint: with the taint log on and off (porting guide: compare, finish with it off).
 - [ ] `DELETE_ITEM_CONFIRM`'s payload (the GUID present), its order against Blizzard's handler.
+
+**Quest loot sparkle (#44)** (a quest with loot on corpses or objects)
+- [ ] The five CVars on Forever, their values and `GetCVarInfo` flags (coupled: a graphics CVar changing
+      its engine one?); the sparkle shown on quest loot after the apply.
+- [ ] `CVAR_UPDATE`'s payload; whether a graphics preset fires it; `GX_RESTARTED`. The graphics panel's
+      Apply and Cancel (its outline dropdowns commit on Apply: an Apply can overwrite ours, re-applied 1 s
+      later); raid settings.
+- [ ] `SetCVar` from the timer; what the restore shows before and after a full restart.
 
 **The probe (#5):** its steps are added here by its PR.
 

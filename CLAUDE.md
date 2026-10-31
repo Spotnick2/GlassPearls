@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44); the day-one
 probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
@@ -348,6 +348,14 @@ order) and before the options window and bootstrap.
   `data.itemGUID`, the payload's and the cursor item's GUID agree, the edit box empty, the link readable;
   then the box's own `SetText(DELETE_ITEM_CONFIRM_STRING)` (Blizzard's handler enables Yes) and a chat line
   with the link. Never a write on the dialog, never the delete itself. Unmeasured until day one.
+- **`Pearls\Sparkle.lua`**: quest loot sparkle (#44, pearl `sparkle`, Loot & Bags > Loot, **off** by default; no
+  settings, no panel: its trade-off is in `desc`). `SP.WANTED`: `outlineModeShowLootEffectWhenDisabled` "1" and
+  the four outline modes "0" (a reference addon's facts). Applied out of combat at Enable, each loading screen
+  and 1 s after any `CVAR_UPDATE` / `GX_RESTARTED` (one token; payloads unread); the player's values
+  remembered once (`GlassPearlsDB.sparkle.before`). Disable restores, per CVar, only where it still reads ours
+  (a set must answer a plain true), deferred past combat (`PLAYER_REGEN_ENABLED` kept while off), cancelled by
+  switching back on; what can't be restored stays and `/gpearls sparkle restore` (while off) finishes it.
+  Unmeasured until day one.
 - **`Pearls\AutoGossip.lua`**: auto gossip (#47, pearl `autogossip`, Automation > NPCs, on by
   default). **Gossip only**: nothing while the NPC has quest business. Scope: ordinary gossip with an
   NPC (`GOSSIP_SHOW`'s `textureKit` plainly nil, `UnitExists("npc")` plainly true; a refresh keeps
