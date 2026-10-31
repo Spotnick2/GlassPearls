@@ -1991,6 +1991,82 @@ function WoW.showBag(frame, slots)
     frame:UpdateItems()
 end
 
+--------------------------------------------------------------------------------
+-- Train all (#39). In the 70532 dump: C_Trainer.GetTrainerType (Enum.TrainerType:
+-- General 0, TalentsObsolete 1, Tradeskills 2, Pet 3, TrainerConstantsDocumentation.lua),
+-- C_TooltipInfo.GetTrainerService, TRAINER_SHOW / _UPDATE / _CLOSED, SPELLS_CHANGED
+-- documented; GetNumTrainerServices, GetTrainerServiceInfo (name, serviceType, ...,
+-- Blizzard_TrainerUI.lua:484), GetTrainerServiceCost (moneyCost, isProfession, :708),
+-- BuyTrainerService in its _G walk (IsTradeskillTrainer is the spell ranks block's: WoW.tradeTrainer).
+-- ClassTrainerFrame and
+-- ClassTrainerTrainButton are Blizzard_TrainerUI's (load on demand: WoW.loadTrainerUI()).
+--   WoW.trainer = { type = 0, services = { { id, kind = "available", cost,
+--     profession = false, tipType = 1, name } } } (any field may be a WoW.Secret)
+--   WoW.trainSettle = "sync" (default: money, known spell, row and events inside the buy) |
+--     "manual" (WoW.trainPending = the bought service; the test settles it: WoW.settleTrain(what)) |
+--     "silent" (settled inside the buy, no event)
+--   WoW.trainRefuses = true: BuyTrainerService throws; WoW.bought = { id, ... }
+--------------------------------------------------------------------------------
+
+WoW.bought = {}
+Enum.TrainerType = { General = 0, TalentsObsolete = 1, Tradeskills = 2, Pet = 3 }
+local function services() return WoW.trainer and WoW.trainer.services or {} end
+C_Trainer = { GetTrainerType = function() return WoW.trainer and WoW.trainer.type end }
+function GetNumTrainerServices() return #services() end
+function GetTrainerServiceInfo(i)
+    local s = services()[i]
+    if s then return s.name or "Spell", s.kind or "available", 136243, 1, "", "Class" end
+end
+function GetTrainerServiceCost(i)
+    local s = services()[i]
+    if s then
+        local prof = s.profession
+        if prof == nil then prof = false end
+        return s.cost, prof
+    end
+end
+C_TooltipInfo = C_TooltipInfo or {}
+C_TooltipInfo.GetTrainerService = function(i)
+    local s = services()[i]
+    if not s then return nil end
+    if s.tip == "secret" then return WoW.Secret("tooltip") end
+    return { type = s.tipType == nil and Enum.TooltipDataType.Spell or s.tipType, id = s.id, lines = {} }
+end
+-- What a purchase changes; each part on its own so tests can order them.
+function WoW.settleTrain(what, s)
+    s = s or WoW.trainPending
+    if what == "money" then
+        WoW.money = WoW.money - s.cost
+        WoW.fire("PLAYER_MONEY")
+    elseif what == "known" then
+        WoW.known[s.id] = true
+        WoW.fire("SPELLS_CHANGED")
+    elseif what == "row" then
+        s.kind = "used"
+        WoW.fire("TRAINER_UPDATE")
+    end
+end
+function BuyTrainerService(i)
+    if WoW.trainRefuses then error("not now") end
+    local s = services()[i]
+    if not s then return end
+    table.insert(WoW.bought, s.id)
+    WoW.trainPending = s
+    if WoW.trainSettle == "silent" then              -- settled, but no event says so
+        WoW.money, WoW.known[s.id], s.kind = WoW.money - s.cost, true, "used"
+    elseif WoW.trainSettle ~= "manual" then
+        WoW.settleTrain("money", s)
+        WoW.settleTrain("known", s)
+        WoW.settleTrain("row", s)
+    end
+end
+function WoW.loadTrainerUI()
+    ClassTrainerFrame = CreateFrame("Frame", "ClassTrainerFrame", UIParent)
+    ClassTrainerTrainButton = CreateFrame("Button", "ClassTrainerTrainButton", ClassTrainerFrame,
+        "MagicButtonTemplate")
+    WoW.fire("ADDON_LOADED", "Blizzard_TrainerUI")
+end
+
 function WoW.calledCount(name)
     local n = 0
     for _, c in ipairs(WoW.calls) do if c[1] == name then n = n + 1 end end

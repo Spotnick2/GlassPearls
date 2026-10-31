@@ -35,6 +35,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #42 | Low-rank buffs (pearl `lowbuffs`): a single-target buff on you at a lower rank than its caster could cast; the opt-in whisper to people you know | built; the source units, the downrank rule and the whisper wait for day one |
 | #43 | Instance gear reminders (pearl `instancegear`): the Argent Dawn trinket in Scholomance and Stratholme | built; the instance and standing reads, the bank count and the event order wait for day one |
 | #38 | Hunter pet care (pearl `petcare`): the feeding reminder and Feed button, what the pet eats, the missing, dead or Passive checks | built; the Feed button, the bag marks, the Passive read and the level band wait for day one |
+| #39 | Train all (pearl `trainall`, off by default): a Train all button at the class trainer | built; `BuyTrainerService` from addon code and the trainer tooltip's identity wait for day one |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -320,6 +321,16 @@ story NPC, a multi-page NPC)
       button its child.
 - [ ] Taint checks: mind the measured `taintLog` bug (porting guide); compare with logging off and
       finish with it off.
+
+**Train all (#39)** (a character with spells waiting at its class trainer)
+- [ ] `BuyTrainerService` from addon code, repeated outside the click: if it needs a hardware event,
+      the button becomes "Train next" (the cheapest per click); if it is forbidden even in our click, the
+      pearl is pointless. Pacing between purchases.
+- [ ] `C_TooltipInfo.GetTrainerService(i)`'s `type` and `id` for a class spell (a wrapper spell or
+      another type gets its own look, never a name fallback).
+- [ ] The event order after a purchase (`PLAYER_MONEY`, `SPELLS_CHANGED`, `TRAINER_UPDATE`).
+- [ ] The button's place on Forever's trainer frame, with large totals and UI scale; riding and weapon
+      masters show no button work (nothing of ours).
 
 **The probe (#5):** its steps are added here by its PR.
 

@@ -116,4 +116,7 @@
   - **Pet checks:** "Your pet is dead", "You have no pet out" or "Your pet is on Passive", at the
     start of a fight and at a ready check (both on), or out of combat when it disappears (off).
   - `/gpearls petcare` shows what it reads; `never` and `forget` manage the list.
+- **Train all** (Combat, off by default): a Train all button on your class trainer's window learns every
+  class spell it offers, cheapest first, while your money lasts; its tooltip shows the count and the cost.
+  Only class spells: never riding, weapon skills, pet training or professions. `/gpearls trainall`.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.
