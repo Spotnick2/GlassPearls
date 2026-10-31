@@ -63,5 +63,6 @@ Pearls\PetCare.lua
 Pearls\Social.lua
 Pearls\EasyDelete.lua
 Pearls\Sparkle.lua
+Pearls\Trades.lua
 Options.lua
 GlassPearls.lua

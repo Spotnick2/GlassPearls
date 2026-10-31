@@ -2140,6 +2140,38 @@ C_CVar.SetCVar = function(name, value)
     return true
 end
 
+--------------------------------------------------------------------------------
+-- Trade summary (#45). In the 70532 dump: TRADE_SHOW / _UPDATE / _MONEY_CHANGED /
+-- _PLAYER_ITEM_CHANGED / _TARGET_ITEM_CHANGED / _ACCEPT_UPDATE / _CLOSED,
+-- UI_INFO_MESSAGE(errorType, message), PLAYER_MONEY; GetPlayerTradeMoney,
+-- GetTargetTradeMoney, GetTradePlayerItemInfo / Link, GetTradeTargetItemInfo /
+-- Link in its _G walk (TradeFrame.lua:100: name, texture, numItems, ...).
+-- ERR_TRADE_COMPLETE is GlobalStrings'; its message index is ours (WoW.TRADE_COMPLETE).
+--   WoW.trade = { mine = { money, items = { [slot] = { link, count } | "secret" } }, theirs = { ... } };
+--   the partner is GetUnitName("NPC") (WoW.fullNames.NPC)
+--------------------------------------------------------------------------------
+
+ERR_TRADE_COMPLETE = "Trade complete."
+WoW.TRADE_COMPLETE = 230
+WoW.errorNames[WoW.TRADE_COMPLETE] = "ERR_TRADE_COMPLETE"
+local function tradeSide(which) return WoW.trade and WoW.trade[which] or { items = {} } end
+local function tradeItem(which, i)
+    local it = tradeSide(which).items[i]
+    if it == "secret" then return WoW.Secret("trade item"), nil, WoW.Secret("count") end
+    if it then return "Item", 134400, it.count == "secret" and WoW.Secret("count") or it.count end
+    return nil
+end
+local function tradeLink(which, i)
+    local it = tradeSide(which).items[i]
+    return type(it) == "table" and it.link or nil
+end
+function GetTradePlayerItemInfo(i) return tradeItem("mine", i) end
+function GetTradeTargetItemInfo(i) return tradeItem("theirs", i) end
+function GetTradePlayerItemLink(i) return tradeLink("mine", i) end
+function GetTradeTargetItemLink(i) return tradeLink("theirs", i) end
+function GetPlayerTradeMoney() return tradeSide("mine").money or 0 end
+function GetTargetTradeMoney() return tradeSide("theirs").money or 0 end
+
 function WoW.calledCount(name)
     local n = 0
     for _, c in ipairs(WoW.calls) do if c[1] == name then n = n + 1 end end
