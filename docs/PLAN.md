@@ -35,6 +35,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #42 | Low-rank buffs (pearl `lowbuffs`): a single-target buff on you at a lower rank than its caster could cast; the opt-in whisper to people you know | built; the source units, the downrank rule and the whisper wait for day one |
 | #43 | Instance gear reminders (pearl `instancegear`): the Argent Dawn trinket in Scholomance and Stratholme | built; the instance and standing reads, the bank count and the event order wait for day one |
 | #38 | Hunter pet care (pearl `petcare`): the feeding reminder and Feed button, what the pet eats, the missing, dead or Passive checks | built; the Feed button, the bag marks, the Passive read and the level band wait for day one |
+| #45 | Trade summary (pearl `trades`, off by default): the money and items of each completed trade, in chat and a local log | built; the completion message and the event order wait for day one |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -320,6 +321,12 @@ story NPC, a multi-page NPC)
       button its child.
 - [ ] Taint checks: mind the measured `taintLog` bug (porting guide); compare with logging off and
       finish with it off.
+
+**Trade summary (#45)** (two characters trading money and items)
+- [ ] `ERR_TRADE_COMPLETE` by `GetGameMessageInfo` after a trade; its order against `TRADE_CLOSED` and
+      `PLAYER_MONEY` (does the ambiguous order, a message after the next window opened, ever happen?).
+- [ ] Accept, change an offer, accept again: do the accepts reset (the last read is taken as traded)?
+- [ ] `GetUnitName("NPC", false)` during a trade; the item getters' returns (name, texture, count).
 
 **The probe (#5):** its steps are added here by its PR.
 

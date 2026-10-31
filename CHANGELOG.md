@@ -116,4 +116,7 @@
   - **Pet checks:** "Your pet is dead", "You have no pet out" or "Your pet is on Passive", at the
     start of a fight and at a ready check (both on), or out of combat when it disappears (off).
   - `/gpearls petcare` shows what it reads; `never` and `forget` manage the list.
+- **Trade summary** (Social, off by default): after each completed trade, one line in your chat: "You gave
+  12g to Name" or "You received 3g from Name" (or how your money changed, when both sides offered), and
+  the items each way. The last 10 are kept in its panel, on that character only; `/gpearls trades`.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.

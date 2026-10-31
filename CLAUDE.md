@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and trade summary (#45); the day-one
 probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
@@ -331,6 +331,16 @@ order) and before the options window and bootstrap.
   `UpdateItems`, once; our own child frame per button in a weak table (nothing written on Blizzard's
   buttons; the button's bag and slot read every time, they're pooled); none created in combat (made
   after the fight).
+- **`Pearls\Trades.lua`**: trade summary (#45, pearl `trades`, Social > Trade, **off** by default; its panel, the
+  log, inside). Completion only on the info message named `ERR_TRADE_COMPLETE` (by `GetGameMessageInfo`;
+  the localized text as fallback). The money is the observed net change of `GetMoney` from `TRADE_SHOW` to
+  `PLAYER_MONEY` after completion (or 2 s, or the next `TRADE_SHOW`); the window's offers only choose the
+  wording ("You gave" / "You received") when one side offered and the purse moved by exactly that. The
+  window (slots 1-6; 7 is the enchant slot) is read at every update while open. Two records, the active one
+  and at most one closed one waiting 2 s for its message; `TRADE_SHOW` empties that slot (a confirmed one
+  said, an unconfirmed one dropped) and a trade opened then, or within 2 s of a line, is **ambiguous and never
+  reported** (the message names no trade). The log: the last 10 lines in `GlassPearlsCharDB.trades`, never
+  synced. Unmeasured until day one.
 - **`Pearls\AutoGossip.lua`**: auto gossip (#47, pearl `autogossip`, Automation > NPCs, on by
   default). **Gossip only**: nothing while the NPC has quest business. Scope: ordinary gossip with an
   NPC (`GOSSIP_SHOW`'s `textureKit` plainly nil, `UnitExists("npc")` plainly true; a refresh keeps
