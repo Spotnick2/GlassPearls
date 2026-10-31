@@ -132,6 +132,10 @@ refused("Feed Pet unusable", function() WoW.spellUsable[6991] = false end, funct
 refused("the pet gone", function() WoW.pet.dead = true end, function() WoW.pet.dead = nil; happy(2) end)
 check(FR.IsShown(), "offered again once the pet is back")
 refused("not a hunter pet now", function() WoW.pet.hunter = false end, function() WoW.pet.hunter = nil; happy(2) end)
+refused("Happy since, no event yet", function() WoW.pet.happiness = 3 end, function() happy(2) end)
+check(FR.IsShown(), "offered again once Content")
+refused("the happiness unreadable", function() WoW.pet.happiness = WoW.Secret("happiness") end,
+    function() happy(2) end)
 refused("in combat (lockdown)", function() WoW.combat = true end, function() WoW.combat = false end)
 reset()
 WoW.click(b, "RightButton", true)
@@ -203,6 +207,14 @@ check(not FR.IsShown(), "test in combat: not shown")
 WoW.combat = false
 P.Command("petcare").run("test")
 check(FR.IsShown() and f.status:GetText():find("A test", 1, true), "test: the window")
+check(FR.Choice() ~= nil and b:IsEnabled(), "  with food on offer, Feed enabled")
+reset()
+WoW.click(b, "LeftButton", true)
+WoW.click(b, "LeftButton", false)
+eq(#WoW.secureActions, 0, "  Feed on a Happy pet: no action")
+eq(#WoW.fed, 0, "  nothing fed")
+check(disarmed(b), "  disarmed")
+check(not FR.IsShown(), "  closed: the pet is happy enough")
 FR.Close()
 
 --------------------------------------------------------------------------------

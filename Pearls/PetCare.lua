@@ -280,8 +280,8 @@ function PC.CanFeed(choice)
     local ok, kind = pcall(GetCursorInfo)
     if not ok or API.IsSecret(kind) or kind ~= nil then return false, "the cursor holds something" end
     if flag(SpellIsTargeting) ~= false then return false, "another spell is waiting for a target" end
-    local p = PC.Pet()
-    if not (p.exists == true and p.dead == false and p.hunter == true) then return false, "no live pet" end
+    -- A live hunter pet at or below the threshold: the test window feeds only real hunger.
+    if PC.Mood() ~= "hungry" then return false, "no hungry pet" end
     local s = GP.Bags.Slot(choice.bag, choice.slot)
     if not (s and s.id == choice.id) then return false, "the food moved" end
     if not s.lockKnown or s.locked then return false, "the food is busy" end

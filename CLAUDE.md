@@ -302,7 +302,8 @@ order) and before the options window and bootstrap.
     `GET_ITEM_INFO_RECEIVED` chooses again), lock plainly false. A heuristic: within 10 levels of the
     pet, the cheapest per item first, else the highest level; ties by bag and slot.
   - **`PC.CanFeed`** (the Feed button's click): the pearl and window, `GetCursorInfo` empty,
-    `SpellIsTargeting` plainly false, a live hunter pet, the slot still holding the item unlocked, still
+    `SpellIsTargeting` plainly false, a live hunter pet still at or below the threshold (`PC.Mood()`
+    "hungry": the test window never feeds a Happy pet), the slot still holding the item unlocked, still
     edible and not never-listed, `C_Spell.IsSpellUsable(6991)` plainly true. Refused: chosen again.
   - **Pet checks** (`missing`, `passive`; when: `atFight`, `atReady`, `away`): "Your pet is dead", "You
     have no pet out", "Your pet is on Passive" (the token slot whose texture key is
