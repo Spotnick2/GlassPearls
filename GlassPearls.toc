@@ -27,6 +27,7 @@ Core\Bags.lua
 Core\Merchant.lua
 Core\AuraAlert.lua
 Core\Notice.lua
+Core\BagMarks.lua
 Data\Landmarks.lua
 Data\SpellRanks.lua
 Data\AuraDurations.lua

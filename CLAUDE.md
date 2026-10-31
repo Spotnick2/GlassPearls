@@ -30,7 +30,7 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 → `Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua` → `Libs\HereBeDragons-2.0\HereBeDragons-2.0.lua` →
 `Libs\HereBeDragons-2.0\HereBeDragons-Pins-2.0.lua` → `Compat.lua` → `Theme.lua` → `UI.lua` →
 `AccountSync.lua` → `Pearls.lua` → `SettingsSync.lua` → `Core\ToolItems.lua` → `Core\Bags.lua` →
-`Core\Merchant.lua` → `Core\AuraAlert.lua` → `Core\Notice.lua` →
+`Core\Merchant.lua` → `Core\AuraAlert.lua` → `Core\Notice.lua` → `Core\BagMarks.lua` →
 `Data\Landmarks.lua` → `Data\SpellRanks.lua` → `Data\AuraDurations.lua` → `Data\Training.lua` → `Data\Restock.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
 `Pearls\BagsFull.lua` → `Pearls\Landmarks.lua` → `Pearls\SpellRanksFrame.lua` →
 `Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua` → `Pearls\FixateFrame.lua` →
@@ -155,6 +155,12 @@ order) and before the options window and bootstrap.
   click-through, `CENTER` +200 under the fixate alert, held 6 s then faded, replaced by a new one;
   never Blizzard's raid warning, whose `AddMessage` runs `UpdateCenterScreenAnchors` and moves the
   private-aura anchor.
+- **`Core\BagMarks.lua`**: marks on Blizzard's bag buttons for any pearl (#38, #41). `Add(id, { anchor, x, y,
+  size, atlas, color, active(), prepare(), shows(bag, slot, ctx) })`, `Hook()` (once: a `hooksecurefunc` on each
+  `ContainerFrameContainer.ContainerFrames` frame's and `ContainerFrameCombinedBags`'s `UpdateItems`),
+  `Refresh(id)` (our own pass over the open bags; inactive hides that kind), `Marks(id)`. Our own child frame
+  per button and kind in a weak table (nothing written on Blizzard's buttons; bag and slot read every time,
+  they're pooled); none created in combat, decorated after it by the core's own `PLAYER_REGEN_ENABLED`.
 - **`Data\AuraDurations.lua`**: **generated** by `Tools\gen_durations.py` (SpellMisc → SpellDuration):
   each watched aura's full duration in seconds, for the approximate (`~`) timer.
 - **`Pearls\Buffs.lua`**: buff alerts (#21, pearl `buffs`, Combat > Alerts, on by default):
@@ -326,11 +332,8 @@ order) and before the options window and bootstrap.
   is in progress**; both edges, `useOnKeyDown` false, the release's PreClick arms it (type last), PostClick
   disarms. The window is protected in combat through its child: shown and hidden only out of combat
   (hidden inside `PLAYER_REGEN_DISABLED`), never in `UISpecialFrames`. **Tooltip** (`food` = `tooltip` |
-  `both`): one `TooltipDataProcessor` item post-call. **Bag marks** (`bags` | `both`): `hooksecurefunc`
-  on each `ContainerFrameContainer.ContainerFrames` frame's and `ContainerFrameCombinedBags`'s
-  `UpdateItems`, once; our own child frame per button in a weak table (nothing written on Blizzard's
-  buttons; the button's bag and slot read every time, they're pooled); none created in combat (made
-  after the fight).
+  `both`): one `TooltipDataProcessor` item post-call. **Bag marks** (`bags` | `both`): `Core\BagMarks.lua`'s
+  kind `petcare`.
 - **`Pearls\AutoGossip.lua`**: auto gossip (#47, pearl `autogossip`, Automation > NPCs, on by
   default). **Gossip only**: nothing while the NPC has quest business. Scope: ordinary gossip with an
   NPC (`GOSSIP_SHOW`'s `textureKit` plainly nil, `UnitExists("npc")` plainly true; a refresh keeps
