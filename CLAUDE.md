@@ -150,7 +150,7 @@ order) and before the options window and bootstrap.
   owner whose slot holds `data.id` ("Eligible for automatic sale: value" / "Kept: on your keep list"; a visit
   can still leave an eligible stack). Refreshed by the sell and keep sets' `SettingsSync.OnSetChanged`, Junk's
   `onSettingChanged`, `Enable` and `Disable`, `MERCHANT_CLOSED`, `EQUIPMENT_SETS_CHANGED` and
-  `ITEM_LOCK_CHANGED` (Blizzard's lock handler never runs `UpdateItems`). Unmeasured until day one.
+  `ITEM_LOCK_CHANGED` (Blizzard's lock handler never runs `UpdateItems`). Each refresh while on first installs the hooks its `show` needs, once each, so a seller switched on later gets them. Unmeasured until day one.
 - **`Core\AuraAlert.lua`**: what the aura-alert pearls share (#21). `AA.Read(id)`: one player aura by
   ID inside one pcall, answering present (plain table and fields, with its source unit), absent (nil
   AND `C_Secrets.ShouldSpellAuraBeSecret(id)` plainly false) or unknown. `AA.Sounds.New(failKey)`:

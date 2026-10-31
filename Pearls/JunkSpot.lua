@@ -63,8 +63,6 @@ GP.BagMarks.Add(JS.KEY, {
     end,
 })
 
-function JS.Refresh() GP.BagMarks.Refresh(JS.KEY) end
-
 -- The tooltip line, for one of Blizzard's bag buttons only.
 local function onTooltip(tooltip, data)
     if not shows("tooltip") or API.InCombat() then return end
@@ -114,6 +112,13 @@ local function start()
     end
 end
 
+-- Every change comes here, so the hooks are asked for first: the seller may
+-- only now sell (switched on, or its autoSell), and until then shows() was false.
+function JS.Refresh()
+    if JS.enabled then start() end
+    GP.BagMarks.Refresh(JS.KEY)
+end
+
 events:SetScript("OnEvent", function() JS.Refresh() end)   -- payloads unread
 
 local function configure(panel, refreshers)
@@ -136,7 +141,6 @@ end
 local function enable()
     JS.enabled = true
     API.RegisterEvents(events, { "MERCHANT_CLOSED", "EQUIPMENT_SETS_CHANGED", "ITEM_LOCK_CHANGED" })
-    start()
     JS.Refresh()
 end
 
@@ -162,10 +166,7 @@ GP.Pearls.Register({
     Enable = enable,
     Disable = disable,
     configure = configure,
-    onSettingChanged = function()
-        if JS.enabled then start() end
-        JS.Refresh()
-    end,
+    onSettingChanged = function() JS.Refresh() end,
 })
 
 JS._test = { events = events, onTooltip = onTooltip }
