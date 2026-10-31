@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and the junk spotlight (#41); the day-one
 probe (#5) follows. Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
@@ -85,7 +85,8 @@ order) and before the options window and bootstrap.
   `{ t = GetServerTime(), o = this character's GUID, s = saved counter }`, ordered t, o, s
   everywhere. What travels: every pearl's on/off (`on.<key>`), each pearl's settings
   (`<key>.<name>`: booleans, integers with `ranges`, strings with `choices`), `core.glassui`, and
-  sets (`RegisterSet`, `SetAdd`/`SetRemove`/`SetHas`/`SetMembers`/`SetClear`) with per-member
+  sets (`RegisterSet`, `SetAdd`/`SetRemove`/`SetHas`/`SetMembers`/`SetClear`; `OnSetChanged(id, fn)` after a
+  local or received change of a set, #41) with per-member
   stamps and **permanent tombstones**. Keys from a newer version are kept, merged and relayed,
   never applied, and adopted once known. Choices saved before a key synced (an upgrade) are
   **seeded** at start with a stamp at time 1, so they travel but lose to any real edit. Sends:
@@ -142,6 +143,14 @@ order) and before the options window and bootstrap.
   (`Merchant.Report`) for restock: "skip" when a sale or repair may still land (a run ended
   unconfirmed, by the buyback check, refused or by combat; an unconfirmed repair; combat; switched
   off mid-visit), "ready" otherwise, from every terminal path. Unmeasured until day one.
+- **`Pearls\JunkSpot.lua`**: junk spotlight (#41, pearl `junkspot`, Loot & Bags > Merchant, **off** by default;
+  its panel inside; `show` = `both` | `bags` | `tooltip`). Shows what the junk seller **may** sell: only while
+  it sells (`junk` on and its `autoSell`), only bags 0-4, by `Junk.Judge` alone (the equipment-set snapshot
+  once per pass). A coin (`Core\BagMarks.lua`'s kind `junkspot`) and a tooltip line, only for a bag button
+  owner whose slot holds `data.id` ("Eligible for automatic sale: value" / "Kept: on your keep list"; a visit
+  can still leave an eligible stack). Refreshed by the sell and keep sets' `SettingsSync.OnSetChanged`, Junk's
+  `onSettingChanged`, `Enable` and `Disable`, `MERCHANT_CLOSED`, `EQUIPMENT_SETS_CHANGED` and
+  `ITEM_LOCK_CHANGED` (Blizzard's lock handler never runs `UpdateItems`). Unmeasured until day one.
 - **`Core\AuraAlert.lua`**: what the aura-alert pearls share (#21). `AA.Read(id)`: one player aura by
   ID inside one pcall, answering present (plain table and fields, with its source unit), absent (nil
   AND `C_Secrets.ShouldSpellAuraBeSecret(id)` plainly false) or unknown. `AA.Sounds.New(failKey)`:

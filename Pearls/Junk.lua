@@ -575,6 +575,11 @@ local function enable()
     end)
 end
 
+-- The junk spotlight (#41) shows what this sells: tell it when that changes.
+local function spotlight()
+    if GP.JunkSpot then GP.JunkSpot.Refresh() end
+end
+
 local function disable()
     J.enabled = false
     events:UnregisterAllEvents()
@@ -582,6 +587,7 @@ local function disable()
     if state.run then state.run.ended = true end
     state.run, state.repair = nil, nil
     outcome(Merchant.Session(), "skip")   -- switched off mid-visit: whatever was in flight may land
+    spotlight()
 end
 
 GP.SettingsSync.RegisterSet(J.SELL)
@@ -601,8 +607,9 @@ GP.Pearls.Register({
     section = "Merchant",
     defaults = { autoSell = true, sellGrey = true, safe = false, autoRepair = true, repairFunds = "guild" },
     choices = { repairFunds = { "guild", "mine" } },
-    Enable = enable,
+    Enable = function() enable(); spotlight() end,
     Disable = disable,
+    onSettingChanged = spotlight,
     configure = function(panel, refreshers) GP.JunkFrame.Configure(panel, refreshers) end,
     commands = {
         sell = { help = "[item] - list what would be sold at a merchant, or put an item on the sell list", run = sellCommand },

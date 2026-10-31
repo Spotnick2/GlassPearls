@@ -100,12 +100,10 @@ local function context(id)
     return true
 end
 
-local function pass(cf, only)
+local function pass(cf)
     for _, id in ipairs(order) do
-        if not only or only == id then
-            local ctx = context(id)
-            for _, button in cf:EnumerateValidItems() do decorate(id, button, ctx) end
-        end
+        local ctx = context(id)
+        for _, button in cf:EnumerateValidItems() do decorate(id, button, ctx) end
     end
 end
 
@@ -133,8 +131,9 @@ function BM.Hook()
     if #bagFrames == 0 then API.Fail("bag marks", "Blizzard's bag frames missing") end
 end
 
--- Our own decoration of one kind over the open bags (never Blizzard's
--- UpdateItems). Inactive: every mark of that kind hidden.
+-- Our own decoration over the open bags when kind `id` changed (never
+-- Blizzard's UpdateItems; every kind is passed, each by its own state).
+-- Inactive: every mark of that kind hidden.
 function BM.Refresh(id)
     if not kinds[id] then return end
     if not kinds[id].active() then
@@ -143,7 +142,7 @@ function BM.Refresh(id)
     end
     for _, cf in ipairs(bagFrames) do
         if cf:IsShown() then
-            local ok, err = pcall(pass, cf, id)
+            local ok, err = pcall(pass, cf)
             if not ok then API.Fail("bag marks", err) end
         end
     end

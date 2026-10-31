@@ -35,6 +35,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #42 | Low-rank buffs (pearl `lowbuffs`): a single-target buff on you at a lower rank than its caster could cast; the opt-in whisper to people you know | built; the source units, the downrank rule and the whisper wait for day one |
 | #43 | Instance gear reminders (pearl `instancegear`): the Argent Dawn trinket in Scholomance and Stratholme | built; the instance and standing reads, the bank count and the event order wait for day one |
 | #38 | Hunter pet care (pearl `petcare`): the feeding reminder and Feed button, what the pet eats, the missing, dead or Passive checks | built; the Feed button, the bag marks, the Passive read and the level band wait for day one |
+| #41 | Junk spotlight (pearl `junkspot`, off by default): what the junk seller may sell, marked in the bags and tooltips | built; the marks beside pet care's and the tooltip owner wait for day one |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -320,6 +321,13 @@ story NPC, a multi-page NPC)
       button its child.
 - [ ] Taint checks: mind the measured `taintLog` bug (porting guide); compare with logging off and
       finish with it off.
+
+**Junk spotlight (#41)** (greys, a listed white, a kept item, a quest item in the bags)
+- [ ] The coins on Blizzard's bags, separate and combined, beside pet care's marks (a hunter); the
+      `Coin-Gold` atlas; no taint (open the bags in combat after the hooks ran).
+- [ ] The tooltip line on a bag item: `GameTooltip:GetOwner()` is the bag button and its `GetBagID` /
+      `GetID` read; none on a merchant's, a link's or a comparison tooltip.
+- [ ] A lock (picking an item up) hides its coin and putting it back restores it (`ITEM_LOCK_CHANGED`).
 
 **The probe (#5):** its steps are added here by its PR.
 

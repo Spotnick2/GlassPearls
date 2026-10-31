@@ -426,6 +426,7 @@ end }
 GameTooltip = newWidget("GameTooltip", UIParent, "GameTooltip")
 GameTooltip._lines = {}
 function Methods.SetOwner(t, owner) t._owner, t._lines = owner, {} end
+function Methods.GetOwner(t) return t._owner end
 function Methods.AddLine(t, text) table.insert(t._lines, text) end
 local plainSetText = Methods.SetText
 function Methods.SetText(w, text, ...)

@@ -40,6 +40,7 @@ Pearls\SpellRanksFrame.lua
 Pearls\SpellRanks.lua
 Pearls\JunkFrame.lua
 Pearls\Junk.lua
+Pearls\JunkSpot.lua
 Pearls\FixateFrame.lua
 Pearls\Fixate.lua
 Pearls\Uncrushable.lua

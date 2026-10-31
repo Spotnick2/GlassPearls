@@ -116,4 +116,7 @@
   - **Pet checks:** "Your pet is dead", "You have no pet out" or "Your pet is on Passive", at the
     start of a fight and at a ready check (both on), or out of combat when it disappears (off).
   - `/gpearls petcare` shows what it reads; `never` and `forget` manage the list.
+- **Junk spotlight** (Loot & Bags, off by default): a coin on the bag items Sell junk & repair may sell at the
+  next merchant, and a tooltip line ("Eligible for automatic sale", with its value, or "Kept: on your keep
+  list"). By the seller's own rules and lists; it shows nothing while the seller doesn't sell.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.
