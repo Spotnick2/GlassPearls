@@ -172,7 +172,10 @@ drain()
 local lines = R.state.last.lines
 eq(#lines, 10, "a rogue's plan: nine reagents and food, ten lines")
 local shown = 0
-for i = 1, #lines do if GP.RestockFrame.Get().rows[i]:IsShown() then shown = shown + 1 end end
+for i = 1, #lines do
+    local row = GP.RestockFrame.Get().rows[i]
+    if row and row:IsShown() then shown = shown + 1 end
+end
 eq(shown, #lines, "  every line has a row in the window")
 check(#lines <= GP.RestockFrame.MAX_ROWS, "  within the window's rows")
 local most = 0

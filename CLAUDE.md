@@ -20,7 +20,9 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
 uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38); the day-one
-probe (#5) follows. Nothing
+probe (#5) follows. The pearls that sell, buy, pick or destroy were audited offline (#61,
+[docs/AUDIT.md](docs/AUDIT.md): the property, the trace matrix, 15 findings with witness tests, the
+declared exceptions). Nothing
 has been measured in game for this addon: the client is unavailable until 2026-11-04, so every
 client claim is on the day-one checklist in docs/PLAN.md.
 
@@ -115,8 +117,10 @@ order) and before the options window and bootstrap.
   (partial stacks, then a matching specialty bag, then general), leaving `snap` as it was on
   false or nil (#36).
 - **`Core\Merchant.lua`**: the merchant session for any pearl (#15, #14): `IsOpen`,
-  `Session` (a counter per visit), `On(key, fn)` (registers `MERCHANT_SHOW` / `MERCHANT_CLOSED` when
-  the first pearl listens; a repeated close is told once), `Current(s)`, `After(delay, s, fn)` (only
+  `Session` (a counter per visit), `On(key, fn)` (registers `MERCHANT_SHOW` / `MERCHANT_CLOSED` /
+  `PLAYER_ENTERING_WORLD` when the first pearl listens; a repeated close is told once; **a show while
+  a visit is open, or a loading screen, first tells every listener `MERCHANT_CLOSED` for that
+  visit**, audit #61), `Current(s)`, `After(delay, s, fn)` (only
   if visit `s` is still open), and one pearl's outcome for a visit that another waits for:
   `Report(key, s, outcome)` (the first counts; another or a closed visit's is ignored) and
   `Await(key, s, seconds, fn)` (told the report, or "skip" after `seconds`; nothing once closed).
@@ -126,17 +130,20 @@ order) and before the options window and bootstrap.
   `junk.sell`) up to rare. Never: the keep list (`junk.keep`), quest items, tools, equipment-set
   items, the Hearthstone, refundable purchases (`C_Item.CanBeRefunded`, even listed); the grey rule
   skips unbound grey gear and greys with a use. At `MERCHANT_SHOW` (+0.2 s; Shift skips the visit;
-  never in combat): cheapest first, **one sale in flight**, each re-read just before (same GUID, ID,
-  count, link, still junk) and confirmed after (slot empty or the buyback page grew; 1 s without
-  stops). Refusals by `GetGameMessageInfo` name (`ERR_VENDOR_DOESNT_BUY`, `ERR_TOO_MUCH_GOLD`;
-  localized text as fallback), only while one of ours is in flight. Buyback-safe: the room left on
-  the page, a promise conditioned on the player selling nothing meanwhile, and a best-effort link
-  check before each sale and at the end. Money is reported as the change observed per phase,
-  never attributed. Repair after selling settles: guild funds first (`RepairAllItems(true)`, which
-  can take the player's money for what the allowance doesn't cover), then the player's money for
-  what's left once the first settled (the cost read again changed, on
-  `UPDATE_INVENTORY_DURABILITY`, within 2 s), or "my money only"; `[noautorepair]` in the guild
-  info, or an unreadable one, never charges the guild. Commands `/gpearls sell [item]`, `keep`,
+  never in combat): cheapest first, **one sale in flight**, each re-read just before (the pearl on,
+  the visit still current, `autoSell` still on, same GUID, ID, count, link, a lock read as unlocked,
+  still junk) and confirmed after (slot empty or holding another GUID, or the buyback page grew with
+  this sale as its newest entry; 1 s without stops). Refusals by `GetGameMessageInfo` name
+  (`ERR_VENDOR_DOESNT_BUY`, `ERR_TOO_MUCH_GOLD`; localized text as fallback), only while one of ours
+  is in flight. Buyback-safe: the room left on the page, a promise conditioned on the player selling
+  nothing meanwhile, and a best-effort link check before each sale and at the end. Money is
+  reported as the change observed per phase, never attributed. Repair after selling settles: guild
+  funds first (`RepairAllItems(true)`, which can take the player's money for what the allowance
+  doesn't cover), then the player's money for what's left once the first settled (the cost read
+  again **fell**, on `UPDATE_INVENTORY_DURABILITY`, within 2 s; risen is a hit, unsettled), the
+  pearl, the visit, `autoRepair` and combat read again first, or "my money only"; `[noautorepair]`
+  in the guild info, or an unreadable one, never charges the guild; nothing once the pearl is off, a
+  settle wait pending included (audit #61). Commands `/gpearls sell [item]`, `keep`,
   `forget` (the pearl key `junk` is its on/off). It reports each visit's outcome
   (`Merchant.Report`) for restock: "skip" when a sale or repair may still land (a run ended
   unconfirmed, by the buyback check, refused or by combat; an unconfirmed repair; combat; switched
@@ -215,16 +222,22 @@ order) and before the options window and bootstrap.
   rank** consumes them, never while Buffy restocks them (read in a pcall; unreadable: its fixed
   list). Owned counts only **as good or better** (conjured included); `R.Count` reads every slot of
   bags 0-4, locked ones too, and is nil (the line skipped) if one can't be read. Wanted in whole
-  packs rounded up. `R.Run`: one purchase in flight, each step reading the offer, the settings (a
-  kind switched off ends its line, a lower target counts, by hand or by sync), the recount, room
-  (`Bags.Fits`, fresh) and both limits (`budget`% of the money at the start, `maxSpend` gold; spent
-  = the larger of the confirmed prices and the money observed gone) again; a chunk is whole packs,
-  at most the merchant's max stack; confirmed only when the count reaches before + chunk within 2 s,
-  anything else stops the run. "Ask first" (`mode`) shows the lines and buys from Buy's click, the
-  shown counts as the most. Settings: the four kinds, three targets, mode, two limits, and one
-  synced integer per allowlisted reagent (`r<itemID>`). Unmeasured until day one.
+  packs rounded up. `R.Run`: one purchase in flight, each step reading the pearl and the visit, a
+  cursor that reads plainly empty (a throw or a secret is unknown: "cursor" stops), the offer, the
+  settings (a kind switched off ends its line, a lower target counts, by hand or by sync), the
+  recount, room (`Bags.Fits` on a strict snapshot, fresh) and both limits (`budget`% of the money at
+  the start, `maxSpend` gold, each the stricter of the plan's, shown by the Ask window, and the
+  current; spent = the larger of the confirmed prices and the money observed gone) again; a chunk is
+  whole packs, at most the merchant's max stack; `BuyMerchantItem`'s count is in items (Blizzard's
+  own merchant frame); confirmed only when the count reaches exactly before + chunk within 2 s: a
+  smaller increase stops the run, a larger one is recorded as bought and stops it ("More arrived
+  than was bought"), audit #61. "Ask first" (`mode`) shows every line (12 rows: the largest reagent
+  set plus water, food and ammunition) and buys from Buy's click, the shown counts as the most under
+  the shown limits. Settings: the four kinds, three targets, mode, two limits, and one synced integer
+  per allowlisted reagent (`r<itemID>`). Unmeasured until day one.
 - **`Pearls\RestockFrame.lua`**: its "ask first" window (beside Blizzard's merchant frame, read for
-  its position) and its panel (the kinds and targets, mode, limits, this class's reagents).
+  its position; `Ask(s, lines, limits)`, the limits captured with the plan and carried into `R.Run`)
+  and its panel (the kinds and targets, mode, limits, this class's reagents).
 - **`Pearls\FastLoot.lua`**: faster loot (#36, pearl `fastloot`, Loot & Bags > Loot, on by default).
   With auto loot on, takes every slot it safely can as the loot window opens. **One pass per loot
   session** (`LOOT_READY` / `LOOT_OPENED` to `LOOT_CLOSED`, a token per session), only when the
@@ -351,8 +364,10 @@ order) and before the options window and bootstrap.
   plus `ScrollUtil.AddInitializedFrameCallback`; option rows only), and only on a positive sign:
   a new page or an allowlisted service window (`SERVICE_TYPES`: never Binder, TalentMaster,
   SpiritHealer...). Silence is never clean (10 s, then dropped); two clicks before a sign: neither.
-  `CONFIRM_BINDER` / `_TALENT_WIPE` / `_XP_LOSS` mark the pending pick; `GOSSIP_CONFIRM` /
-  `GOSSIP_ENTER_CODE` name the option and also take it off the always list. After `repeats` (3)
+  `CONFIRM_BINDER` / `_TALENT_WIPE` / `_XP_LOSS` mark the pending pick, else **our own last pick**
+  (kept 10 s; audit #61: an always-listed binder comes off the list at its first popup instead of
+  asking at every inn); `GOSSIP_CONFIRM` / `GOSSIP_ENTER_CODE` name the option; all take it off the
+  always list. The default lone rule and encounter starters are #62's question. After `repeats` (3)
   picks, the prompt offers Always / Not now / Never (sync set `autogossip.never`), never for the
   binder, the healer, a confirmed option or a lone option the rule picks anyway. Counts, names
   and confirms are local (`GlassPearlsDB.autogossip`, counts at most 200). `/gpearls gossip
@@ -574,8 +589,10 @@ and ChatThrottleLib for LibAccountSync, `WoW.installGlassUI` for a scriptable Gl
 `WoW.installFakeHBD`, which the harness installs in place of the vendored copy, action slots,
 macros, known spells, overrides and a spell on the cursor (`WoW.actions`, `WoW.known`,
 `WoW.placeHook`, ...), and a merchant: selling, the buyback page, repair and guild funds
-(`WoW.openMerchant`, `WoW.money`, `WoW.buyback`, `WoW.repairCost`, `WoW.guild`, `WoW.salesAsync`,
-...) and its goods (`WoW.goods`, `BuyMerchantItem` into the bags, `WoW.buysAsync`, `WoW.buyShort`,
+(`WoW.openMerchant`, `WoW.money`, `WoW.buyback`, `WoW.repairCost`, `WoW.guild`, `WoW.salesAsync`
+(a pending sale's slot reads locked), `WoW.merchantGone` (no `MERCHANT_CLOSED`), `WoW.usedItems`
+(`UseContainerItem` with no merchant uses the item), ...) and its goods (`WoW.goods`,
+`BuyMerchantItem` into the bags, `WoW.buysAsync`, `WoW.buyShort`,
 `WoW.buyRefuses`, `WoW.equipped`, `WoW.loadedAddOns`), and player auras with the client's aura sounds and per-spell secrecy (`WoW.auras`,
 `WoW.spellAuraSecret`, `WoW.auraSounds`; `GetAuraDataBySpellName` throws, so no name lookup
 survives a test), and the character panel's stats (`WoW.stats`, `CharacterStatsPaneScrollBox`,

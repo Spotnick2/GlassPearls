@@ -35,6 +35,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #42 | Low-rank buffs (pearl `lowbuffs`): a single-target buff on you at a lower rank than its caster could cast; the opt-in whisper to people you know | built; the source units, the downrank rule and the whisper wait for day one |
 | #43 | Instance gear reminders (pearl `instancegear`): the Argent Dawn trinket in Scholomance and Stratholme | built; the instance and standing reads, the bank count and the event order wait for day one |
 | #38 | Hunter pet care (pearl `petcare`): the feeding reminder and Feed button, what the pet eats, the missing, dead or Passive checks | built; the Feed button, the bag marks, the Passive read and the level band wait for day one |
+| #61 | Audit: the pearls that sell, buy, pick or destroy (Junk, Restock, AutoGossip, the bags-full delete) | done offline ([docs/AUDIT.md](AUDIT.md): 15 findings fixed, each with a witness test); its day-one lines are below, marked "audit #61" |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
 ## Waiting for the client (day one: 2026-11-04)
@@ -71,6 +72,9 @@ Each line is a claim the code relies on that only the live client can settle.
       The reference addons call it from their own clicks; probe step 1 measures it first.
 - [ ] **The loot follows** (`LootSlot` after `BAG_UPDATE_DELAYED`): the ring lands in the freed slot.
       If refused, the loot window stays and the player clicks the row (change it to "highlight the row").
+- [ ] `ADDON_ACTION_FORBIDDEN` for `DeleteCursorItem`: does it fire inside the call (the refusal is read
+      right after it) or a frame later (then the cursor still holding the item is what catches it;
+      audit #61)?
 - [ ] The full-bags error names (`GetGameMessageInfo`) for a corpse, a herb or ore node, a quest
       object and a quest reward; add them to `BF.FULL_ERRORS` (only `ERR_INV_FULL` is in so far).
 - [ ] Loot that fits on a partial stack or in a herb / mining bag: no prompt.
@@ -141,6 +145,14 @@ Each line is a claim the code relies on that only the live client can settle.
       `GetGuildBankWithdrawMoney` / `GetGuildBankMoney` read before the bank is opened.
 - [ ] `UPDATE_INVENTORY_DURABILITY` after a repair, and the cost read again (the settle rule).
 - [ ] Shift held as the merchant opens skips both; the money lines match what the money did.
+- [ ] **`MERCHANT_CLOSED` when the client never says so** (audit #61: the session now closes itself on
+      a `MERCHANT_SHOW` with no close before it and at a loading screen; measure what the client
+      sends): click a second vendor with the first window open; hearth or take a portal with it open.
+      A close the client never sends at all would leave a run believing the vendor is still there.
+- [ ] `UPDATE_INVENTORY_DURABILITY` from a hit with the merchant window open: the cost rises and the
+      repair stays unsettled, "couldn't be confirmed" (audit #61).
+- [ ] The buyback page's newest entry is the highest index: `GetBuybackItemLink(GetNumBuybackItems())`
+      is the sale just made (audit #61: the growth evidence).
 
 **Fixate alert (#17)** (somewhere a mob fixates: find one; `/gpearls fixate` before and after)
 - [ ] **`AddAuraSound` from addon code**: `/gpearls fixate` says "the client plays it" for the four
@@ -215,6 +227,11 @@ Each line is a claim the code relies on that only the live client can settle.
 - [ ] Value order in game (water, bread); the Manna Biscuit counting as both; the defaults and limits feel right.
 - [ ] Buffy installed: its reagents left to it while its restock is on, bought when off.
 - [ ] Ask first: the window beside the merchant (screenshot), both looks.
+- [ ] **One pack first** (audit #61): the first automatic purchase at a vendor a single pack, the money
+      and the count read before and after (the count is in items, multiples of the pack); then the
+      usual targets.
+- [ ] Does `GetCursorInfo` ever return a secret, or throw? (Audit #61: either stops a run as "cursor".)
+- [ ] The Ask window with a rogue's ten lines (nine reagents and food): all shown, the total right.
 
 **Raid mark wheel (#34)** (solo, then a party, then a raid as a member and as an assistant)
 - [ ] The key (Key Bindings > Glass Pearls) opens the wheel over a mob in the world, a player, yourself
@@ -253,6 +270,11 @@ story NPC, a multi-page NPC)
 - [ ] Enter in a code popup, an innkeeper you're already bound at, a spirit healer alive and dead,
       a paid always option, a trainer's unlearn option, one option ID at two NPCs.
 - [ ] A multi-page NPC stops after 3 automatic picks; quickly talking again after an ambiguous close.
+- [ ] An innkeeper's bind option put on the always list (`/gpearls gossip always <id>`): our pick, the
+      bind popup once, the option off the list and said (audit #61: `CONFIRM_BINDER` after our own
+      pick); the talent master's unlearn option the same way.
+- [ ] Lone options that start something: at a raid boss or an event NPC, `/gpearls gossip` before
+      talking, with Shift held; what the rule would pick there is #62's evidence.
 
 **Faster loot (#36)** (solo, then a group with each loot method; a corpse with coins only)
 - [ ] `LootSlot` from our handler: no `ADDON_ACTION_BLOCKED` or forbidden. Is it faster than the
