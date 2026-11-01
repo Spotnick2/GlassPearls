@@ -16,11 +16,8 @@
 -- combat: it is shown and hidden only out of combat (hidden inside
 -- PLAYER_REGEN_DISABLED, before lockdown), and never in UISpecialFrames.
 --
--- Bag marks: a hooksecurefunc on each of Blizzard's bag frames' UpdateItems
--- (Mainline/ContainerFrame.lua:1191; the combined bags too). The mark is our
--- own child frame, kept in a weak table keyed by Blizzard's button: nothing
--- is written on Blizzard's buttons. None is created in combat; a button met
--- then is decorated after the fight.
+-- Bag marks: Core/BagMarks.lua (one set of hooks on Blizzard's bag frames,
+-- our own child frame per button, none created in combat).
 
 GlassPearls = GlassPearls or {}
 local GP = GlassPearls
@@ -37,10 +34,7 @@ local W, H, PAD = 320, 132, 14
 local f, feed          -- built on first show
 local pressed, armed = false, nil
 local pendingClose, pendingDisarm = false, false
-local marks = setmetatable({}, { __mode = "k" })     -- Blizzard's button -> our mark
-local pending = setmetatable({}, { __mode = "k" })   -- buttons met in combat
-local bagFrames = {}
-local bagsHooked, tooltipHooked = false, false
+local tooltipHooked = false
 
 local function PC() return GP.PetCare end
 local function setting(name) return GP.Pearls.Setting("petcare", name) end
@@ -246,99 +240,29 @@ local function hookTooltip()
     if not ok then API.Fail("pearl petcare tooltip", err) end
 end
 
-local function atlasKnown(name)
-    local info = C_Texture and C_Texture.GetAtlasInfo and ask(C_Texture.GetAtlasInfo, name)
-    return type(info) == "table"
-end
-
-local function newMark(button)
-    local m = CreateFrame("Frame", nil, button)
-    m:SetSize(14, 14)
-    m:SetPoint("TOPRIGHT", button, "TOPRIGHT", -2, -2)
-    m:EnableMouse(false)
-    local t = m:CreateTexture(nil, "OVERLAY")
-    t:SetAllPoints(m)
-    if atlasKnown(Frame.MARK_ATLAS) then
-        t:SetAtlas(Frame.MARK_ATLAS)
-    else
-        t:SetColorTexture(0.3, 1, 0.3, 0.9)
-    end
-    m.texture = t
-    marks[button] = m
-    return m
-end
-
--- One of Blizzard's bag buttons: its mark shown when its item (read now: the
--- buttons are pooled) is plainly edible for the pet out.
-local function decorate(button, out)
-    local show = false
-    if out then
-        local okB, bag = pcall(button.GetBagID, button)
-        local okS, slot = pcall(button.GetID, button)
-        if okB and okS and not API.IsSecret(bag) and not API.IsSecret(slot) then
-            local id = ask(C_Container.GetContainerItemID, bag, slot)
-            show = type(id) == "number" and PC().Edible(id) == true
-        end
-    end
-    local mark = marks[button]
-    if not mark then
-        if not show then return end
-        if API.InCombat() then
-            pending[button] = true                 -- created after the fight
-            return
-        end
-        mark = newMark(button)
-    end
-    mark:SetShown(show)
-end
-
-local function decorateFrame(cf)
-    local out = foodShows("bags") and petOut()
-    for _, button in cf:EnumerateValidItems() do decorate(button, out) end
-end
-
-local function onUpdateItems(cf)
-    local ok, err = pcall(decorateFrame, cf)
-    if not ok then API.Fail("pearl petcare bags", err) end
-end
-
-local function hookBags()
-    if bagsHooked then return end
-    bagsHooked = true
-    local list = {}
-    local container = rawget(_G, "ContainerFrameContainer")
-    if type(container) == "table" and type(container.ContainerFrames) == "table" then
-        for _, cf in ipairs(container.ContainerFrames) do list[#list + 1] = cf end
-    end
-    local combined = rawget(_G, "ContainerFrameCombinedBags")
-    if type(combined) == "table" then list[#list + 1] = combined end
-    for _, cf in ipairs(list) do
-        if type(cf.UpdateItems) == "function" and type(cf.EnumerateValidItems) == "function" then
-            hooksecurefunc(cf, "UpdateItems", onUpdateItems)
-            bagFrames[#bagFrames + 1] = cf
-        end
-    end
-    if #bagFrames == 0 then API.Fail("pearl petcare bags", "Blizzard's bag frames missing") end
-end
+-- The bag marks are Core/BagMarks.lua's kind "petcare": shown on a plainly
+-- edible item while a hunter pet is out and the setting asks for them.
+GP.BagMarks.Add("petcare", {
+    anchor = "TOPRIGHT", x = -2, y = -2, size = 14, atlas = Frame.MARK_ATLAS, color = { 0.3, 1, 0.3, 0.9 },
+    active = function() return foodShows("bags") end,
+    prepare = function() return { out = petOut() } end,
+    shows = function(bag, slot, ctx)
+        if not ctx.out then return false end
+        local id = ask(C_Container.GetContainerItemID, bag, slot)
+        return type(id) == "number" and PC().Edible(id) == true
+    end,
+})
 
 -- Hook what the food setting needs, once each (hooks can't be removed: each
 -- checks the pearl and the setting).
 function Frame.Start()
     if foodShows("tooltip") then hookTooltip() end
-    if foodShows("bags") then hookBags() end
+    if foodShows("bags") then GP.BagMarks.Hook() end
 end
 
 -- Our own decoration over the open bags (a new pet, a setting change,
 -- switched on or off); never Blizzard's UpdateItems. Off: every mark hidden.
-function Frame.Marks()
-    if not foodShows("bags") then
-        for _, m in pairs(marks) do m:Hide() end
-        return
-    end
-    for _, cf in ipairs(bagFrames) do
-        if cf:IsShown() then onUpdateItems(cf) end
-    end
-end
+function Frame.Marks() GP.BagMarks.Refresh("petcare") end
 
 -- Combat ended: finish what lockdown refused.
 function Frame.AfterCombat()
@@ -349,11 +273,6 @@ function Frame.AfterCombat()
     if pendingClose then
         pendingClose = false
         Frame.Close("after combat")
-    end
-    local out = foodShows("bags") and petOut()
-    for button in pairs(pending) do
-        pending[button] = nil
-        decorate(button, out)
     end
 end
 
@@ -422,9 +341,9 @@ end
 Frame._test = {
     frame = function() return f end,
     button = function() return feed end,
-    marks = marks,
-    pending = pending,
-    bagFrames = bagFrames,
+    marks = GP.BagMarks.Marks("petcare"),
+    pending = GP.BagMarks._test.pending,
+    bagFrames = GP.BagMarks._test.bagFrames,
     preClick = preClick,
     postClick = postClick,
 }
