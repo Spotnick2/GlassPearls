@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41); the day-one
 probe (#5) follows. The pearls that sell, buy, pick or destroy were audited offline (#61,
 [docs/AUDIT.md](docs/AUDIT.md): the property, the trace matrix, 15 findings with witness tests, the
 declared exceptions). Nothing
@@ -32,7 +32,7 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 → `Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua` → `Libs\HereBeDragons-2.0\HereBeDragons-2.0.lua` →
 `Libs\HereBeDragons-2.0\HereBeDragons-Pins-2.0.lua` → `Compat.lua` → `Theme.lua` → `UI.lua` →
 `AccountSync.lua` → `Pearls.lua` → `SettingsSync.lua` → `Core\ToolItems.lua` → `Core\Bags.lua` →
-`Core\Merchant.lua` → `Core\AuraAlert.lua` → `Core\Notice.lua` →
+`Core\Merchant.lua` → `Core\AuraAlert.lua` → `Core\Notice.lua` → `Core\BagMarks.lua` →
 `Data\Landmarks.lua` → `Data\SpellRanks.lua` → `Data\AuraDurations.lua` → `Data\Training.lua` → `Data\Restock.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
 `Pearls\BagsFull.lua` → `Pearls\Landmarks.lua` → `Pearls\SpellRanksFrame.lua` →
 `Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua` → `Pearls\FixateFrame.lua` →
@@ -87,7 +87,8 @@ order) and before the options window and bootstrap.
   `{ t = GetServerTime(), o = this character's GUID, s = saved counter }`, ordered t, o, s
   everywhere. What travels: every pearl's on/off (`on.<key>`), each pearl's settings
   (`<key>.<name>`: booleans, integers with `ranges`, strings with `choices`), `core.glassui`, and
-  sets (`RegisterSet`, `SetAdd`/`SetRemove`/`SetHas`/`SetMembers`/`SetClear`) with per-member
+  sets (`RegisterSet`, `SetAdd`/`SetRemove`/`SetHas`/`SetMembers`/`SetClear`; `OnSetChanged(id, fn)` after a
+  local or received change of a set, #41) with per-member
   stamps and **permanent tombstones**. Keys from a newer version are kept, merged and relayed,
   never applied, and adopted once known. Choices saved before a key synced (an upgrade) are
   **seeded** at start with a stamp at time 1, so they travel but lose to any real edit. Sends:
@@ -97,10 +98,11 @@ order) and before the options window and bootstrap.
   so its next appearance sends again; turning sharing back on sends at once. Replies only when
   holding something newer. Receiving applies
   through the same setters with stamping suppressed. A fixed byte budget per part (see the file's
-  header; `test_sync_budget` fills every part). Up to `SETS_MAX` (8) sets share the `SET_MAX` (200)
-  entries (sets raised from 4, #15; entries lowered from 300 after v0.1.0-alpha1, #29, to give the
-  known keys room). The format's decoder rejects more of either, so change them only before a
-  release or with a format change. The store is `GlassPearlsDB.sync`; integers are
+  header; `test_sync_budget` fills every part). Up to `SETS_MAX` (10) sets share the `SET_MAX` (200)
+  entries, and the registry holds up to `KNOWN_MAX` (160) keys (sets raised from 4, #15, and to 10
+  with the keys from 128, #53; entries lowered from 300 after v0.1.0-alpha1, #29, to give the known
+  keys room). The format's decoder rejects more of any of them (alpha1 more than 160 values or 8
+  sets), so change them only before a release or with a format change. The store is `GlassPearlsDB.sync`; integers are
   written with `%.0f` (Lua 5.1's `%d` is 32-bit on Windows).
 - **`Core\ToolItems.lua`**: **generated** by `Tools\gen_tools.py` from the client's ItemSparse and
   TotemCategory tables (`References\Forever\db`, the `wago-tools` skill): every item the client
@@ -148,6 +150,14 @@ order) and before the options window and bootstrap.
   (`Merchant.Report`) for restock: "skip" when a sale or repair may still land (a run ended
   unconfirmed, by the buyback check, refused or by combat; an unconfirmed repair; combat; switched
   off mid-visit), "ready" otherwise, from every terminal path. Unmeasured until day one.
+- **`Pearls\JunkSpot.lua`**: junk spotlight (#41, pearl `junkspot`, Loot & Bags > Merchant, **off** by default;
+  its panel inside; `show` = `both` | `bags` | `tooltip`). Shows what the junk seller **may** sell: only while
+  it sells (`junk` on and its `autoSell`), only bags 0-4, by `Junk.Judge` alone (the equipment-set snapshot
+  once per pass). A coin (`Core\BagMarks.lua`'s kind `junkspot`) and a tooltip line, only for a bag button
+  owner whose slot holds `data.id` ("Eligible for automatic sale: value" / "Kept: on your keep list"; a visit
+  can still leave an eligible stack). Refreshed by the sell and keep sets' `SettingsSync.OnSetChanged`, Junk's
+  `onSettingChanged`, `Enable` and `Disable`, `MERCHANT_CLOSED`, `EQUIPMENT_SETS_CHANGED` and
+  `ITEM_LOCK_CHANGED` (Blizzard's lock handler never runs `UpdateItems`). Each refresh while on first installs the hooks its `show` needs, once each, so a seller switched on later gets them. Unmeasured until day one.
 - **`Core\AuraAlert.lua`**: what the aura-alert pearls share (#21). `AA.Read(id)`: one player aura by
   ID inside one pcall, answering present (plain table and fields, with its source unit), absent (nil
   AND `C_Secrets.ShouldSpellAuraBeSecret(id)` plainly false) or unknown. `AA.Sounds.New(failKey)`:
@@ -161,6 +171,12 @@ order) and before the options window and bootstrap.
   click-through, `CENTER` +200 under the fixate alert, held 6 s then faded, replaced by a new one;
   never Blizzard's raid warning, whose `AddMessage` runs `UpdateCenterScreenAnchors` and moves the
   private-aura anchor.
+- **`Core\BagMarks.lua`**: marks on Blizzard's bag buttons for any pearl (#38, #41). `Add(id, { anchor, x, y,
+  size, atlas, color, active(), prepare(), shows(bag, slot, ctx) })`, `Hook()` (once: a `hooksecurefunc` on each
+  `ContainerFrameContainer.ContainerFrames` frame's and `ContainerFrameCombinedBags`'s `UpdateItems`),
+  `Refresh(id)` (our own pass over the open bags; inactive hides that kind), `Marks(id)`. Our own child frame
+  per button and kind in a weak table (nothing written on Blizzard's buttons; bag and slot read every time,
+  they're pooled); none created in combat, decorated after it by the core's own `PLAYER_REGEN_ENABLED`.
 - **`Data\AuraDurations.lua`**: **generated** by `Tools\gen_durations.py` (SpellMisc → SpellDuration):
   each watched aura's full duration in seconds, for the approximate (`~`) timer.
 - **`Pearls\Buffs.lua`**: buff alerts (#21, pearl `buffs`, Combat > Alerts, on by default):
@@ -238,6 +254,17 @@ order) and before the options window and bootstrap.
 - **`Pearls\RestockFrame.lua`**: its "ask first" window (beside Blizzard's merchant frame, read for
   its position; `Ask(s, lines, limits)`, the limits captured with the plan and carried into `R.Run`)
   and its panel (the kinds and targets, mode, limits, this class's reagents).
+- **`Pearls\TrainAll.lua`**: train all (#39, pearl `trainall`, Combat > Spells, **off** by default; no settings).
+  Only a class trainer (`C_Trainer.GetTrainerType()` General, `IsTradeskillTrainer()` false) and only its
+  class spells: available, a plain whole cost, not a profession, `C_TooltipInfo.GetTrainerService(i)` a Spell
+  (type before id) whose ID `Data\Training.lua` has for this class, plainly unknown. A run (from the button)
+  buys the cheapest first while the money lasts, one in flight, the list read again each step (indexes shift;
+  the filter is never changed); confirmed only when the money reads exactly `before - cost` **and** the spell
+  reads known (`TRAINER_UPDATE`, `PLAYER_MONEY`, `SPELLS_CHANGED`, after the buy, and at the 2 s deadline);
+  the next step a frame later. Closing, combat and Disable end a run. Unmeasured until day one.
+- **`Pearls\TrainAllFrame.lua`**: its button: our own, 80 px, parented to `ClassTrainerFrame` left of
+  `ClassTrainerTrainButton` (read, never written), the count and cost in its tooltip (motion scripts while
+  disabled), made once after `Blizzard_TrainerUI` loads.
 - **`Pearls\FastLoot.lua`**: faster loot (#36, pearl `fastloot`, Loot & Bags > Loot, on by default).
   With auto loot on, takes every slot it safely can as the loot window opens. **One pass per loot
   session** (`LOOT_READY` / `LOOT_OPENED` to `LOOT_CLOSED`, a token per session), only when the
@@ -338,11 +365,43 @@ order) and before the options window and bootstrap.
   is in progress**; both edges, `useOnKeyDown` false, the release's PreClick arms it (type last), PostClick
   disarms. The window is protected in combat through its child: shown and hidden only out of combat
   (hidden inside `PLAYER_REGEN_DISABLED`), never in `UISpecialFrames`. **Tooltip** (`food` = `tooltip` |
-  `both`): one `TooltipDataProcessor` item post-call. **Bag marks** (`bags` | `both`): `hooksecurefunc`
-  on each `ContainerFrameContainer.ContainerFrames` frame's and `ContainerFrameCombinedBags`'s
-  `UpdateItems`, once; our own child frame per button in a weak table (nothing written on Blizzard's
-  buttons; the button's bag and slot read every time, they're pooled); none created in combat (made
-  after the fight).
+  `both`): one `TooltipDataProcessor` item post-call. **Bag marks** (`bags` | `both`): `Core\BagMarks.lua`'s
+  kind `petcare`.
+- **`Pearls\Social.lua`**: social automation (#37, pearl `social`, Automation > Players, **off** by default; its
+  panel inside). Answers four popups through the API their own button calls (`C_SummonInfo.ConfirmSummon`,
+  `AcceptResurrect`, `CancelDuel`, `AcceptGroup`), never showing, hiding, clicking or writing a popup (the
+  invite's is left to Blizzard). A token per kind, replaced by every new event before any filtering; each
+  deferred step checks the token, the switch, Shift and `StaticPopup_Visible` for that popup. Summons: only
+  Blizzard's ordinary `CONFIRM_SUMMON` popup, 2 s, out of combat, `PlayerCanTeleport`. Resurrections: polled
+  each second within Blizzard's window, the same offerer, no sickness, the corpse delay over, you and your group
+  out of combat. Duels (off): declined unless the challenger (by `GetUnitName(unit, false)`, first name and
+  surname) is someone you know. Invites: someone you know (`S.Known(guid)`: Battle.net friend, friend,
+  `IsGuildMember`, your group), no roles, not in a group or a queue. Unmeasured until day one.
+- **`Pearls\EasyDelete.lua`**: easy delete (#40, pearl `easydelete`, Loot & Bags > Bags, **off** by default; its
+  panel inside). At `DELETE_ITEM_CONFIRM` (a token, replaced before any filtering), a frame later: the quality
+  a whole number from Rare (3) to the current `upTo` (`rare` | `epic` | `legendary`, Heirloom 7 above all),
+  the gamepad UI plainly off, `StaticPopup_FindVisible("DELETE_GOOD_ITEM")` (or the quest one) whose
+  `data.itemGUID`, the payload's and the cursor item's GUID agree, the edit box empty, the link readable;
+  then the box's own `SetText(DELETE_ITEM_CONFIRM_STRING)` (Blizzard's handler enables Yes) and a chat line
+  with the link. Never a write on the dialog, never the delete itself. Unmeasured until day one.
+- **`Pearls\Sparkle.lua`**: quest loot sparkle (#44, pearl `sparkle`, Loot & Bags > Loot, **off** by default; no
+  settings, no panel: its trade-off is in `desc`). `SP.WANTED`: `outlineModeShowLootEffectWhenDisabled` "1" and
+  the four outline modes "0" (a reference addon's facts). Applied out of combat at Enable, each loading screen
+  and 1 s after any `CVAR_UPDATE` / `GX_RESTARTED` (one token; payloads unread); the player's values
+  remembered once (`GlassPearlsDB.sparkle.before`). Disable restores, per CVar, only where it still reads ours
+  (a set must answer a plain true), deferred past combat (`PLAYER_REGEN_ENABLED` kept while off), cancelled by
+  switching back on; what can't be restored stays and `/gpearls sparkle restore` (while off) finishes it.
+  Unmeasured until day one.
+- **`Pearls\Trades.lua`**: trade summary (#45, pearl `trades`, Social > Trade, **off** by default; its panel, the
+  log, inside). Completion only on the info message named `ERR_TRADE_COMPLETE` (by `GetGameMessageInfo`;
+  the localized text as fallback). The money is the observed net change of `GetMoney` from `TRADE_SHOW` to
+  `PLAYER_MONEY` after completion (or 2 s, or the next `TRADE_SHOW`); the window's offers only choose the
+  wording ("You gave" / "You received") when one side offered and the purse moved by exactly that. The
+  window (slots 1-6; 7 is the enchant slot) is read at every update while open. Two records, the active one
+  and at most one closed one waiting 2 s for its message; `TRADE_SHOW` empties that slot (a confirmed one
+  said, an unconfirmed one dropped) and a trade opened then, or within 2 s of a line, is **ambiguous and never
+  reported** (the message names no trade). The log: the last 10 lines in `GlassPearlsCharDB.trades`, never
+  synced. Unmeasured until day one.
 - **`Pearls\AutoGossip.lua`**: auto gossip (#47, pearl `autogossip`, Automation > NPCs, on by
   default). **Gossip only**: nothing while the NPC has quest business. Scope: ordinary gossip with an
   NPC (`GOSSIP_SHOW`'s `textureKit` plainly nil, `UnitExists("npc")` plainly true; a refresh keeps
@@ -519,8 +578,8 @@ order) and before the options window and bootstrap.
    string setting its `choices` and an integer one its `ranges`, or it won't travel. A list (a
    keep list) is a sync set: `SettingsSync.RegisterSet("<key>.<name>")` at file scope. Mind the
    budget: `test_sync_budget` fails if the known keys outgrow their 12 KB or the whole, every part
-   full, its 31 KB, and the registry its 128 keys (with #38: 122 keys and 7 of 8 sets, known keys 9.0 KB,
-   the whole about 28 KB; 6 keys left).
+   full, its 31 KB, and the registry its 160 keys (with #38: 122 keys and 7 of 10 sets, known keys 9.0 KB,
+   the whole about 28 KB; the 12 KB share is the real limit, about 40 more keys).
 5. Slash commands of its own: `commands = { name = { help, run(arg) } }` (`/gpearls <name>`, listed
    by `/gpearls help`).
 6. A test file `tests\test_<name>.lua` (the bags-full helper's four are the model), and a line in

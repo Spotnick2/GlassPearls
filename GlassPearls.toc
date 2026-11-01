@@ -27,6 +27,7 @@ Core\Bags.lua
 Core\Merchant.lua
 Core\AuraAlert.lua
 Core\Notice.lua
+Core\BagMarks.lua
 Data\Landmarks.lua
 Data\SpellRanks.lua
 Data\AuraDurations.lua
@@ -39,6 +40,7 @@ Pearls\SpellRanksFrame.lua
 Pearls\SpellRanks.lua
 Pearls\JunkFrame.lua
 Pearls\Junk.lua
+Pearls\JunkSpot.lua
 Pearls\FixateFrame.lua
 Pearls\Fixate.lua
 Pearls\Uncrushable.lua
@@ -47,6 +49,8 @@ Pearls\Buffs.lua
 Pearls\PaladinTank.lua
 Pearls\TrainingFrame.lua
 Pearls\Training.lua
+Pearls\TrainAllFrame.lua
+Pearls\TrainAll.lua
 Pearls\RestockFrame.lua
 Pearls\Restock.lua
 Pearls\MarkWheelFrame.lua
@@ -60,5 +64,9 @@ Pearls\InstanceGearFrame.lua
 Pearls\InstanceGear.lua
 Pearls\PetCareFrame.lua
 Pearls\PetCare.lua
+Pearls\Social.lua
+Pearls\EasyDelete.lua
+Pearls\Sparkle.lua
+Pearls\Trades.lua
 Options.lua
 GlassPearls.lua
