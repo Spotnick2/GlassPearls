@@ -77,4 +77,55 @@ P.Set("autogossip", true)
 check(SS.SetHas(G.ALWAYS, 706) and not confirms[706], "switched off: nothing remembered or removed")
 bye()
 
+-- Two conversations within the ten seconds (PR #63 review): our pick belongs to
+-- its own conversation. A nameless confirmation in the next one (a Blizzard or
+-- keyboard selection, no PreClick of ours) never names it.
+local NPC_A = { id = "NPC", guid = "Creature-0-1-2-3-4567-0000AAAA" }
+local NPC_B = { id = "NPC", guid = "Creature-0-1-2-3-4568-0000BBBB" }
+-- Another NPC after a terminal close: a new chain.
+WoW.units.npc = NPC_A
+SS.SetAdd(G.ALWAYS, 710)
+n = selects()
+talk({ options = { opt(701, 1), opt(710, 2) } })
+eq(selects(), n + 1, "picked at the first NPC")
+bye()                                              -- terminal close: the chain ends
+WoW.units.npc = NPC_B
+talk({ options = { opt(711, 1), opt(712, 2) } })   -- the second NPC: nothing picked
+eq(selects(), n + 1, "  nothing picked at the second")
+WoW.fire("CONFIRM_BINDER", "The inn")              -- the player picked there, not through our hook
+check(SS.SetHas(G.ALWAYS, 710) and not confirms[710], "another NPC's confirmation never names our earlier pick")
+bye()
+-- The same NPC, a new conversation (a new chain): the same.
+WoW.units.npc = NPC_A
+SS.SetAdd(G.ALWAYS, 713)
+n = selects()
+talk({ options = { opt(701, 1), opt(713, 2) } })
+eq(selects(), n + 1, "picked")
+bye()
+talk({ options = { opt(714, 1), opt(715, 2) } })
+WoW.fire("CONFIRM_TALENT_WIPE", 1000)
+check(SS.SetHas(G.ALWAYS, 713) and not confirms[713], "a new conversation at the same NPC: not ours either")
+bye()
+-- Another NPC within a chain the close left open (continuing or unknown): its GUID tells.
+SS.SetAdd(G.ALWAYS, 716)
+n = selects()
+talk({ options = { opt(701, 1), opt(716, 2) } })
+eq(selects(), n + 1, "picked")
+WoW.closeGossip(true)                              -- a close that may continue: the chain stays
+WoW.units.npc = NPC_B
+talk({ options = { opt(717, 1), opt(718, 2) } })
+WoW.fire("CONFIRM_BINDER", "The inn")
+check(SS.SetHas(G.ALWAYS, 716) and not confirms[716], "another NPC in an open chain: not ours")
+bye()
+-- The same conversation's next page keeps it (a multi-page NPC, then the popup).
+WoW.units.npc = NPC_A
+SS.SetAdd(G.ALWAYS, 719)
+n = selects()
+talk({ options = { opt(701, 1), opt(719, 2) } })
+eq(selects(), n + 1, "picked")
+talk({ options = { opt(720, 1), opt(721, 2) } })   -- the same NPC's next page, the chain open
+WoW.fire("CONFIRM_BINDER", "The inn")
+check(not SS.SetHas(G.ALWAYS, 719) and confirms[719], "the same conversation's next page: still ours")
+bye()
+
 done("test_autogossip_audit")
