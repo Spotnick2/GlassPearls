@@ -30,10 +30,12 @@
 -- Learning counts only a click on Blizzard's own option button (a PreClick
 -- hooked on GossipFrame.GreetingPanel.ScrollBox's option buttons), and only
 -- once the pick visibly went through, in the same conversation: a new page, or
--- an ordinary service window (SERVICE_TYPES). A confirmation instead marks the option as one
--- never offered; GOSSIP_CONFIRM / GOSSIP_ENTER_CODE name it and also take it
--- off the always list. After `repeats` such picks the prompt offers to always
--- pick it.
+-- an ordinary service window (SERVICE_TYPES). A confirmation instead marks the
+-- option as one never offered and takes it off the always list: GOSSIP_CONFIRM
+-- / GOSSIP_ENTER_CODE name it; CONFIRM_BINDER / _TALENT_WIPE / _XP_LOSS don't,
+-- so they go to the player's pending pick, else to our own last pick (kept
+-- PENDING_SECONDS; audit #61: an always-listed binder would otherwise ask at
+-- every inn). After `repeats` such picks the prompt offers to always pick it.
 -- Unmeasured until 2026-11-04: all of it (docs/PLAN.md, day one).
 
 GlassPearls = GlassPearls or {}
@@ -74,6 +76,8 @@ local state = {
     chainToken = 0,
     pending = nil,       -- the player's pick waiting for a sign
     pendingGen = 0,
+    ownPick = nil,       -- our last pick { id, chain, npc }, for a confirmation that names no option
+    ownPickGen = 0,
     own = false,         -- our own select is running
     services = {},       -- the `services` icons, resolved at Enable
     iconReport = {},
@@ -427,10 +431,28 @@ local function confirmed(id, why)
     trace("confirmation for " .. id .. " (" .. why .. ")")
 end
 
--- A confirmation that names no option: the single pending pick's.
+-- Is our remembered pick still this conversation's? Not once another
+-- conversation began (a new chain, an out-of-scope page) or another NPC's
+-- page showed (both GUIDs plain and different). Its own close keeps it: the
+-- client may close the gossip before the popup (PR #63 review).
+local function ownPickHolds(inScope)
+    local o = state.ownPick
+    if not o then return false end
+    if inScope == false then return false end
+    if not (state.chain and state.chain.token == o.chain) and inScope ~= nil then return false end
+    local guid = npcGUID()
+    if o.npc and guid and guid ~= o.npc then return false end
+    return true
+end
+
+-- A confirmation that names no option: the player's pending pick's, else our
+-- own last pick's, in this conversation (nothing else selects: Blizzard's lone
+-- pick never gets one from us, and the player's clicks are the pending pick).
 local function confirmedPending(why)
     local p = state.pending
-    if p then confirmed(p.id, why) end
+    local id = p and p.id or (ownPickHolds(nil) and state.ownPick.id) or nil
+    state.ownPick = nil
+    if id then confirmed(id, why) end
 end
 
 --------------------------------------------------------------------------------
@@ -454,6 +476,14 @@ local function attempt(token)
     page.selected = true
     chain.picks = chain.picks + 1
     if cand.id then chain.ids[cand.id] = true else chain.locked = true end
+    -- Remembered for a confirmation that names no option, PENDING_SECONDS long,
+    -- in this conversation only.
+    state.ownPick = cand.id and { id = cand.id, chain = chain.token, npc = npcGUID() } or nil
+    state.ownPickGen = state.ownPickGen + 1
+    local gen = state.ownPickGen
+    C_Timer.After(G.PENDING_SECONDS, function()
+        if state.ownPickGen == gen then state.ownPick = nil end
+    end)
     state.own = true
     local ok, err
     if cand.id then ok, err = pcall(C_GossipInfo.SelectOption, cand.id)
@@ -477,6 +507,8 @@ local function newPage(kind, textureKit)
     -- A chain starts with its first page. (An absence ends with a page: its
     -- timers need no page open, and every close starts a new count.)
     if page.inScope and not state.chain then newChain() end
+    -- Another conversation: our remembered pick no longer answers its confirmations.
+    if kind == "show" and state.ownPick and not ownPickHolds(page.inScope) then state.ownPick = nil end
     -- A new page shows the player's pick went through.
     if kind == "show" and state.pending and state.pending.pageToken ~= page.token then resolveClean() end
     local token = page.token
@@ -641,7 +673,7 @@ end
 -- Anything pending is dropped: a decision, a pick, a prompt.
 local function cancel()
     if state.page then state.page.selected = true end
-    state.pending = nil
+    state.pending, state.ownPick = nil, nil
     state.heldOffer = nil
     Frame().Withdraw()
 end

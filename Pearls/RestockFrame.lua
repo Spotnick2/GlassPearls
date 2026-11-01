@@ -13,7 +13,10 @@ local Frame = {}
 GP.RestockFrame = Frame
 
 Frame.NAME = "GlassPearlsRestockFrame"
-Frame.MAX_ROWS = 8
+-- Every line of a plan is shown (Buy buys them all, so none may be hidden,
+-- audit #61): the largest reagent set of a class in Data/Restock.lua (nine, a
+-- rogue's) plus water, food and ammunition. test_restock_data checks the data.
+Frame.MAX_ROWS = 12
 local W, PAD, ROW = 300, 16, 22
 local QUESTION = "Interface\\Icons\\INV_Misc_QuestionMark"
 
@@ -72,10 +75,12 @@ local function build()
     if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, Frame.NAME) end
 end
 
--- Show the lines of visit `s` for the player to confirm.
-function Frame.Ask(s, lines)
+-- Show the lines of visit `s` for the player to confirm, under `limits`
+-- (R.Limits() when the plan was made: what the text shows is what Buy runs under).
+function Frame.Ask(s, lines, limits)
     if not f then build() end
-    f.session, f.lines = s, lines
+    limits = limits or R().Limits()
+    f.session, f.lines, f.bounds = s, lines, limits
     local shown = math.min(#lines, Frame.MAX_ROWS)
     for i, row in ipairs(f.rows) do
         local l = lines[i]
@@ -94,8 +99,7 @@ function Frame.Ask(s, lines)
     f.total:SetText("Total: " .. coins(R().Cost(lines)))
     f.limits:ClearAllPoints()
     f.limits:SetPoint("TOPLEFT", f.total, "BOTTOMLEFT", 0, -4)
-    f.limits:SetText(("At most %d%% of your money and %dg this visit."):format(
-        GP.Pearls.Setting(R().KEY, "budget"), GP.Pearls.Setting(R().KEY, "maxSpend")))
+    f.limits:SetText(("At most %d%% of your money and %dg this visit."):format(limits.budget, limits.maxSpend))
     f:SetHeight(y + 36 + 44)
     place()
     f:Show()
@@ -104,9 +108,9 @@ end
 -- Buy, from the button's click.
 function Frame.Buy()
     if not (f and f.lines) then return end
-    local s, lines = f.session, f.lines
+    local s, lines, limits = f.session, f.lines, f.bounds
     Frame.Hide()
-    R().Run(s, lines)
+    R().Run(s, lines, limits)
 end
 
 function Frame.Hide()

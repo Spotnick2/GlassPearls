@@ -23,14 +23,19 @@
 --   A count is complete or nothing: one unreadable slot skips the line.
 --
 -- Buying (R.Run): one purchase in flight; each step reads everything again
--- (the offer at its index, the settings, the recount, room, money). A chunk is whole packs,
--- at most the merchant's max stack per call, within both limits for the visit
--- (budget % of the money at the start and maxSpend gold; spent = the larger of
--- the confirmed prices and the money observed gone). Confirmed when the count
--- reaches before + chunk (BAG_UPDATE_DELAYED) within 2 s; anything else (a
--- smaller increase, a refusal while ours is in flight, close, combat) stops
--- the run. Unmeasured until 2026-11-04: BuyMerchantItem's units, the events,
--- the refusal names.
+-- (the visit still open, the offer at its index, the settings, the recount,
+-- room on a strict snapshot, money, a cursor that reads plainly empty). A
+-- chunk is whole packs, at most the merchant's max stack per call, within both
+-- limits for the visit (budget % of the money at the start and maxSpend gold,
+-- each the stricter of its value when the plan was made, which the Ask window
+-- showed, and its value now; spent = the larger of the confirmed prices and
+-- the money observed gone). Confirmed when the count reaches exactly before +
+-- chunk (BAG_UPDATE_DELAYED) within 2 s; a smaller increase, a refusal while
+-- ours is in flight, close, combat stop the run, and so does a larger increase
+-- (the chunk plus something else of that item arriving), recorded as bought
+-- (audit #61). BuyMerchantItem's count is in items, multiples of stackCount
+-- (Blizzard's merchant frame, which Forever loads). Unmeasured until
+-- 2026-11-04: the events, the refusal names.
 
 GlassPearls = GlassPearls or {}
 local GP = GlassPearls
@@ -330,6 +335,7 @@ local REASONS = {
     cursor = "Something is on your cursor: stopped buying.",
     unconfirmed = "A purchase wasn't confirmed: stopped buying.",
     refused = "The merchant refused: stopped buying.",
+    more = "More arrived than was bought: stopped buying.",
 }
 
 local function finish(r, reason)
@@ -347,12 +353,21 @@ local function finish(r, reason)
     for _, n in ipairs(r.notes) do say(n) end
 end
 
--- What both limits still allow, in copper.
+-- The two limits as they are now (the plan captures them: what the Ask window shows).
+function R.Limits()
+    return { budget = setting("budget"), maxSpend = setting("maxSpend") }
+end
+
+-- What both limits still allow, in copper: each limit the stricter of the
+-- plan's (shown to the player) and the current one (lowered since by hand or
+-- by sync; raised waits for the next visit).
 local function allowance(r)
     local now = money()
     if not now then return nil end
     local spent = math.max(r.spent, r.start - now)
-    local cap = math.min(math.floor(r.start * setting("budget") / 100), setting("maxSpend") * 10000)
+    local budget = math.min(r.limits.budget, setting("budget"))
+    local maxSpend = math.min(r.limits.maxSpend, setting("maxSpend"))
+    local cap = math.min(math.floor(r.start * budget / 100), maxSpend * 10000)
     return math.max(0, math.min(cap - spent, now))
 end
 
@@ -373,6 +388,9 @@ local function confirm(r)
         r.bought[#r.bought + 1] = b
     end
     b.count = b.count + e.count
+    -- More than the chunk: something else of that item arrived too, and the
+    -- next count would have no baseline. Recorded, then stopped.
+    if now > e.before + e.count then return finish(r, "more") end
     C_Timer.After(0, function() step(r) end)
 end
 
@@ -383,8 +401,11 @@ end
 
 step = function(r)
     if r.ended or state.run ~= r then return end   -- closed or switched off: finished there
+    if not (R.enabled and Merchant.Current(r.session)) then return finish(r, "closed") end
     if API.InCombat() then return finish(r, "combat") end
-    if call(GetCursorInfo) ~= nil then return finish(r, "cursor") end
+    -- The cursor must read plainly empty: a read that throws or is secret is unknown, not empty.
+    local okC, kind = pcall(GetCursorInfo)
+    if not okC or API.IsSecret(kind) or kind ~= nil then return finish(r, "cursor") end
     local l = r.lines[r.i]
     if not l then return finish(r, nil) end
     local function nextLine(why)
@@ -412,7 +433,7 @@ step = function(r)
     if not left then return nextLine("Your money can't be read: " .. R.Name(l.id) .. " skipped.") end
     packs = math.min(packs, math.floor(left / o.price))
     if packs <= 0 then return nextLine("The spending limit for this visit is reached.") end
-    local snap = Bags.Snapshot()
+    local snap = Bags.Snapshot(true)   -- strict: an automatic action (uncertain room is no room)
     while packs > 0 do
         local fits = Bags.Fits(l.id, packs * o.pack, snap)
         if fits == nil then return nextLine("Can't tell whether " .. R.Name(l.id) .. " fits: skipped.") end
@@ -431,13 +452,15 @@ step = function(r)
     confirm(r)   -- a client that answers at once
 end
 
--- Buy `lines` (R.Plan's, or the ask window's) during visit `s`.
-function R.Run(s, lines)
+-- Buy `lines` (R.Plan's, or the ask window's) during visit `s`, within
+-- `limits` (R.Limits() when the plan was made; now, when not given).
+function R.Run(s, lines, limits)
     if state.run or not Merchant.Current(s) then return nil end
     local start = money()
     if not start then return nil end
     for _, l in ipairs(lines) do l.done = 0 end
-    local r = { session = s, lines = lines, i = 1, start = start, spent = 0, bought = {}, boughtBy = {}, notes = {} }
+    local r = { session = s, lines = lines, i = 1, start = start, spent = 0, bought = {}, boughtBy = {}, notes = {},
+                limits = limits or R.Limits() }
     state.run = r
     step(r)
     return r
@@ -451,10 +474,11 @@ local function begin(s)
     local lines, notes = R.Plan()
     state.last = { lines = lines, notes = notes }
     if #lines == 0 then return end
+    local limits = R.Limits()   -- the limits the plan was made under (the Ask window shows them)
     if setting("mode") == "ask" then
-        Frame().Ask(s, lines)
+        Frame().Ask(s, lines, limits)
     else
-        R.Run(s, lines)
+        R.Run(s, lines, limits)
     end
 end
 
