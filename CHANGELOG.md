@@ -137,4 +137,10 @@
 - **Junk spotlight** (Loot & Bags, off by default): a coin on the bag items Sell junk & repair may sell at the
   next merchant, and a tooltip line ("Eligible for automatic sale", with its value, or "Kept: on your keep
   list"). By the seller's own rules and lists; it shows nothing while the seller doesn't sell.
+- **Easy fishing** (Professions, on by default): never click the bobber. Bind "Fish, then reel in" (Key
+  Bindings > Glass Pearls): press it to cast, press it again on the splash to reel in. While you fish, the
+  game's own Interact Key is on and reaches the bobber, so its Interact key works too (a controller already
+  does this). Optionally, while you fish, the splash louder (music, ambience and pet sounds off, effects and
+  master volume up, a volume setting) and NPC names hidden. Everything is put back when you stop, and none
+  of your own settings is ever saved or rewritten. `/gpearls fishing`, `/gpearls fishing reset`.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.

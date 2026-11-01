@@ -41,6 +41,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #45 | Trade summary (pearl `trades`, off by default): the money and items of each completed trade, in chat and a local log | built; the completion message and the event order wait for day one |
 | #39 | Train all (pearl `trainall`, off by default): a Train all button at the class trainer | built; `BuyTrainerService` from addon code and the trainer tooltip's identity wait for day one |
 | #41 | Junk spotlight (pearl `junkspot`, off by default): what the junk seller may sell, marked in the bags and tooltips | built; the marks beside pet care's and the tooltip owner wait for day one |
+| #64 | Easy fishing (pearl `fishing`): one key casts and reels in; the Interact Key, focused sounds and hidden NPC names while fishing, all through temp CVars | built; the channel ID, the key's edges, the bobber's reach and the temp CVars wait for day one |
 | #61 | Audit: the pearls that sell, buy, pick or destroy (Junk, Restock, AutoGossip, the bags-full delete) | done offline ([docs/AUDIT.md](AUDIT.md): 15 findings fixed, each with a witness test); its day-one lines are below, marked "audit #61" |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
@@ -397,6 +398,31 @@ story NPC, a multi-page NPC)
 - [ ] The tooltip line on a bag item: `GameTooltip:GetOwner()` is the bag button and its `GetBagID` /
       `GetID` read; none on a merchant's, a link's or a comparison tooltip.
 - [ ] A lock (picking an item up) hides its coin and putting it back restores it (`ITEM_LOCK_CHANGED`).
+
+**Easy fishing (#64)** (a character with Fishing and a pole, by water; a key bound to "Fish, then reel in")
+- [ ] The spell ID the channel reports (`UNIT_SPELLCAST_CHANNEL_START`'s third value and
+      `UnitChannelInfo`'s eighth): a ladder ID (7620/7731/7732/18248), 1229271, or another.
+- [ ] `GetBindingKey("GLASSPEARLS_FISH")` still returns the key while our override holds it (the sync
+      relies on it, as the reference addon does).
+- [ ] The key: our **hidden** button through the real override casts once per press, in all four
+      combinations of `ActionButtonUseKeyDown` and `ActionButtonUseKeyHeldSpell`; holding the key through
+      the channel start (the override changes under it): no instant reel or cancel.
+- [ ] Interact: reaches the bobber at full cast distance with range 60 / arc 2; against a hard target;
+      against another object nearby (a herb, a chest); the game's own Interact key works too.
+- [ ] Temp CVars: `GetCVarInfo` for each of our 17 names (public, not secure, not read-only); `GetCVar`
+      reads the temp; numeric formatting of the volume readback; set then removed restores the player's
+      own value (listen and look: a removal can't be read back); a player's own change of one of them during
+      a session; whether temps survive `/reload`, a relog and a **full client exit** (if they do, add the
+      saved ledger the review deferred); any refusal or throw in combat.
+- [ ] The sounds: the splash heard with the game in the background; music and ambience back after every
+      exit path. The NPC names hidden and back.
+- [ ] Input style: Gamepad → Mkb and Mkb → Gamepad during a session; with a removal left over; with the
+      pearl off. The controller's own interact still works after a session.
+- [ ] Combat entering and leaving in both override modes; Disable and re-enable under lockdown; no
+      blocked-action message; the binding settles after.
+- [ ] Exit paths: a reel, an interruption (moving), the channel running out, a quick recast, a loading
+      screen, switching on or `/reload` during a channel: the session, the temps and the key settle each time.
+- [ ] `UPDATE_BINDINGS` after our own override calls (no loop, by design).
 
 **The probe (#5):** its steps are added here by its PR.
 

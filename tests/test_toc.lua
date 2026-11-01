@@ -77,6 +77,9 @@ check(bindings:find('<Binding name="GLASSPEARLS_MARKWHEEL" category="Glass Pearl
     "Bindings.xml: the mark wheel's key, in the Glass Pearls category")
 check(not bindings:find("header=", 1, true), "  no header attribute")
 check(bindings:find("GlassPearls.MarkWheel.OnKey()", 1, true), "  it calls the pearl's key handler")
+check(bindings:find('<Binding name="GLASSPEARLS_FISH" category="Glass Pearls">', 1, true),
+    "Bindings.xml: easy fishing's key (#64), in the Glass Pearls category")
+check(bindings:find("GlassPearls.Fishing.OnKey()", 1, true), "  it calls the pearl's key handler")
 check(not toc:find("Bindings.xml", 1, true), "  not listed in the TOC")
 local deploy = io.open("Tools/deploy.ps1"):read("*a")
 check(deploy:find('@("GlassPearls.toc", "Bindings.xml")', 1, true), "deploy.ps1 copies and keeps Bindings.xml")
