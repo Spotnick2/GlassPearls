@@ -2,4 +2,7 @@
     <Binding name="GLASSPEARLS_MARKWHEEL" category="Glass Pearls">
         GlassPearls.MarkWheel.OnKey()
     </Binding>
+    <Binding name="GLASSPEARLS_FISH" category="Glass Pearls">
+        GlassPearls.Fishing.OnKey()
+    </Binding>
 </Bindings>

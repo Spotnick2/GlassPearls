@@ -2271,6 +2271,138 @@ function WoW.calledCount(name)
     return n
 end
 
+--------------------------------------------------------------------------------
+-- Easy fishing (#64). In the 70532 dump: UnitChannelInfo (8th return the
+-- spellID), C_CVar.GetCVarInfo (value, defaultValue, isStoredServerAccount,
+-- isStoredServerCharacter, isLockedFromUser, isSecure, isReadOnly),
+-- C_CVar.SetTempCVar / RemoveTempCVar (no return; their preconditions fail
+-- silently, FailureMode "ReturnNothing", CVarDocumentation.lua:211-226),
+-- C_InputInterfaceStyle.GetCurrentStyle (Enum.InputDeviceInterfaceType Mkb 0,
+-- Gamepad 1), SetOverrideBinding / SetOverrideBindingClick /
+-- ClearOverrideBindings and GetBindingKey in its _G walk (protected in
+-- combat), the events UNIT_SPELLCAST_CHANNEL_START / _STOP (unit, castGUID,
+-- spellID), INPUT_DEVICE_INTERFACE_TRANSITION, UPDATE_BINDINGS.
+--   WoW.channel = { id = 7620 } | "secret" | "throw" | nil (no channel)
+--   WoW.tempCVars[name] = value (the temp layer: GetCVar reads it first)
+--   WoW.cvarInfo[name] = { secure = true, readOnly = true } | "throw" (GetCVarInfo; nil value: unknown name)
+--   WoW.tempRefused[name]: SetTempCVar does nothing, silently; WoW.tempThrows[name] / WoW.tempRemoveThrows[name]
+--   WoW.tempCalls = { { "set" | "remove", name, value } } (also silent ones)
+--   WoW.tempReadAs[name]: GetCVar reads a temp back as this text (the client's own formatting)
+--   override calls out of combat are recorded in WoW.calls (WoW.calledCount); in combat in WoW.blocked
+--   WoW.inputStyle = 0 | 1 | "secret" | "throw" (default 0, Mkb)
+--   WoW.bindings[action] = key or { key1, key2 }
+--   WoW.overrides[key] = { owner, kind = "click" | "command", target } (priority overrides)
+--   WoW.bindingEventsInside: UPDATE_BINDINGS fired inside each override call
+--   WoW.pressKey(key, down): the override's click (any button, shown or not, as a key press)
+--     or its command (WoW.commands); no override returns "body"
+--------------------------------------------------------------------------------
+
+Enum.InputDeviceInterfaceType = { Mkb = 0, Gamepad = 1 }
+WoW.tempCVars, WoW.cvarInfo, WoW.tempRefused, WoW.tempThrows, WoW.tempRemoveThrows = {}, {}, {}, {}, {}
+WoW.tempCalls, WoW.overrides, WoW.commands, WoW.tempReadAs = {}, {}, {}, {}
+WoW.inputStyle = 0
+
+function UnitChannelInfo(unit)
+    local c = WoW.channel
+    if unit ~= "player" or c == nil then return end
+    if c == "throw" then error("UnitChannelInfo refused") end
+    if c == "secret" then
+        return WoW.Secret("channel name"), nil, nil, nil, nil, false, nil, WoW.Secret("channel spellID")
+    end
+    return "Fishing", "Fishing", 136245, 0, 30000, false, nil, c.id
+end
+
+local cvarRead = C_CVar.GetCVar
+C_CVar.GetCVar = function(name)
+    if WoW.tempCVars[name] ~= nil and WoW.cvarRefuse[name] ~= "throwRead" then
+        WoW.cvarReads = WoW.cvarReads + 1
+        return WoW.tempReadAs[name] or WoW.tempCVars[name]
+    end
+    return cvarRead(name)
+end
+C_CVar.GetCVarInfo = function(name)
+    local info = WoW.cvarInfo[name]
+    if info == "throw" then error("GetCVarInfo refused") end
+    local v = WoW.cvarValues[name]
+    if v == nil then return nil end
+    info = info or {}
+    return v, v, false, false, false, info.secure == true, info.readOnly == true
+end
+local function tempEligible(name)
+    local info = WoW.cvarInfo[name]
+    return WoW.cvarValues[name] ~= nil and not (type(info) == "table" and (info.secure or info.readOnly))
+end
+C_CVar.SetTempCVar = function(name, value)
+    table.insert(WoW.tempCalls, { "set", name, value })
+    if WoW.tempThrows[name] then error("SetTempCVar refused") end
+    if WoW.tempRefused[name] or not tempEligible(name) then return end
+    WoW.tempCVars[name] = value
+end
+C_CVar.RemoveTempCVar = function(name)
+    table.insert(WoW.tempCalls, { "remove", name })
+    if WoW.tempRemoveThrows[name] then error("RemoveTempCVar refused") end
+    if not tempEligible(name) then return end
+    WoW.tempCVars[name] = nil
+end
+function WoW.tempCount(op, name)
+    local n = 0
+    for _, c in ipairs(WoW.tempCalls) do if c[1] == op and (name == nil or c[2] == name) then n = n + 1 end end
+    return n
+end
+
+C_InputInterfaceStyle = { GetCurrentStyle = function()
+    if WoW.inputStyle == "throw" then error("style refused") end
+    if WoW.inputStyle == "secret" then return WoW.Secret("style") end
+    return WoW.inputStyle
+end }
+
+function GetBindingKey(action)
+    local k = WoW.bindings[action]
+    if type(k) == "table" then return unpack(k) end
+    return k
+end
+
+local function overrideCall(name, fn)
+    if WoW.combat then table.insert(WoW.blocked, name) return end
+    table.insert(WoW.calls, { name })
+    fn()
+    if WoW.bindingEventsInside then WoW.fire("UPDATE_BINDINGS") end
+end
+function SetOverrideBinding(owner, priority, key, command)
+    overrideCall("SetOverrideBinding", function()
+        WoW.overrides[key] = { owner = owner, kind = "command", target = command, priority = priority }
+    end)
+end
+function SetOverrideBindingClick(owner, priority, key, buttonName, mouseButton)
+    overrideCall("SetOverrideBindingClick", function()
+        WoW.overrides[key] = { owner = owner, kind = "click", target = buttonName, mouseButton = mouseButton,
+            priority = priority }
+    end)
+end
+function ClearOverrideBindings(owner)
+    overrideCall("ClearOverrideBindings", function()
+        for key, o in pairs(WoW.overrides) do if o.owner == owner then WoW.overrides[key] = nil end end
+    end)
+end
+
+-- One edge of a key press. A click override reaches its button as a key
+-- press, shown or not (the binding clicks it by name).
+function WoW.pressKey(key, down)
+    local o = WoW.overrides[key]
+    if not o then return "body" end
+    if o.kind == "command" then
+        if down then table.insert(WoW.commands, o.target) end
+        return "command"
+    end
+    local b = rawget(_G, o.target)
+    if not b then return "nothing" end
+    local s = b._scripts
+    if s.PreClick then s.PreClick(b, o.mouseButton or "LeftButton", down) end
+    if s.OnClick then s.OnClick(b, o.mouseButton or "LeftButton", down, true, false) end
+    if s.PostClick then s.PostClick(b, o.mouseButton or "LeftButton", down) end
+    return "click"
+end
+
 -- Strict globals: any read of an undefined global is an error, except the
 -- addon's own globals that are legitimately nil before first assignment.
 -- LibStub: the embedded libraries' loaders read _G.LibStub before creating it.

@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64); the day-one
 probe (#5) follows. The pearls that sell, buy, pick or destroy were audited offline (#61,
 [docs/AUDIT.md](docs/AUDIT.md): the property, the trace matrix, 15 findings with witness tests, the
 declared exceptions). Nothing
@@ -402,6 +402,31 @@ order) and before the options window and bootstrap.
   said, an unconfirmed one dropped) and a trade opened then, or within 2 s of a line, is **ambiguous and never
   reported** (the message names no trade). The log: the last 10 lines in `GlassPearlsCharDB.trades`, never
   synced. Unmeasured until day one.
+- **`Pearls\Fishing.lua`**: easy fishing (#64, pearl `fishing`, Professions > Fishing, on by default; its panel
+  inside; `interact` on, `sounds` and `names` off, `volume` 10-100). Never click the bobber. **A session** is a
+  Fishing channel of the player's, from anywhere: `UNIT_SPELLCAST_CHANNEL_START` / `_STOP` with a plain ID of
+  `F.CHANNEL` (the ladder 7620/7731/7732/18248 and 1229271; the 1240948 ladder is Forever's fishing *crafting*
+  line, never cast), a watchdog reading `UnitChannelInfo` each second (plainly over: ended; unreadable 35 s:
+  ended), `F.Adopt` at Enable and `PLAYER_ENTERING_WORLD` for a channel already running (switched on or
+  `/reload` mid-cast; unreadable: 3 tries a second apart), ended by `PLAYER_LEAVING_WORLD` and Disable; a START
+  while open renews it (one watchdog). **Only temp CVars** (`C_CVar.SetTempCVar` / `RemoveTempCVar`): nothing
+  of the player's is remembered or written. One reconciler: `held` (every name set without a throw: the
+  cleanup marker, labelled applied / refused / unverified by the readback, which never decides it) against
+  `F.Wanted()` (current state only: the interact group, Blizzard's Interact Key with range 60, only while
+  `C_InputInterfaceStyle` plainly reads Mkb; the sounds; the NPC names). A name is set only when
+  `GetCVarInfo` says plain, not secure, not read-only (the temp functions fail **silently** otherwise); a
+  refused one isn't retried that session. **Gamepad**: Blizzard_Gamepad sets and removes the same soft-target
+  temps itself, so each `INPUT_DEVICE_INTERFACE_TRANSITION` drops the interact names from `held` **unremoved**
+  and reconciles a frame later. A guard frame (regen, the transition) is kept from the first Enable, also while
+  off. Limitation: a temp has no owner (removing ours removes another addon's of the same name); no saved
+  ledger until day one shows whether temps survive a reload; `/gpearls fishing reset` removes ours by hand.
+  **The key** (root `Bindings.xml`, `GLASSPEARLS_FISH`): priority overrides on an owner frame for its keys
+  (`GetBindingKey`), a click on our hidden `SecureActionButtonTemplate` (`GlassPearlsFishButton`) when idle,
+  `INTERACTTARGET` in a session, none when off or Fishing unknown; applied only when different (recorded
+  before the calls, so the `UPDATE_BINDINGS` they raise is a no-op), never under lockdown (recomputed at
+  regen). The button: both edges, no `typerelease`, no `useOnKeyDown`, no snippets; **disarmed** except during
+  a click: PreClick arms the highest known rank (not in lockdown, no session, no loot window), type last;
+  PostClick disarms, never under lockdown. Unmeasured until day one.
 - **`Pearls\AutoGossip.lua`**: auto gossip (#47, pearl `autogossip`, Automation > NPCs, on by
   default). **Gossip only**: nothing while the NPC has quest business. Scope: ordinary gossip with an
   NPC (`GOSSIP_SHOW`'s `textureKit` plainly nil, `UnitExists("npc")` plainly true; a refresh keeps
@@ -671,7 +696,12 @@ noReady, emptyReady, noOpened })`, locked, quality and money rows, `WoW.lootMeth
 `WoW.petExistsSecret`, `WoW.petBar`, `WoW.edible`, `WoW.onTaxi`, `WoW.mounted`, `WoW.feign`, `WoW.fullControl`,
 `WoW.spellUsable`), Feed Pet's item targeting through the secure `spell` action and its `target-bag` /
 `target-slot` block (`WoW.spellTargeting`, `WoW.fed`), Blizzard's bag frames (`WoW.containerFrames`,
-`ContainerFrameCombinedBags`, `WoW.showBag`; `WoW.hooked` counts each secure hook), a clock (`WoW.advance`), and atlases with sizes (`WoW.atlases`; `SetAtlas` returns
+`ContainerFrameCombinedBags`, `WoW.showBag`; `WoW.hooked` counts each secure hook), easy fishing's channel, temp
+CVars and key (`WoW.channel`, `WoW.tempCVars` read first by `GetCVar`, `WoW.cvarInfo`, `WoW.tempRefused` for a
+silent no-op, `WoW.tempThrows` / `WoW.tempRemoveThrows`, `WoW.tempReadAs`, `WoW.tempCalls` / `WoW.tempCount`,
+`WoW.inputStyle`, override bindings in `WoW.overrides` refused in combat, `WoW.bindingEventsInside`,
+`WoW.pressKey(key, down)` reaching a hidden button as a key press, `WoW.commands`), a clock (`WoW.advance`;
+a timer scheduled inside it counts from its end, so step a second at a time), and atlases with sizes (`WoW.atlases`; `SetAtlas` returns
 nothing, as on the client)), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
 registering test pearls, `opts.pearls = false` to leave the shipped pearls out of a framework
 test, `newChat`, `chatHas`). Bags, items, the cursor and the loot window are modelled too
