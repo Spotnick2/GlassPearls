@@ -7,7 +7,7 @@ GlassPearls = {}
 dofile("Data/Restock.lua")
 dofile("Data/SpellRanks.lua")
 local D = GlassPearls.RestockData
-dofile("tests/harness.lua")
+dofile("tests/kit.lua")   -- check, eq and done (no client stubs: data only)
 
 check(type(D.build) == "string" and D.build:match("^%d+%.%d+%.%d+%.%d+$") ~= nil, "a build (" .. tostring(D.build) .. ")")
 eq(D.drink[1708] and D.drink[1708].level, 25, "Sweet Nectar is water, level 25")

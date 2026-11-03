@@ -1,10 +1,11 @@
--- The manifest, the pinned build, the event fixture and the embedded libraries.
+-- The manifest, the pinned build and the embedded libraries.
 dofile("tests/wow_stubs.lua")
 dofile("tests/harness.lua")
 
+-- WowTestKit's: interface 16001, the version token, every listed file exists
+-- and is listed once.
+Kit.checkToc(TOC)
 local toc = io.open(TOC):read("*a")
-check(toc:find("## Interface: 16001", 1, true), "interface 16001 (1.60.1; 11601 is the transposed-digit bug)")
-check(toc:find("## Version: @project-version@", 1, true), "packager version token kept")
 check(toc:find("## SavedVariables: GlassPearlsDB, GlassPearlsSyncDB", 1, true), "saved variables declared")
 check(toc:find("## SavedVariablesPerCharacter: GlassPearlsCharDB", 1, true), "per-character saved variables declared")
 -- The release targets: CurseForge's packager and the Wago app match on these,
@@ -35,9 +36,6 @@ end
 for _, bundled in ipairs({ "LibStub", "ChatThrottleLib" }) do
     check(license:find(bundled, 1, true), "LICENSE credits the bundled " .. bundled)
 end
-for _, f in ipairs(tocFiles()) do
-    check(io.open(f, "r") ~= nil, "TOC file exists: " .. f)
-end
 -- The embedded libraries load before any of our files: Glass.lua and
 -- AccountSync.lua call LibStub at file scope.
 eq(tocLines()[1], LIBGLASS_XML, "LibGlass-1.0 loads first")
@@ -55,10 +53,8 @@ for _, line in ipairs(tocLines()) do
     end
 end
 eq(tocFiles()[#tocFiles()], "GlassPearls.lua", "the bootstrap loads last")
-local seen, pearlsAt, syncAt = {}, nil, nil
+local pearlsAt, syncAt
 for i, f in ipairs(tocFiles()) do
-    check(not seen[f], "TOC lists each file once: " .. f)
-    seen[f] = true
     if f == "Pearls.lua" then pearlsAt = i end
     if f == "SettingsSync.lua" then syncAt = i end
     -- A pearl registers itself (Pearls.lua) and its sets (SettingsSync.lua) at
@@ -130,18 +126,6 @@ check(at["Data\\Landmarks.lua"] < at["Pearls\\Landmarks.lua"], "the landmark dat
 loadAddon()
 eq(GlassPearls.MEASURED_ON_BUILD, "1.60.1.70532", "MEASURED_ON_BUILD")
 
--- The checked-in event list matches the dump, when the dump is here.
-if WoW.dumpAvailable then
-    local fixture = {}
-    for line in io.lines("tests/events-70532.txt") do
-        local name = line:match("^([A-Z][A-Z0-9_]+)%s*$")
-        if name then fixture[name] = true end
-    end
-    local missing, extra = 0, 0
-    for e in pairs(WoW.KNOWN_EVENTS) do if not fixture[e] then missing = missing + 1 end end
-    for e in pairs(fixture) do if not WoW.KNOWN_EVENTS[e] then extra = extra + 1 end end
-    eq(missing + extra, 0, "tests/events-70532.txt matches the dump (regenerate it)")
-end
 
 -- Without Glass UI there is no glass: the WoW Forever look, and no instance.
 eq(GlassPearls.Theme.Active(), "forever", "no Glass UI: the WoW Forever look")

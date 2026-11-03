@@ -648,7 +648,8 @@ Lua 5.1 at `C:\Program Files (x86)\Lua\5.1\` (`lua.exe`, `luac.exe`). No build s
 
 ```powershell
 pwsh tests\run.ps1                                                   # luac -p on the TOC files, then every tests\test_*.lua (needs ..\LibGlass and ..\LibAccountSync, or $env:LIBGLASS / $env:LIBACCOUNTSYNC)
-& 'C:\Program Files (x86)\Lua\5.1\lua.exe' tests\test_boot.lua      # one test, from the repo root
+pwsh tests\run.ps1 -KitDev                                           # the same against the ..\WowTestKit working copy, not the pin
+& 'C:\Program Files (x86)\Lua\5.1\lua.exe' tests\test_boot.lua      # one test, from the repo root, once run.ps1 has fetched the kit
 pwsh Tools\deploy.ps1                                                # copy the addon and both libraries into AddOns
 ```
 
@@ -659,15 +660,22 @@ pwsh Tools\deploy.ps1                                                # copy the 
 - The tests load the sibling library checkouts as they are and warn when one is off its `.pkgmeta`
   pin; CI fetches the pins (`tests\fetch_external.sh`) and also checks the packaged zip's exact
   contents.
+- The test scaffolding is WowTestKit (`C:\Projects\WoW\WowTestKit`; its README is the reference)
+  at the commit and client build `tests\kit.pin` names. `tests\run.ps1` puts that commit in
+  `%LOCALAPPDATA%\WowTestKit\<sha>` and hands off to the kit's runner; CI fetches it with
+  `tests\fetch_kit.sh`. `tests\kit.lua`, `kit.ps1` and `fetch_kit.sh` are the kit's bootstrap
+  copies: never edit them here. A kit need is an issue on the kit, worked around in
+  `tests\wow_stubs.lua` with a `-- WowTestKit:` comment meanwhile.
 - Shell heredocs in this environment can collapse `\\` to `\`: write files that contain Lua
   backslash escapes or Windows paths with the Write/Edit tools.
 
 ## Testing
 
-GlassMail's harness, plus GlassChat's Battle.net stubs: `tests\wow_stubs.lua` (strict globals as
-an allowlist of APIs verified in the dump, secrets as throwing `newproxy` values, event names
-validated against the dump or `tests\events-70532.txt`, every widget method recorded, Battle.net
-and ChatThrottleLib for LibAccountSync, `WoW.installGlassUI` for a scriptable Glass UI suite,
+WowTestKit's core, plus GlassChat's Battle.net stubs: `tests\wow_stubs.lua` loads the kit (strict
+globals as an allowlist of APIs verified in the dump, secrets as throwing `newproxy` values, event
+names validated against the pinned build, every widget method recorded, protected frames, timers,
+`print` with the stray-`|` check `done()` fails on; the kit's README), then adds GlassPearls' own:
+templates in `WoW.templates`, Battle.net and ChatThrottleLib for LibAccountSync, `WoW.installGlassUI` for a scriptable Glass UI suite,
 `WoW.missingTemplates` for a template the client lacks, `WoW.reloadForbidden` for a refused
 `ReloadUI`, the world map, `C_Map` / `C_TaxiMap` / `C_Texture` and a recording HereBeDragons fake,
 `WoW.installFakeHBD`, which the harness installs in place of the vendored copy, action slots,
@@ -700,9 +708,8 @@ noReady, emptyReady, noOpened })`, locked, quality and money rows, `WoW.lootMeth
 CVars and key (`WoW.channel`, `WoW.tempCVars` read first by `GetCVar`, `WoW.cvarInfo`, `WoW.tempRefused` for a
 silent no-op, `WoW.tempThrows` / `WoW.tempRemoveThrows`, `WoW.tempReadAs`, `WoW.tempCalls` / `WoW.tempCount`,
 `WoW.inputStyle`, override bindings in `WoW.overrides` refused in combat, `WoW.bindingEventsInside`,
-`WoW.pressKey(key, down)` reaching a hidden button as a key press, `WoW.commands`), a clock (`WoW.advance`;
-a timer scheduled inside it counts from its end, so step a second at a time), and atlases with sizes (`WoW.atlases`; `SetAtlas` returns
-nothing, as on the client)), `tests\harness.lua` (`check`, `eq`, `loadAddon` with an `opts.before` hook for
+`WoW.pressKey(key, down)` reaching a hidden button as a key press, `WoW.commands`), and atlases with sizes
+(`WoW.atlases`; `SetAtlas` returns nothing, as on the client)), `tests\harness.lua` (`loadAddon` with an `opts.before` hook for
 registering test pearls, `opts.pearls = false` to leave the shipped pearls out of a framework
 test, `newChat`, `chatHas`). Bags, items, the cursor and the loot window are modelled too
 (`WoW.bags`, `WoW.items`, `WoW.openLoot`, `WoW.deleteForbidden`, ...; the block's header lists them). A stub is added only for something in the 70532
