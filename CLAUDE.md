@@ -714,6 +714,8 @@ registering test pearls, `opts.pearls = false` to leave the shipped pearls out o
 test, `newChat`, `chatHas`). Bags, items, the cursor and the loot window are modelled too
 (`WoW.bags`, `WoW.items`, `WoW.openLoot`, `WoW.deleteForbidden`, ...; the block's header lists them). A stub is added only for something in the 70532
 dump (documented functions or the `_G` walk) or Blizzard's source, and its comment says which.
+`tests\test_methods.lua` (and `_glass`) exercises the addon, then `Kit.checkMethods` fails on any
+widget method the pinned build lacks on that type: a new pearl's window or command goes in its exercise.
 
 **The unit tests are the main proof until 2026-11-04** (owner): one test file per concern, every
 new assertion mutation-tested (break the behaviour, confirm it goes red; list them in the PR).

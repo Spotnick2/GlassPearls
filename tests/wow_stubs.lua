@@ -2031,6 +2031,11 @@ function WoW.pressKey(key, down)
     return "click"
 end
 
+-- WowTestKit: the methods this file's own fakes called while it was built
+-- aren't the addon's, and the core doesn't clear them: cleared here, so
+-- Kit.checkMethods' "nothing recorded" check means what it says.
+WoW.methodsCalled = {}
+
 -- Strict globals: any read of an undefined global is an error, except the
 -- addon's own globals that are legitimately nil before first assignment.
 -- LibStub: the embedded libraries' loaders read _G.LibStub before creating it.
