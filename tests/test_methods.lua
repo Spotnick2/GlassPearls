@@ -117,18 +117,11 @@ end
 eq(#WoW.strays - #strays, 2, "the two known stray lines (gossip, petcare help)")
 WoW.strays = strays
 
--- WowTestKit: the animation subtypes' own methods aren't in its widget-method
--- lists, though the 70532 dump documents them (SimpleAnimAlphaAPI,
--- SimpleAnimScaleAPI); allowed here with that source.
--- The others are Blizzard's Lua mixins on its own frames, which the dump's
--- widget walk can't see (wow-ui-source, forever branch).
-local ALPHA = "70532 dump, SimpleAnimAlphaAPI (documented)"
-local SCALE = "70532 dump, SimpleAnimScaleAPI (documented)"
+-- Blizzard's Lua mixins on its own frames, which the dump's widget walk can't
+-- see (wow-ui-source, forever branch).
 local MAP = "WorldMapFrame's MapCanvasMixin (Blizzard_MapCanvas.lua)"
 local TIP = "GameTooltipDataMixin's accessor (Blizzard_SharedXMLGame/Tooltip/TooltipDataHandler.lua)"
 local recorded = Kit.checkMethods({ allow = {
-    ["Alpha:SetFromAlpha"] = ALPHA, ["Alpha:SetToAlpha"] = ALPHA,
-    ["Scale:SetScaleFrom"] = SCALE, ["Scale:SetScaleTo"] = SCALE,
     ["Frame:GetMapID"] = MAP, ["Frame:GetNormalizedCursorPosition"] = MAP, ["Frame:IsCanvasMouseFocus"] = MAP,
     ["GameTooltip:SetBagItem"] = TIP, ["GameTooltip:SetLootItem"] = TIP,
 } })

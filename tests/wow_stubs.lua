@@ -45,13 +45,8 @@ end
 -- Widget methods the kit's core doesn't have
 --------------------------------------------------------------------------------
 
--- WowTestKit: the core's addRegion (GetRegions' list) is local; the same here
--- for the regions only GlassPearls makes (CreateLine).
-local function addRegion(w, r)
-    w._regions = w._regions or {}
-    table.insert(w._regions, r)
-    return r
-end
+-- The core's region list (GetRegions), for the regions only GlassPearls makes (CreateLine).
+local addRegion = WoW.addRegion
 
 -- A button's state textures: Set*Texture(file) makes one, Get*Texture reads it.
 for _, state in ipairs({ "Normal", "Pushed", "Highlight", "Checked", "Disabled" }) do
@@ -2030,11 +2025,6 @@ function WoW.pressKey(key, down)
     if s.PostClick then s.PostClick(b, o.mouseButton or "LeftButton", down) end
     return "click"
 end
-
--- WowTestKit: the methods this file's own fakes called while it was built
--- aren't the addon's, and the core doesn't clear them: cleared here, so
--- Kit.checkMethods' "nothing recorded" check means what it says.
-WoW.methodsCalled = {}
 
 -- Strict globals: any read of an undefined global is an error, except the
 -- addon's own globals that are legitimately nil before first assignment.
