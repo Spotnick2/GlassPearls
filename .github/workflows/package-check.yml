@@ -69,8 +69,16 @@ jobs:
           echo "checking $count files"
           find . -name '*.lua' -not -path './.git/*' -not -path './Libs/*' -print0 | xargs -0 luac5.1 -p
 
-      # Without the API dump (local only), the stubs check event names against
-      # tests/events-70532.txt instead.
+      # The tests' scaffolding (WowTestKit) at the commit tests/kit.pin names,
+      # outside the checkout (the syntax check above never sees it), checked to
+      # BE that commit. Its data for the pinned build stands in for the API
+      # dump, which is local only: event names and widget methods are checked
+      # here as strictly as on the owner's machine.
+      - name: Fetch WowTestKit at its pin
+        run: |
+          bash tests/fetch_kit.sh "$RUNNER_TEMP/WowTestKit"
+          echo "WOWTESTKIT=$RUNNER_TEMP/WowTestKit" >> "$GITHUB_ENV"
+
       - name: Unit tests
         run: |
           for f in tests/test_*.lua; do
