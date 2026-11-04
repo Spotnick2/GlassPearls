@@ -1,0 +1,152 @@
+Library books evidence, client build 1.60.1.70532
+
+Books (item, quest, status: spots)
+  203754 Archmage Antonidas: The Unabridged Autobiography | quest 79091 (name search) | ok
+    object 386691: Library Book
+    merged: Ironforge 75.7, 10.4 into 75.4, 11.0
+    merged: Ironforge 75.7, 10.5 into 75.4, 11.0
+    spot: Ironforge (area 1537, map 1455, assignment 46765 order 0) 75.4, 11.0 -> continent 0, world -4627.3, -1309.7 (3 points) [wowhead]
+  203755 Archmage Theocritus' Research Journal | quest 79092 (name search) | ok
+    object 386759: Library Book
+    spot: Elwynn Forest (area 12, map 1429, assignment 46739 order 0) 65.4, 70.1 -> continent 0, world -9562.1, -734.5 (1 point) [wowhead]
+  207972 The Lessons of Ta'zo | quest 79094 (name search) | ok | Horde
+    by hand: Orgrimmar 38.7, 78.4 (hand: no source on Wowhead)
+    spot: Orgrimmar (area 1637, map 1454, assignment 46764 order 0) 38.7, 78.4 -> continent 1, world 1540.5, -4223.4 (1 point)
+  208185 The Apothecary's Metaphysical Primer | quest 79095 (name search) | ok
+    object 405879: Apothecary Society Primer
+    merged: Tirisfal Glades 59.5, 52.3 into 59.4, 52.3
+    spot: Tirisfal Glades (area 85, map 1420, assignment 46730 order 0) 59.4, 52.3 -> continent 0, world 2262.0, 349.2 (2 points) [wowhead]
+  208800 Baxtan: On Destructive Magics | quest 79097 (name search) | ok
+    object 407566: Goblin Tome
+    spot: The Barrens (area 17, map 1413, assignment 46723 order 0) 62.7, 36.3 -> continent 1, world -840.0, -3730.7 (1 point) [wowhead]
+  208860 Rumi of Gnomeregan: The Collected Works | quest 79093 (name search) | ok | Alliance
+    object 408014: Gnomish Tome
+    merged: Loch Modan 35.6, 48.9 into 35.5, 48.3
+    spot: Loch Modan (area 38, map 1432, assignment 46742 order 0) 35.5, 48.3 -> continent 0, world -5376.0, -2973.0 (2 points) [wowhead]
+  209843 Nar'thalas Almanac, Vol. 74 | quest 78124 (tooltip requires it) | ok
+    object 409496: Scrolls
+    spot: Darkshore (area 148, map 1439, assignment 46749 order 0) 59.6, 22.2 -> continent 1, world 7363.9, -962.1 (1 point) [wowhead]
+  209844 The Dalaran Digest, Vol. 23 | quest 78127 (tooltip requires it) | ok
+    object 409501: Dalaran Digest
+    merged: Silverpine Forest 63.5, 63.2 into 63.4, 63.1
+    spot: Silverpine Forest (area 130, map 1421, assignment 46731 order 0) 63.4, 63.1 -> continent 0, world -100.1, 787.2 (2 points) [wowhead]
+  209845 Bewitchments and Glamours | quest 78142 (name search) | ok
+    by hand: Westfall 45.4, 70.4 (hand: Wowhead's object spawns only on Zephras Isle (see the report))
+    Wowhead says (not used): Zephras Isle 35.6, 24.1 (object 409562)
+    Wowhead says (not used): Zephras Isle 37.1, 32.9 (object 409562)
+    Wowhead says (not used): Zephras Isle 44.3, 26.7 (object 409562)
+    Wowhead says (not used): Zephras Isle 51.8, 67.4 (object 409562)
+    Wowhead says (not used): Zephras Isle 55.7, 59.7 (object 409562)
+    Wowhead says (not used): Zephras Isle 61.8, 51.5 (object 409562)
+    Wowhead says (not used): Zephras Isle 65.0, 36.3 (object 409562)
+    Wowhead says (not used): Zephras Isle 65.5, 69.9 (object 409562)
+    spot: Westfall (area 40, map 1436, assignment 46746 order 0) 45.4, 70.4 -> continent 0, world -11042.7, 1427.7 (1 point)
+  209846 Secrets of the Dreamers | quest 78143 (name search) | ok
+    by hand: The Barrens 46.0, 36.5 (hand: the object is in the cave and has no spot on Wowhead; this is the cave's entrance)
+    spot: The Barrens (area 17, map 1413, assignment 46723 order 0) 46.0, 36.5 -> continent 1, world -853.5, -2038.4 (1 point) [entrance]
+  209847 Arcanic Systems Manual | quest 78145 (name search) | ok
+    object 409700: Manual
+    spot: The Barrens (area 17, map 1413, assignment 46723 order 0) 56.3, 8.8 -> continent 1, world 1017.9, -3082.1 (1 point) [wowhead]
+  209848 Goaz Scrolls | quest 78146 (name search) | ok
+    object 409717: Scrolls
+    spot: Wetlands (area 11, map 1437, assignment 46747 order 0) 33.6, 47.9 -> continent 0, world -3468.2, -1779.1 (1 point) [wowhead]
+  209849 Crimes Against Anatomy | quest 78147 (name search) | ok
+    object 409735: Spellbook
+    merged: Duskwood 16.6, 28.5 into 16.4, 28.4
+    merged: Duskwood 16.7, 28.4 into 16.4, 28.4
+    spot: Duskwood (area 10, map 1431, assignment 46741 order 0) 16.4, 28.4 -> continent 0, world -10227.9, 390.5 (3 points) [wowhead]
+  209850 Runes of the Sorcerer-Kings | quest 78148 (name search) | ok
+    object 409731: Scrolls
+    merged: Loch Modan 77.5, 14.0 into 77.4, 14.0
+    spot: Loch Modan (area 38, map 1432, assignment 46742 order 0) 77.4, 14.0 -> continent 0, world -4745.0, -4128.7 (2 points) [wowhead]
+  209851 Fury of the Land | quest 78149 (name search) | ok
+    object 409711: Scrolls
+    spot: Stonetalon Mountains (area 406, map 1442, assignment 46752 order 0) 74.4, 85.7 -> continent 1, world 126.1, -387.4 (1 point) [wowhead]
+  210177 Ataeric: On Arcane Curiosities | quest 79096 (name search) | ok
+    object 410299: Arcane Secrets
+    spot: Silverpine Forest (area 130, map 1421, assignment 46731 order 0) 43.4, 41.2 -> continent 0, world 513.1, 1627.2 (1 point) [wowhead]
+  213165 Basilisks: Should Petrification be Feared? | quest 79535 (name search) | ok
+    object 421526: Research Notes
+    merged: Stranglethorn Vale 41.5, 50.9 into 41.4, 50.9
+    spot: Stranglethorn Vale (area 33, map 1434, assignment 46744 order 0) 41.4, 50.9 -> continent 0, world -13334.1, -421.0 (2 points) [wowhead]
+  215683 Geomancy: The Stone-Cold Truth | quest 79947 (name search) | ok
+    object 423895: Scrolls
+    merged: Thousand Needles 34.5, 40.1 into 34.4, 40.1
+    spot: Thousand Needles (area 400, map 1441, assignment 46751 order 0) 34.4, 40.1 -> continent 1, world -5142.9, -1946.9 (2 points) [wowhead]
+  215815 Defensive Magics 101 | quest 79948 (name search) | ok
+    object 423896: Manual
+    merged: Alterac Mountains 48.5, 57.7 into 48.4, 57.7
+    spot: Alterac Mountains (area 36, map 1416, assignment 46726 order 0) 48.4, 57.7 -> continent 0, world 422.9, -571.9 (2 points) [wowhead]
+  215816 A Web of Lies: Debunking Myths and Legends | quest 79949 (name search) | ok
+    object 423897: Scrolls
+    spot: Arathi Highlands (area 45, map 1417, assignment 46727 order 0) 73.6, 65.2 -> continent 0, world -1698.1, -3516.3 (1 point) [wowhead]
+  215817 Demons and You | quest 79950 (name search) | ok
+    object 423898: Mysterious Book
+    spot: Desolace (area 405, map 1443, assignment 46753 order 0) 55.1, 26.2 -> continent 1, world -333.4, 1756.1 (1 point) [wowhead]
+  215820 Mummies: A Guide to the Unsavory Undead | quest 79951 (name search) | ok
+    object 423899: Scrolls
+    spot: Badlands (area 3, map 1418, assignment 46728 order 0) 56.7, 39.9 -> continent 0, world -6551.3, -3489.6 (1 point) [wowhead]
+  215822 RwlRwlRwlRwl! | quest 79952 (name search) | ok
+    object 423900: Waterlogged Book
+    spot: Dustwallow Marsh (area 15, map 1445, assignment 46755 order 0) 57.2, 20.8 -> continent 1, world -2761.3, -3978.0 (1 point) [wowhead]
+  215824 A Luddite's Guide to Caring for Your Demonic Pet | quest 79953 (NOT on Wowhead) | unconfirmed
+    by hand: Swamp of Sorrows 61.4, 22.4 (hand: no source and no quest on Wowhead Forever)
+    spot: Swamp of Sorrows (area 8, map 1435, assignment 46745 order 0) 61.4, 22.4 -> continent 0, world -9963.4, -3631.3 (1 point)
+  220345 Sanguine Sorcery | quest 81947 (name search) | ok
+    object 441247: Book
+    merged: Swamp of Sorrows 70.5, 52.0 into 70.3, 51.7
+    spot: Swamp of Sorrows (area 8, map 1435, assignment 46745 order 0) 70.3, 51.7 -> continent 0, world -10411.4, -3835.4 (2 points) [wowhead]
+  220346 Legends of the Tidesages | quest 81949 (name search) | ok
+    object 441248: Book
+    spot: Tanaris (area 440, map 1446, assignment 46756 order 0) 72.6, 47.8 -> continent 1, world -8073.8, -5228.1 (1 point) [wowhead]
+  220347 The Liminal and the Arcane | quest 81951 (NOT on Wowhead) | absent
+    by hand: Feralas 50.6, 15.7 (hand: reported unavailable in Forever; no source and no quest on Wowhead Forever)
+    spot: Feralas (area 357, map 1444, assignment 46754 order 0) 50.6, 15.7 -> continent 1, world -3094.1, 1925.0 (1 point)
+  220348 Everyday Etiquette | quest 81952 (name search) | ok
+    object 441250: Book
+    spot: Azshara (area 16, map 1447, assignment 46757 order 0) 20.8, 62.0 -> continent 1, world 3245.3, -4331.8 (1 point) [wowhead]
+  220349 Stonewrought Design | quest 81953 (name search) | ok
+    object 441251: Book
+    spot: Burning Steppes (area 46, map 1428, assignment 46738 order 0) 29.1, 28.9 -> continent 0, world -7595.4, -1119.1 (1 point) [wowhead]
+  220350 Venomous Journeys | quest 81954 (name search) | ok
+    object 441252: Book
+    spot: The Hinterlands (area 47, map 1425, assignment 46735 order 0) 36.0, 72.8 -> continent 0, world -401.9, -2961.0 (1 point) [wowhead]
+  220352 A Mind of Metal | quest 81955 (name search) | ok
+    object 441253: Book
+    merged: Searing Gorge 37.9, 49.6 into 37.8, 49.3
+    spot: Searing Gorge (area 51, map 1427, assignment 46737 order 0) 37.8, 49.3 -> continent 0, world -6833.3, -1166.3 (2 points) [wowhead]
+  220353 Conjurer's Codex | quest 81956 (name search) | ok
+    object 441254: Book
+    merged: Blasted Lands 55.4, 32.5 into 55.4, 32.2
+    merged: Blasted Lands 55.5, 32.2 into 55.4, 32.2
+    spot: Blasted Lands (area 4, map 1419, assignment 46729 order 0) 55.4, 32.2 -> continent 0, world -11285.8, -3097.6 (3 points) [wowhead]
+  228132 Undead Potatoes | quest 84395 (name search) | ok
+    object 463213: Book
+    spot: Western Plaguelands (area 28, map 1422, assignment 46732 order 0) 38.2, 54.6 -> continent 0, world 1801.5, -1225.9 (1 point) [wowhead]
+  228133 Magma or Lava? | quest 84396 (name search) | ok
+    object 463206: Book
+    merged: Burning Steppes 26.2, 22.5 into 26.2, 22.4
+    spot: Burning Steppes (area 46, map 1428, assignment 46738 order 0) 26.2, 22.4 -> continent 0, world -7468.5, -1034.1 (2 points) [wowhead]
+  228134 Northern Kalimdor - A Comprehensive Guide | quest 84397 (name search) | ok
+    object 463209: Book
+    spot: Felwood (area 361, map 1448, assignment 46758 order 0) 65.2, 3.3 -> continent 1, world 7006.8, -2107.3 (1 point) [wowhead]
+  228135 A Study of the Light | quest 84398 (name search) | ok
+    object 463207: Book
+    spot: Eastern Plaguelands (area 139, map 1423, assignment 46733 order 0) 71.8, 48.3 -> continent 0, world 2307.1, -5345.1 (1 point) [wowhead]
+    spot: Eastern Plaguelands (area 139, map 1423, assignment 46733 order 0) 81.7, 57.8 -> continent 0, world 2034.7, -5771.1 (1 point) [wowhead]
+  228136 Ka-Boom! | quest 84399 (name search) | ok
+    object 463214: Book
+    spot: Winterspring (area 618, map 1452, assignment 46762 order 0) 60.7, 37.7 -> continent 1, world 6748.9, -4626.4 (1 point) [wowhead]
+  228138 The Knight and the Lady | quest 84400 (name search) | ok
+    object 463208: Book
+    merged: Eastern Plaguelands 54.5, 51.1 into 54.4, 51.1
+    spot: Eastern Plaguelands (area 139, map 1423, assignment 46733 order 0) 47.2, 42.3 -> continent 0, world 2479.1, -4286.8 (1 point) [wowhead]
+    spot: Eastern Plaguelands (area 139, map 1423, assignment 46733 order 0) 54.4, 51.1 -> continent 0, world 2226.8, -4596.6 (2 points) [wowhead]
+  228140 Scourge: Undead Menace or Misunderstood? | quest 84401 (name search) | ok
+    by hand: Eastern Plaguelands 31.3, 21.0 (hand: no source on Wowhead)
+    spot: Eastern Plaguelands (area 139, map 1423, assignment 46733 order 0) 31.3, 21.0 -> continent 0, world 3089.7, -3602.8 (1 point)
+  228141 Necromancy 101 | quest 84402 (name search) | ok
+    object 463211: Book
+    spot: Western Plaguelands (area 28, map 1422, assignment 46732 order 0) 69.2, 72.4 -> continent 0, world 1291.2, -2558.9 (1 point) [wowhead]
+
+40 books, 42 spots

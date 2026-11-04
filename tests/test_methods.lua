@@ -92,6 +92,14 @@ for _, c in ipairs(P.Commands()) do
     if c.help:find("[test]", 1, true) then SlashCmdList.GLASSPEARLS(c.name .. " test") end
 end
 for _ = 1, 5 do WoW.tick(); WoW.advance(1) end
+-- A library book's pin: its tooltip (#72).
+for icon, r in pairs(WoW.hbd.world) do
+    if r.ref == GP.Books then
+        icon._scripts.OnEnter(icon)
+        icon._scripts.OnLeave(icon)
+        break
+    end
+end
 -- Each pearl off and on again (its Disable and Enable).
 for _, def in ipairs(P.List()) do
     SlashCmdList.GLASSPEARLS(def.key .. " off")

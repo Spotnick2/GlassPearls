@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64), library books (#72); the day-one
 probe (#5) follows. The pearls that sell, buy, pick or destroy were audited offline (#61,
 [docs/AUDIT.md](docs/AUDIT.md): the property, the trace matrix, 15 findings with witness tests, the
 declared exceptions). Nothing
@@ -33,14 +33,15 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 `Libs\HereBeDragons-2.0\HereBeDragons-Pins-2.0.lua` → `Compat.lua` → `Theme.lua` → `UI.lua` →
 `AccountSync.lua` → `Pearls.lua` → `SettingsSync.lua` → `Core\ToolItems.lua` → `Core\Bags.lua` →
 `Core\Merchant.lua` → `Core\AuraAlert.lua` → `Core\Notice.lua` → `Core\BagMarks.lua` →
-`Data\Landmarks.lua` → `Data\SpellRanks.lua` → `Data\AuraDurations.lua` → `Data\Training.lua` → `Data\Restock.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
+`Data\Landmarks.lua` → `Data\SpellRanks.lua` → `Data\AuraDurations.lua` → `Data\Training.lua` → `Data\Restock.lua` → `Data\Books.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
 `Pearls\BagsFull.lua` → `Pearls\Landmarks.lua` → `Pearls\SpellRanksFrame.lua` →
 `Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua` → `Pearls\FixateFrame.lua` →
 `Pearls\Fixate.lua` → `Pearls\Uncrushable.lua` → `Pearls\BuffsFrame.lua` → `Pearls\Buffs.lua` → `Pearls\PaladinTank.lua` → `Pearls\TrainingFrame.lua` →
 `Pearls\Training.lua` → `Pearls\RestockFrame.lua` → `Pearls\Restock.lua` → `Pearls\MarkWheelFrame.lua` →
 `Pearls\MarkWheel.lua` → `Pearls\AutoGossipFrame.lua` → `Pearls\AutoGossip.lua` → `Pearls\FastLootFrame.lua` →
 `Pearls\FastLoot.lua` → `Pearls\LowBuffs.lua` → `Pearls\InstanceGearFrame.lua` → `Pearls\InstanceGear.lua` →
-`Pearls\PetCareFrame.lua` → `Pearls\PetCare.lua`)* →
+`Pearls\PetCareFrame.lua` → `Pearls\PetCare.lua` → ... → `Pearls\Fishing.lua` → `Pearls\BooksFrame.lua` →
+`Pearls\Books.lua`)* →
 `Options.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
@@ -546,6 +547,32 @@ order) and before the options window and bootstrap.
   written), only when `C_Map.GetMapLevels` gives no range. Any setting change rebuilds.
   Unmeasured until day one: the icons, the positions marked "hand", the taxi API away from a
   flight master, Blizzard's label.
+- **`Data\Books.lua`**: **generated** by `Tools\gen_books.py` (never edit it): WoW Forever's 40 library books.
+  The books are the client's (ItemSparse: "addition to any library's collection", bind on pickup, unique; the
+  run fails if `Tools\books\books.csv` differs). Spots: Wowhead Forever's (the item's source object, the
+  object's spawn points; shared cache, offline), each book **accepted in the CSV** (`spots` = `wowhead` or `hand`
+  with its reason), zone positions converted with UiMapAssignment and validated by the generator (one build, one
+  zone map per area, floor 0, finite, non-degenerate rectangles, continents 0 and 1), spots of one book within
+  30 yd merged. Turn-in quests confirmed by Wowhead's cache, else `unconfirmed` or `absent`. `faction`, `status`,
+  `entrance`, `note`. `Tools\books\report.txt` lists every decision (Wowhead's unused candidates included).
+- **`Pearls\Books.lua`**: library books (#72, pearl `books`, Interface > Maps, on by default; `worldmap`,
+  `minimap`, `nearby` all on). **States**, read fresh, unknown on any unreadable read: hidden (absent, or the
+  other faction by `UnitFactionGroup`'s first return; an unreadable faction is unknown, never hidden), done
+  (`IsQuestFlaggedCompleted` plainly true), have (carried or bank-inclusive count above 0, or remembered banked),
+  need (all plainly absent **and the bank established**), unknown. The map shows need and unknown, the toast only
+  need; an unconfirmed book is never need. **The bank**: recorded while open (`BANKFRAME_OPENED` to `_CLOSED`,
+  synchronous at the close) in `GlassPearlsCharDB.books` (`bank`, `unsure`, `bankSeen`; item IDs only, never
+  synced); a book plainly carried leaves the bank list; one whose counts can't be read during a visit is
+  `unsure` (unknown) until resolved; until the first visit (`bankSeen`) a plain zero proves nothing, unless
+  `B.BANK_COUNT_UNOPENED` (false: unmeasured). Refreshed a frame later (one token) on world entry, quest turn-in
+  and log updates, bags, the bank events, `UNIT_FACTION` for the player; pins rebuilt when a state changed.
+  **Nearby**: a 1 s ticker while on; HereBeDragons' position inside one pcall, every return plain; distance only
+  to spots on the same continent (`GetWorldDistance` ignores the instance); a latch per book, alerted once within
+  `ENTER` (100) yd, re-armed only by a plain reading `LEAVE` (150) yd from all its spots; quiet in an instance,
+  dead, on a taxi. Several at once: a chat line each, the nearest on the toast. `/gpearls books [test]`.
+  Unmeasured until day one.
+- **`Pearls\BooksFrame.lua`**: its toast (icon, name, where, how far; **stays until OK**: no timeout, not in
+  `UISpecialFrames`; position per character) and its panel (the three switches, Test).
 - **`Data\SpellRanks.lua`**: **generated** by `Tools\gen_ranks.py` (never edit it): every class
   spell that comes in ranks, `groups[g]` (IDs, lowest rank first) and `ranks[id] = { g, rank,
   level }`, from the client's SkillLine (class trees: category 7 with flag 0x400; pet lines lack

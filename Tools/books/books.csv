@@ -1,0 +1,41 @@
+item,quest,faction,status,spots,zone,x,y,entrance,note,source
+203754,79091,,ok,wowhead,,,,,,
+203755,79092,,ok,wowhead,,,,,,
+207972,79094,Horde,ok,hand,1454,38.7,78.4,,The Ta'zo mural,hand: no source on Wowhead
+208185,79095,,ok,wowhead,,,,,,
+208800,79097,,ok,wowhead,,,,,,
+208860,79093,Alliance,ok,wowhead,,,,,,
+209843,78124,,ok,wowhead,,,,,,
+209844,78127,,ok,wowhead,,,,,,
+209845,78142,,ok,hand,1436,45.4,70.4,,In a house in Moonbrook,hand: Wowhead's object spawns only on Zephras Isle (see the report)
+209846,78143,,ok,hand,1413,46.0,36.5,1,In the cave (not the dungeon),hand: the object is in the cave and has no spot on Wowhead; this is the cave's entrance
+209847,78145,,ok,wowhead,,,,,,
+209848,78146,,ok,wowhead,,,,,,
+209849,78147,,ok,wowhead,,,,,,
+209850,78148,,ok,wowhead,,,,,,
+209851,78149,,ok,wowhead,,,,,,
+210177,79096,,ok,wowhead,,,,,,
+213165,79535,,ok,wowhead,,,,,,
+215683,79947,,ok,wowhead,,,,,,
+215815,79948,,ok,wowhead,,,,,,
+215816,79949,,ok,wowhead,,,,,,
+215817,79950,,ok,wowhead,,,,,,
+215820,79951,,ok,wowhead,,,,,,
+215822,79952,,ok,wowhead,,,,,,
+215824,79953,,unconfirmed,hand,1435,61.4,22.4,,,hand: no source and no quest on Wowhead Forever
+220345,81947,,ok,wowhead,,,,,,
+220346,81949,,ok,wowhead,,,,,,
+220347,81951,,absent,hand,1444,50.6,15.7,,,hand: reported unavailable in Forever; no source and no quest on Wowhead Forever
+220348,81952,,ok,wowhead,,,,,,
+220349,81953,,ok,wowhead,,,,,,
+220350,81954,,ok,wowhead,,,,,,
+220352,81955,,ok,wowhead,,,,,,
+220353,81956,,ok,wowhead,,,,,,
+228132,84395,,ok,wowhead,,,,,,
+228133,84396,,ok,wowhead,,,,,,
+228134,84397,,ok,wowhead,,,,,,
+228135,84398,,ok,wowhead,,,,,,
+228136,84399,,ok,wowhead,,,,,,
+228138,84400,,ok,wowhead,,,,,,
+228140,84401,,ok,hand,1423,31.3,21.0,,,hand: no source on Wowhead
+228141,84402,,ok,wowhead,,,,,,

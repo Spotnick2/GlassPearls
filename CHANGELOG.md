@@ -143,4 +143,9 @@
   does this). Optionally, while you fish, the splash louder (music, ambience and pet sounds off, effects and
   master volume up, a volume setting) and NPC names hidden. Everything is put back when you stop, and none
   of your own settings is ever saved or rewritten. `/gpearls fishing`, `/gpearls fishing reset`.
+- **Library books** (Interface, on by default): WoW Forever's 40 library books on the world map (zone and
+  continent) and the minimap, each place a book you still need can be found; hover one for the book and
+  where. Within 100 yards of one, a note that stays until you click OK, and a line in chat; it comes again
+  only after you've gone 150 yards away. Books you carry, keep in your bank or have handed in aren't shown.
+  The bank is read when you open it, so open it once for the notes to start. `/gpearls books`.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.

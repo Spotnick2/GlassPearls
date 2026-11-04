@@ -64,6 +64,17 @@ and flight points on the world map (zone and continent) and the minimap.
 - Hover a zone on a continent map to see its level range, when the game shows none.
 - Its gear switches each kind on the world map and minimap, and sets the icon size.
 
+**Library books** (on by default). WoW Forever's 40 library books on the world map (zone and
+continent) and the minimap, at each place a book you still need can be found.
+- Hover an icon for the book and where it is. Books you carry, keep in your bank or have handed in
+  aren't shown; the other faction's two books neither.
+- Within 100 yards of a book you still need, a note shows the book, where it is and how far, and
+  stays until you click OK; a line in chat too. It comes again only after you've gone 150 yards
+  away. No notes in instances, while dead or on a flight.
+- The bank is read when you open it: open it once so the notes can start.
+- Its gear switches the world map, the minimap and the notes. `/gpearls books` counts what's left
+  and names the nearest.
+
 ### Combat
 
 **Fixate alert** (on by default). A sound and an alert when a mob fixates on you, in any client

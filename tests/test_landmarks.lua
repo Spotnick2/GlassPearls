@@ -13,8 +13,8 @@ local nE, nT = #D.entrances, #D.transports
 
 check(P.IsLive("landmarks"), "on by default")
 eq(P.Get("landmarks").category, "Interface", "on the Interface page")
-eq(WoW.hbdCount("world"), nE + nT, "every entrance and transport on the world map")
-eq(WoW.hbdCount("mini"), nE + nT, "and on the minimap")
+eq(WoW.hbdCount("world", LM), nE + nT, "every entrance and transport on the world map")
+eq(WoW.hbdCount("mini", LM), nE + nT, "and on the minimap")
 
 -- The calls: world order swapped for HereBeDragons (x west, y north), the continent flag.
 local first = D.entrances[1]
@@ -116,21 +116,22 @@ for display in pairs(flights) do
 end
 eq(flights.world, 0, "Blizzard draws them on that map: none of ours on the world map")
 eq(flights.mini, 2, "  still on the minimap (Blizzard has none there)")
-eq(WoW.hbdCount("world"), nE + nT, "a rebuild never doubles a pin")
+eq(WoW.hbdCount("world", LM), nE + nT, "a rebuild never doubles a pin")
 WoW.taxiShown[1411], WoW.taxi[1411] = nil, nil
 LM.Build()
 
 -- Settings rebuild at once (from the options, a slash command or settings sync).
 P.SetSetting("landmarks", "entrancesWorld", false)
-eq(WoW.hbdCount("world"), nT, "entrances off on the world map: only transports")
-eq(WoW.hbdCount("mini"), nE + nT, "  the minimap keeps them")
+eq(WoW.hbdCount("world", LM), nT, "entrances off on the world map: only transports")
+eq(WoW.hbdCount("mini", LM), nE + nT, "  the minimap keeps them")
 P.SetSetting("landmarks", "transportsMinimap", false)
-eq(WoW.hbdCount("mini"), nE, "transports off on the minimap")
+eq(WoW.hbdCount("mini", LM), nE, "transports off on the minimap")
 P.SetSetting("landmarks", "size", 130)
-local anyIcon = next(WoW.hbd.mini)
+local anyIcon
+for icon, r in pairs(WoW.hbd.mini) do if r.ref == LM then anyIcon = icon end end
 eq(anyIcon._width, LM.BASE_SIZE * 1.3, "the icon size follows")
 P.ResetSettings("landmarks")
-eq(WoW.hbdCount("world"), nE + nT, "Reset: everything back")
+eq(WoW.hbdCount("world", LM), nE + nT, "Reset: everything back")
 
 -- The zone level line, only where Blizzard's own range is empty.
 WorldMapFrame:Show()
@@ -199,7 +200,7 @@ eq(#radios, 3, "three icon sizes")
 checks[1]:SetChecked(false)
 checks[1]:GetScript("OnClick")(checks[1])
 eq(P.Setting("landmarks", "entrancesWorld"), false, "the first switch: entrances on the world map")
-eq(WoW.hbdCount("world"), nT, "  applied at once")
+eq(WoW.hbdCount("world", LM), nT, "  applied at once")
 P.ResetSettings("landmarks")
 GP.Options._test.win():Hide()
 
@@ -219,15 +220,15 @@ LM.Build()
 
 -- Switched off: every pin removed, the line gone, events ignored.
 P.Set("landmarks", false)
-eq(WoW.hbdCount("world"), 0, "off: no world map pins")
-eq(WoW.hbdCount("mini"), 0, "  no minimap pins")
+eq(WoW.hbdCount("world", LM), 0, "off: no world map pins")
+eq(WoW.hbdCount("mini", LM), 0, "  no minimap pins")
 check(not LM._test.label():IsShown(), "  no zone line")
 WoW.fire("TAXI_NODE_STATUS_CHANGED")
-eq(WoW.hbdCount("world"), 0, "  and a taxi event builds nothing")
+eq(WoW.hbdCount("world", LM), 0, "  and a taxi event builds nothing")
 P.SetSetting("landmarks", "size", 80)
-eq(WoW.hbdCount("world"), 0, "  nor a settings change")
+eq(WoW.hbdCount("world", LM), 0, "  nor a settings change")
 P.ResetSettings("landmarks")
 P.Set("landmarks", true)
-eq(WoW.hbdCount("world"), nE + nT, "back on: everything again")
+eq(WoW.hbdCount("world", LM), nE + nT, "back on: everything again")
 
 done("test_landmarks")
