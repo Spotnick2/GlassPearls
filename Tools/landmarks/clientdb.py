@@ -48,7 +48,7 @@ class Maps:
             a = {k: float(r[k]) for k in ("UiMin_0", "UiMin_1", "UiMax_0", "UiMax_1",
                                           "Region_0", "Region_1", "Region_3", "Region_4")}
             a.update(uimap=int(r["UiMapID"]), continent=int(r["MapID"]), area=int(r["AreaID"]),
-                     order=int(r["OrderIndex"]))
+                     order=int(r["OrderIndex"]), id=int(r["ID"]))
             self.assign.append(a)
 
     def name(self, uimap):
