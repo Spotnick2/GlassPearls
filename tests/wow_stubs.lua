@@ -541,10 +541,19 @@ end
 -- client's whole map system). It keeps the API our code calls:
 -- Add{WorldMap,Minimap}Icon{World,Map}, RemoveAll{WorldMap,Minimap}Icons.
 -- WoW.hbd.calls records each; WoW.hbdFail makes the adds return false.
+-- GetPlayerWorldPosition returns (west, north, instance) as the vendored copy
+-- does (HereBeDragons-2.0.lua:661), from WoW.playerWorld = { west, north,
+-- instance } | "throw" | nil (no position).
 function WoW.installFakeHBD()
     local stub = rawget(_G, "LibStub")
     if not stub or stub("HereBeDragons-Pins-2.0", true) then return end
-    stub:NewLibrary("HereBeDragons-2.0", 35)
+    local H = stub:NewLibrary("HereBeDragons-2.0", 35)
+    function H:GetPlayerWorldPosition()
+        local p = WoW.playerWorld
+        if p == "throw" then error("position refused") end
+        if type(p) ~= "table" then return nil, nil, nil end
+        return p[1], p[2], p[3]
+    end
     local P = stub:NewLibrary("HereBeDragons-Pins-2.0", 17)
     WoW.hbd = { calls = {}, world = {}, mini = {} }
     local function add(display, kind)
@@ -563,9 +572,10 @@ function WoW.installFakeHBD()
         for icon, r in pairs(WoW.hbd.mini) do if r.ref == ref then WoW.hbd.mini[icon] = nil end end
     end
 end
-function WoW.hbdCount(display)
+-- The pins on one display; only one pearl's (its HereBeDragons ref) when given.
+function WoW.hbdCount(display, ref)
     local n = 0
-    for _ in pairs(WoW.hbd[display]) do n = n + 1 end
+    for _, r in pairs(WoW.hbd[display]) do if ref == nil or r.ref == ref then n = n + 1 end end
     return n
 end
 
@@ -2024,6 +2034,31 @@ function WoW.pressKey(key, down)
     if s.OnClick then s.OnClick(b, o.mouseButton or "LeftButton", down, true, false) end
     if s.PostClick then s.PostClick(b, o.mouseButton or "LeftButton", down) end
     return "click"
+end
+
+--------------------------------------------------------------------------------
+-- Library books (#72). In the 70532 dump: C_QuestLog.IsQuestFlaggedCompleted,
+-- C_Item.GetItemIconByID, C_Map.GetMapInfo (documented). The position is the
+-- fake HereBeDragons' (WoW.playerWorld, above).
+--   WoW.questsDone[questID] = true | false | "throw" | a secret (absent: false)
+--   WoW.mapInfo[uiMapID] = { name }         WoW.items[id].icon (GetItemIconByID)
+--------------------------------------------------------------------------------
+
+WoW.questsDone, WoW.mapInfo = {}, {}
+C_QuestLog = C_QuestLog or {}
+function C_QuestLog.IsQuestFlaggedCompleted(id)
+    local v = WoW.questsDone[id]
+    if v == "throw" then error("quest refused") end
+    if v == nil then return false end
+    return v
+end
+function C_Item.GetItemIconByID(x)
+    local it = WoW.items[type(x) == "number" and x or tonumber(tostring(x):match("item:(%d+)"))]
+    return it and it.icon
+end
+function C_Map.GetMapInfo(id)
+    local m = WoW.mapInfo[id]
+    if m then return { mapID = id, name = m.name, mapType = 3, parentMapID = 0 } end
 end
 
 -- Strict globals: any read of an undefined global is an error, except the

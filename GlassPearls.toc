@@ -33,6 +33,7 @@ Data\SpellRanks.lua
 Data\AuraDurations.lua
 Data\Training.lua
 Data\Restock.lua
+Data\Books.lua
 Pearls\BagsFullFrame.lua
 Pearls\BagsFull.lua
 Pearls\Landmarks.lua
@@ -69,5 +70,7 @@ Pearls\EasyDelete.lua
 Pearls\Sparkle.lua
 Pearls\Trades.lua
 Pearls\Fishing.lua
+Pearls\BooksFrame.lua
+Pearls\Books.lua
 Options.lua
 GlassPearls.lua

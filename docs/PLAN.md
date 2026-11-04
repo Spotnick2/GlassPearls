@@ -42,6 +42,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #39 | Train all (pearl `trainall`, off by default): a Train all button at the class trainer | built; `BuyTrainerService` from addon code and the trainer tooltip's identity wait for day one |
 | #41 | Junk spotlight (pearl `junkspot`, off by default): what the junk seller may sell, marked in the bags and tooltips | built; the marks beside pet care's and the tooltip owner wait for day one |
 | #64 | Easy fishing (pearl `fishing`): one key casts and reels in; the Interact Key, focused sounds and hidden NPC names while fishing, all through temp CVars | built; the channel ID, the key's edges, the bobber's reach and the temp CVars wait for day one |
+| #72 | Library books (pearl `books`): the books you still need on the world map and minimap, and a note when you come near one | built; the bank count, the pins and the hand spots wait for day one |
 | #61 | Audit: the pearls that sell, buy, pick or destroy (Junk, Restock, AutoGossip, the bags-full delete) | done offline ([docs/AUDIT.md](AUDIT.md): 15 findings fixed, each with a witness test); its day-one lines are below, marked "audit #61" |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
@@ -423,6 +424,21 @@ story NPC, a multi-page NPC)
 - [ ] Exit paths: a reel, an interruption (moving), the channel running out, a quick recast, a loading
       screen, switching on or `/reload` during a channel: the session, the temps and the key settle each time.
 - [ ] `UPDATE_BINDINGS` after our own override calls (no loop, by design).
+
+**Library books (#72)** (a character with books still to find; one with a book in the bank)
+- [ ] **The bank count before the bank is opened** (decides `B.BANK_COUNT_UNOPENED`): a known banked book's
+      `C_Item.GetItemCount(item, true)` right after login and `/reload`, after opening the bank, and after
+      moving it out and back. If it counts the bank before opening, set the constant true.
+- [ ] `C_QuestLog.IsQuestFlaggedCompleted` for a handed-in book (and when it turns true after
+      `QUEST_TURNED_IN`); whether an alt's turn-ins show (they shouldn't: per character).
+- [ ] The pins by sight on the zone and continent maps and the minimap: the icon, each Wowhead spot, and the
+      hand spots (Ta'zo's mural, the Dreamers' cave entrance, Scourge, the Luddite's Guide); the minimap pins
+      updating live, also where the position can't be read (a city, a cave, an instance entrance).
+- [ ] Bewitchments and Glamours: Moonbrook (our hand spot) or Zephras Isle (Wowhead's eight); whether the
+      Liminal and the Arcane and the Luddite's Guide exist in Forever (no object, no quest on Wowhead).
+- [ ] Nearby: the toast within 100 yards, once; again only after 150; the chat line; quiet in an instance, dead
+      and on a flight; two books near each other (Burning Steppes); the distance against the map's.
+- [ ] `HBD:GetPlayerWorldPosition()` in a city, a cave and an instance (plain, nil or secret).
 
 **The probe (#5):** its steps are added here by its PR.
 
