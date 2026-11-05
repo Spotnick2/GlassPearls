@@ -595,7 +595,7 @@ order) and before the options window and bootstrap.
   of the group on the cursor is cleared, anything else is left and said, a failed placement is
   undone only into an empty slot, and the first unclean result stops the run. Unmeasured until
   day one: whether the client updates bars itself, `PlaceAction` from addon code, the page mapping.
-- **`Pearls\SpellRanksFrame.lua`**: its popup (Keep, Later, Update all; position per character) and
+- **`Pearls\SpellRanksFrame.lua`**: its popup (per row Update, which is Update all with that row alone, #75, and Keep; Later, Update all; position per character) and
   its Configuration Panel (when it checks, what it lists, Check now, the kept ranks).
 - **`Pearls\BagsFullFrame.lua`**: its window (beside the loot window, or where the player dragged it,
   per character) and its Configuration Panel (quality scope, greys first, the never-suggest list).
