@@ -93,7 +93,8 @@ when Righteous Fury is off, a heads-up before it ends, and when Salvation is on 
 left and who cast it.
 
 **Low spell ranks** (on by default). When a spell on your action bars, or one you cast, is a lower
-rank than one you know, it lists it after combat and updates the buttons in one click.
+rank than one you know, it lists it after combat and updates the buttons in one click: all of them,
+or one spell at a time from its row.
 - It checks at login, after you learn a spell (once the trainer window closes), and after a
   dual-spec swap, where each spec's bars can still hold old ranks.
 - Keep a rank you use low on purpose: it isn't listed again, on any of your accounts. Spells in

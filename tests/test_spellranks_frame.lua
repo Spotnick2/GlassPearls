@@ -1,7 +1,7 @@
 -- The low spell ranks popup and Configuration Panel (#12): the title and line,
 -- each row's text ("Rank 1 > Rank 4", buttons, stance, macro, cast), the
 -- pages (every finding reachable, each with its Keep), Keep, Later, the close X, Update all (shown only with bar rows,
--- disabled by hand), Esc, the drag position, the tooltip, and the panel's
+-- disabled by hand), a row's own Update (bar rows only, that row alone, #75), Esc, the drag position, the tooltip, and the panel's
 -- switches, Check now and kept list. In both looks.
 dofile("tests/wow_stubs.lua")
 dofile("tests/harness.lua")
@@ -108,6 +108,18 @@ F.Show({ with({ kind = "bar", slots = { 1 } }) }, { byHand = true })
 check(f.update:IsShown() and not f.update:IsEnabled(), "by hand: Update all shown, disabled")
 check(f.sub:GetText():find("Drag the highest rank from your spellbook", 1, true), "  the line says how")
 
+-- Each row of action buttons has its own Update (#75); a macro or cast row has none.
+F.Show({ with({ kind = "bar", slots = { 1 } }), with({ kind = "macro", slots = { 3 }, id = 8044 }),
+    with({ kind = "cast", slots = {}, id = 8045 }) })
+check(f.rows[1].update:IsShown() and f.rows[1].update:IsEnabled(), "a bar row: its Update, enabled")
+check(not f.rows[2].update:IsShown(), "a macro row: no Update")
+check(not f.rows[3].update:IsShown(), "a cast row: no Update")
+F.Show({ with({ kind = "macro", slots = { 3 } }), with({ kind = "bar", slots = { 1 } }) })
+check(not f.rows[1].update:IsShown() and f.rows[2].update:IsShown(), "  a pooled row follows its new entry")
+F.Show({ with({ kind = "bar", slots = { 1 } }) }, { byHand = true })
+check(f.rows[1].update:IsShown() and not f.rows[1].update:IsEnabled(), "by hand: a row's Update shown, disabled")
+F.Hide()
+
 -- The buttons call the logic.
 SR.Check("button")
 local updated
@@ -115,7 +127,29 @@ local realUpdate = SR.Update
 SR.Update = function(rows) updated = rows; return 0 end
 f.update:GetScript("OnClick")(f.update)
 eq(updated, f.entries, "Update all passes the rows shown")
+updated = nil
+f.rows[1].update:GetScript("OnClick")(f.rows[1].update)
+check(type(updated) == "table" and #updated == 1 and updated[1] == f.entries[1], "a row's Update passes that row alone")
 SR.Update = realUpdate
+-- For real: two spells, one row's Update changes only its own buttons.
+for _, id in ipairs({ 403, 529, 548 }) do WoW.spells[id] = { name = "Lightning Bolt", icon = 136048 } end
+for _, id in ipairs({ 403, 529, 548 }) do WoW.known[id] = true end
+WoW.actions[3] = { kind = "spell", id = 403 }
+SR.Check("button")
+local shock, bolt
+for i = 1, 2 do
+    local e = f.rows[i].entry
+    if e.id == 8042 then shock = f.rows[i] elseif e.id == 403 then bolt = f.rows[i] end
+end
+check(shock and bolt, "two rows: Earth Shock and Lightning Bolt")
+newChat()
+shock.update:GetScript("OnClick")(shock.update)
+check(WoW.actions[1].id == 8046 and WoW.actions[2].id == 8046, "  Earth Shock's Update: both its buttons at rank 4")
+eq(WoW.actions[3].id, 403, "  Lightning Bolt's button untouched")
+check(chatHas("2 action buttons updated to the highest rank."), "  and said")
+check(f:IsShown() and f.rows[1].entry.id == 403 and not f.rows[2]:IsShown(), "  the popup stays, Lightning Bolt's row left")
+WoW.actions = { [1] = { kind = "spell", id = 8042 }, [2] = { kind = "spell", id = 8042 } }
+SR.Check("button")
 f.rows[1].keep:GetScript("OnClick")(f.rows[1].keep)
 check(SS.SetHas(SR.KEEP, 8042), "Keep keeps the row's rank")
 check(not f:IsShown(), "  nothing left: the popup closes")

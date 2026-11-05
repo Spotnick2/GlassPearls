@@ -4,7 +4,8 @@
 --
 -- The popup: "Low spell ranks", a line under it, pages of MAX_ROWS rows (the
 -- spell's icon, its name, "Rank 1 > Rank 4", what it is: "(3 buttons)", "in a
--- macro: edit by hand", "was cast: not on your bars", a Keep button) with
+-- macro: edit by hand", "was cast: not on your bars", an Update button on a
+-- row of action buttons (that row alone, #75), a Keep button) with
 -- < n/N > past one page, then Later and Update all. Esc closes it (UISpecialFrames); it drags
 -- and remembers where (per character); above the centre otherwise. Each row's
 -- tooltip is the rank it would get.
@@ -17,7 +18,7 @@ GP.SpellRanksFrame = Frame
 
 Frame.NAME = "GlassPearlsSpellRanksFrame"
 Frame.MAX_ROWS = 8
-local W, ROW_H, TOP, BOTTOM = 440, 30, 62, 50
+local W, ROW_H, TOP, BOTTOM = 510, 30, 62, 50
 local QUESTION = "Interface\\Icons\\INV_Misc_QuestionMark"
 
 local f   -- built on first show
@@ -80,9 +81,16 @@ local function newRow(i)
     r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     r.text = GP.UI.Label(r, "")
     r.text:SetPoint("LEFT", r, "LEFT", 34, 0)
-    r.text:SetWidth(W - 36 - 34 - 74)
+    r.text:SetWidth(W - 36 - 34 - 144)
     r.keep = GP.UI.Button(r, "Keep", 64, function() SR().Keep(r.entry) end)
     r.keep:SetPoint("RIGHT", r, "RIGHT", 0, 0)
+    -- This row alone, through Update all's own path, inside this click.
+    r.update = GP.UI.Button(r, "Update", 64, function()
+        if r.entry then SR().Update({ r.entry }) end
+    end)
+    r.update:SetPoint("RIGHT", r.keep, "LEFT", -6, 0)
+    GP.UI.Tooltip(r.update, "Update",
+        "Puts the highest rank you know on this spell's buttons (same place, same key).")
     GP.UI.Tooltip(r.keep, "Keep this rank",
         "For a spell you use in a low rank on purpose. This rank isn't listed again, on any of your accounts; "
         .. "the gear on Glass Pearls' Combat page lists the kept ones.")
@@ -185,6 +193,8 @@ function Frame.Show(rows, opts)
             row.entry = e
             row.icon:SetTexture(icon(e.best))
             row.text:SetText(Frame.RowText(e))
+            row.update:SetShown(e.kind == "bar")
+            row.update:SetEnabled(e.kind == "bar" and not opts.byHand)
             row:Show()
         elseif row then
             row.entry = nil

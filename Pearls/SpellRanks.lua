@@ -1,6 +1,7 @@
 -- Pearls/SpellRanks.lua: low spell ranks (#12). Spells on your action bars, or
 -- cast, in a lower rank than one you know; after combat, a popup lists them
--- (Keep, Later, Update all). The popup and the gear's panel are
+-- (Update and Keep per row, Later, Update all; a row's Update is Update all
+-- with that row alone, #75). The popup and the gear's panel are
 -- Pearls/SpellRanksFrame.lua; the rank groups are Data/SpellRanks.lua
 -- (generated from the client's tables): everything here compares spell IDs.
 --
@@ -556,7 +557,8 @@ GP.Pearls.Register({
     desc = "Tells you when a spell on your action bars, or one you cast, is a lower rank than you know, "
         .. "and updates the buttons in one click.",
     help = "After combat, a list of the spells on your bars that use a lower rank than one you know: Update all "
-        .. "puts the highest rank on those buttons (same place, same key). It checks at login, after you learn a "
+        .. "puts the highest rank on those buttons (same place, same key), and a row's Update does it for that "
+        .. "spell alone. It checks at login, after you learn a "
         .. "spell (once the trainer window closes), and after a dual-spec swap. Spells in macros are listed, never "
         .. "edited. A low rank you cast is listed too. Keep a rank you use low on purpose: it's never listed again, "
         .. "on any of your accounts. /gpearls ranks checks now.",

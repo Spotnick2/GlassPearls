@@ -37,7 +37,8 @@
 - **Low spell ranks** (Combat, on by default): tells you when a spell on your action bars, or one
   you cast, is a lower rank than one you know, and fixes the buttons in one click.
   - After combat, a list: "Earth Shock  Rank 1 > Rank 4 (2 buttons)", with **Keep** for a rank you
-    use low on purpose (on all your accounts), **Later** and **Update all** (same place, same key).
+    use low on purpose (on all your accounts), **Update** on a row for that spell alone, **Later**
+    and **Update all** (same place, same key).
   - It checks at login, after you learn a spell (once the trainer window closes) and after a
     dual-spec swap; `/gpearls ranks` any time. Spells in macros are listed, never edited.
   - The gear: when it checks, whether casts and macros are listed, and the kept ranks.
