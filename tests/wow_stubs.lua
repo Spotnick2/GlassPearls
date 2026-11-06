@@ -232,7 +232,10 @@ function C_ChatInfo.RegisterAddonMessagePrefix(prefix)
     WoW.prefixes[prefix] = true
     return 0
 end
-function UnitFactionGroup(unit) if unit == "player" then return WoW.player.faction, WoW.player.faction end end
+-- The tag, then the localized label: distinct here, as on a non-English client (Alliance, Allianz).
+function UnitFactionGroup(unit)
+    if unit == "player" then return WoW.player.faction, WoW.player.faction .. " (localized)" end
+end
 function IsLoggedIn() return WoW.loggedIn == true end
 function debugprofilestop() return (GetTime() or 0) * 1000 end
 function fastrandom(a, b) return math.random(a, b) end
@@ -1695,7 +1698,7 @@ C_GameRules = { IsHardcoreActive = function()
 end }
 C_BattleNet.GetAccountInfoByGUID = function(guid)
     local v = WoW.bnetFriends[guid]
-    if v == true then return { accountName = "Friend#1234", bnetAccountID = 1 } end
+    if v == true then return { accountName = "Friend#1234", bnetAccountID = 1, isFriend = true } end
     return v
 end
 function IsGuildMember(guid)
@@ -2059,6 +2062,60 @@ end
 function C_Map.GetMapInfo(id)
     local m = WoW.mapInfo[id]
     if m then return { mapID = id, name = m.name, mapType = 3, parentMapID = 0 } end
+end
+
+--------------------------------------------------------------------------------
+-- Invite from whispers (#77). In the 70532 dump: C_PartyInfo.InviteUnit /
+-- CanInvite / IsPartyFull, C_BattleNet.GetAccountInfoByID / InviteFriend,
+-- C_RecentAllies.IsRecentAllyByGUID (documented); BNGetFriendIndex,
+-- GetNumGroupMembers, GetMaxBattlefieldID, GetBattlefieldStatus, GetLFGMode
+-- (its _G walk); CHAT_MSG_WHISPER / CHAT_MSG_BN_WHISPER (guid 12th,
+-- bnSenderID 13th). WOW_PROJECT_ID, BNET_CLIENT_WOW and NUM_LE_LFG_CATEGORYS
+-- are Blizzard's constants (ProjectConstants.lua, QueueStatusFrame.lua:362):
+-- a test sets them itself, since LibAccountSync reads WOW_PROJECT_ID too.
+--   WoW.invites = { { kind = "unit", target = name } | { kind = "bn", target = gameAccountID } }
+--   WoW.inviteThrows; WoW.canInvite (default true); WoW.partyFull (default false);
+--   WoW.groupSize (GetNumGroupMembers, default 0); WoW.battlefields = { status, ... } (GetMaxBattlefieldID
+--   is its length; WoW.battlefieldMax overrides it); WoW.lfgModes[category]; WoW.recentAllies[guid];
+--   WoW.bnAccounts[bnetAccountID] = { isFriend } (GetAccountInfoByID); BNGetFriendIndex finds the
+--   WoW.bn.friends index holding an account of that bnetAccountID; WoW.bnIndexThrows.
+-- Each value may be a WoW.Secret(...) or "throw".
+--------------------------------------------------------------------------------
+
+WoW.invites, WoW.battlefields, WoW.lfgModes, WoW.recentAllies, WoW.bnAccounts = {}, {}, {}, {}, {}
+local function answer(v, default)
+    if v == "throw" then error("refused") end
+    if v == nil then return default end
+    return v
+end
+function C_PartyInfo.InviteUnit(name)
+    if WoW.inviteThrows then error("invite refused") end
+    table.insert(WoW.invites, { kind = "unit", target = name })
+end
+function C_PartyInfo.CanInvite() return answer(WoW.canInvite, true) end
+function C_PartyInfo.IsPartyFull() return answer(WoW.partyFull, false) end
+function GetNumGroupMembers() return answer(WoW.groupSize, 0) end
+function GetMaxBattlefieldID() return answer(WoW.battlefieldMax, #WoW.battlefields) end
+function GetBattlefieldStatus(i) return answer(WoW.battlefields[i], "none") end
+function GetLFGMode(category) return answer(WoW.lfgModes[category], nil) end
+C_RecentAllies = { IsRecentAllyByGUID = function(guid) return answer(WoW.recentAllies[guid], false) end }
+function C_BattleNet.GetAccountInfoByID(id)
+    local v = WoW.bnAccounts[id]
+    if v == "throw" then error("account refused") end
+    return v
+end
+function C_BattleNet.InviteFriend(id)
+    if WoW.inviteThrows then error("invite refused") end
+    table.insert(WoW.invites, { kind = "bn", target = id })
+end
+function BNGetFriendIndex(bnID)
+    if WoW.bnIndexThrows then error("index refused") end
+    for i, list in ipairs(WoW.bn.friends) do
+        for _, gid in ipairs(list) do
+            local a = WoW.bn.accounts[gid]
+            if a and a.bnetAccountID == bnID then return i end
+        end
+    end
 end
 
 -- Strict globals: any read of an undefined global is an error, except the

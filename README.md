@@ -153,6 +153,13 @@ could cast, a chat line says so, once per person and buff a session.
 to Name" or "You received 3g from Name" (or how your money changed, when both sides offered), and
 the items each way. The last 10 are kept in its panel, on that character only.
 
+**Invite from whispers** (off by default). When a Battle.net friend, a friend or a guild member
+whispers you "inv" or "invite", you send them a group invite: a game whisper invites that character,
+a Battle.net whisper the character they're playing here.
+- Only when you're on your own, or lead the group (or assist in a raid), it has room and you're not in
+  a battleground queue; it never turns a party into a raid. One request per person every 10 seconds.
+- Optionally your Recent Allies too. Nothing is whispered back.
+
 ### Automation
 
 **Auto gossip** (on by default). When an NPC has a single gossip option, it's picked for you (never
@@ -202,6 +209,7 @@ you can place it:
 | Raid mark wheel | `/gpearls markwheel`, `markwheel test` |
 | Low-rank buffs | `/gpearls lowbuffs`: what it said this session |
 | Trade summary | `/gpearls trades`: the last trades on this character |
+| Invite from whispers | `/gpearls whisperinvite`: the last requests and what was done |
 | Auto gossip | `/gpearls gossip`: the NPC's options; `always <id>`, `forget <id>` |
 | Social automation | `/gpearls social`: what it answered or left to you |
 

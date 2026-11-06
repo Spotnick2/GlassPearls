@@ -43,6 +43,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #41 | Junk spotlight (pearl `junkspot`, off by default): what the junk seller may sell, marked in the bags and tooltips | built; the marks beside pet care's and the tooltip owner wait for day one |
 | #64 | Easy fishing (pearl `fishing`): one key casts and reels in; the Interact Key, focused sounds and hidden NPC names while fishing, all through temp CVars | built; the channel ID, the key's edges, the bobber's reach and the temp CVars wait for day one |
 | #72 | Library books (pearl `books`): the books you still need on the world map and minimap, and a note when you come near one | built; the bank count, the pins and the hand spots wait for day one |
+| #77 | Invite from whispers (pearl `whisperinvite`, off by default): "inv" or "invite" from a Battle.net friend, friend or guild member (Recent Allies by option) sends a group invite | built; the invite calls, the Battle.net game account fields and the queue reads wait for day one |
 | #61 | Audit: the pearls that sell, buy, pick or destroy (Junk, Restock, AutoGossip, the bags-full delete) | done offline ([docs/AUDIT.md](AUDIT.md): 15 findings fixed, each with a witness test); its day-one lines are below, marked "audit #61" |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
 
@@ -439,6 +440,19 @@ story NPC, a multi-page NPC)
 - [ ] Nearby: the toast within 100 yards, once; again only after 150; the chat line; quiet in an instance, dead
       and on a flight; two books near each other (Burning Steppes); the distance against the map's.
 - [ ] `HBD:GetPlayerWorldPosition()` in a city, a cave and an instance (plain, nil or secret).
+
+**Invite from whispers (#77)** (two accounts that are Battle.net friends; a guild mate; a stranger)
+- [ ] `C_PartyInfo.InviteUnit("Name Surname")` from addon code, with the whisper's own sender string: the
+      invite arrives (and a sender from another realm, if one can whisper).
+- [ ] A Battle.net whisper: `bnSenderID` (13th) plain; `BNGetFriendIndex`, and the game account's
+      `wowProjectID` (18?), `realmID`, `isInCurrentRegion`, `factionName`, `playerGuid`; `C_BattleNet.InviteFriend`
+      invites; a friend appearing offline reads `isOnline` false; two characters online is left to you.
+- [ ] `IsGuildMember(guid)`, `C_FriendList.IsFriend(guid)`, `GetAccountInfoByGUID(guid).isFriend` and
+      `C_RecentAllies.IsRecentAllyByGUID(guid)` for each kind of sender.
+- [ ] The queue reads idle: `GetMaxBattlefieldID()`, each `GetBattlefieldStatus(i)`, whether `NUM_LE_LFG_CATEGORYS`
+      exists (and `GetLFGMode` per category); then queued for a battleground.
+- [ ] `C_PartyInfo.CanInvite()` solo, as leader, as a member; `IsPartyFull()` at 5.
+- [ ] Whisper payloads inside an instance (plain or secret).
 
 **The probe (#5):** its steps are added here by its PR.
 

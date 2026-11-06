@@ -66,6 +66,7 @@ Pearls\InstanceGear.lua
 Pearls\PetCareFrame.lua
 Pearls\PetCare.lua
 Pearls\Social.lua
+Pearls\WhisperInvite.lua
 Pearls\EasyDelete.lua
 Pearls\Sparkle.lua
 Pearls\Trades.lua
