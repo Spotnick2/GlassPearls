@@ -81,6 +81,17 @@ local deploy = io.open("Tools/deploy.ps1"):read("*a")
 check(deploy:find('@("GlassPearls.toc", "Bindings.xml")', 1, true), "deploy.ps1 copies and keeps Bindings.xml")
 local workflow = io.open(".github/workflows/package-check.yml"):read("*a")
 check(workflow:find("echo GlassPearls/Bindings.xml", 1, true), "the package check expects Bindings.xml in the zip")
+-- Media\*.tga (the quest sparkle's stars, #79): read by path, so the deploy copies and keeps
+-- them, the package check expects them, and .pkgmeta doesn't drop them.
+check(deploy:find('+ $media +', 1, true), "deploy.ps1 copies and keeps Media\\*.tga")
+check(deploy:find("restart the game client", 1, true), "  and says a new texture needs a client restart")
+check(workflow:find("ls Media/*.tga | sed 's|^|GlassPearls/|'", 1, true), "the package check expects Media/*.tga")
+check(not io.open(".pkgmeta"):read("*a"):find("Media", 1, true), ".pkgmeta doesn't ignore Media")
+for _, name in ipairs({ "MarkerStar", "MarkerVapor", "SonarGlow" }) do
+    local f = io.open("Media/" .. name .. ".tga", "rb")
+    check(f ~= nil, "Media/" .. name .. ".tga is there (the stars' art)")
+    if f then f:close() end
+end
 
 -- Every .pkgmeta external is a library the TOC loads, and the other way round.
 local pkgmeta = io.open(".pkgmeta"):read("*a")

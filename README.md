@@ -37,6 +37,8 @@ the moment the loot window opens.
 **Quest loot sparkle** (off by default). Keeps the game's sparkle on lootable quest items by turning
 the outline mode off, and again after a graphics preset puts it back. Switched off, your own outline
 settings come back (the game may need a restart to show them).
+- Experimental: twinkling stars on the quest object you're facing, within about 15 yards (or on any
+  object you're facing, to try the look). Three interact settings change for the session only.
 
 **Sell junk & repair** (on by default). At a merchant, it sells your junk, then repairs, guild funds
 first when your guild allows it.
@@ -194,7 +196,7 @@ you can place it:
 | Bags full helper | `/gpearls cheapest`: the item it would suggest now |
 | Easy delete | `/gpearls easydelete`: what it last filled in or skipped |
 | Faster loot | `/gpearls fastloot`: its last pass, and what was left to the game |
-| Quest loot sparkle | `/gpearls sparkle`; `sparkle restore` (while off) puts your settings back |
+| Quest loot sparkle | `/gpearls sparkle`; `sparkle restore` (while off) puts your settings back; `sparkle target`: what the game says about the object you're facing |
 | Sell junk & repair | `/gpearls sell`: what would be sold; `sell <item>`, `keep <item>`, `forget <item>` manage the lists |
 | Restock | `/gpearls restock`: at a merchant, what it would buy there and why not |
 | Fixate alert | `/gpearls fixate`, `fixate test` |

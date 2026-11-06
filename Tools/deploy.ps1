@@ -53,7 +53,11 @@ Write-Host "Deploying GlassPearls -> $dest" -ForegroundColor Cyan
 New-Item -ItemType Directory -Force -Path $dest | Out-Null
 $tocPath = Join-Path $RepoRoot "GlassPearls.toc"
 # Bindings.xml isn't in the TOC: the client finds it in the folder by name.
-$files = @("GlassPearls.toc", "Bindings.xml") + @(Get-Content -LiteralPath $tocPath | ForEach-Object { $_.Trim() } |
+# The textures in Media\ are read by path (the quest sparkle's stars, #79).
+$media = @(Get-ChildItem -LiteralPath (Join-Path $RepoRoot "Media") -Filter *.tga -File -ErrorAction SilentlyContinue |
+    ForEach-Object { "Media\" + $_.Name })
+$newMedia = @($media | Where-Object { -not (Test-Path -LiteralPath (Join-Path $dest $_)) })
+$files = @("GlassPearls.toc", "Bindings.xml") + $media + @(Get-Content -LiteralPath $tocPath | ForEach-Object { $_.Trim() } |
     Where-Object { $_ -notmatch "^#" -and $_ -match "[.]lua$" })
 foreach ($f in $files) {
     $src = Join-Path $RepoRoot $f
@@ -79,5 +83,9 @@ Get-ChildItem -LiteralPath $dest -File -Recurse | Where-Object {
 }
 
 Write-Host ""
-Write-Host "Changed or new files, a brand-new addon folder included: /reload is enough (porting guide, 2026-10-09)." -ForegroundColor Yellow
+if ($newMedia.Count -gt 0) {
+    Write-Host "New textures ($($newMedia -join ', ')): restart the game client once to load them; /reload isn't enough." -ForegroundColor Yellow
+} else {
+    Write-Host "Changed or new files, a brand-new addon folder included: /reload is enough (porting guide, 2026-10-09)." -ForegroundColor Yellow
+}
 Write-Host "In game:  /console scriptErrors 1   then   /gpearls (the options window)" -ForegroundColor Green

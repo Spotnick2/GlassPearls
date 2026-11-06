@@ -155,4 +155,9 @@
   playing here). Only when you're on your own or lead the group, it has room and you're not in a
   battleground queue; never turns a party into a raid; one request per person every 10 seconds; optionally
   your Recent Allies too. `/gpearls whisperinvite`.
+- **Quest loot sparkle**: an experimental option, twinkling stars on the quest object you're facing (within
+  about 15 yards; or on any object you're facing, to try the look), the gathering sparkle of NodeRadar's
+  marker. While on, three interact settings change for the session only; nothing of yours is saved.
+  `/gpearls sparkle target` says what the game reports about the object you're facing. New art: restart the
+  game once after installing.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.

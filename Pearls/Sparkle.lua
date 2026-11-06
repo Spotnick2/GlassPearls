@@ -14,6 +14,10 @@
 -- cancels it. Whatever couldn't be restored stays remembered, and
 -- `/gpearls sparkle restore` (while off) finishes it.
 -- Unmeasured until 2026-11-04 (docs/PLAN.md, day one).
+--
+-- The experimental option `stars` (off / quest / all, #79) is
+-- Pearls/SparkleStars.lua: this file only calls its Update from Enable,
+-- Disable and a setting change, and adds its lines to the report.
 
 GlassPearls = GlassPearls or {}
 local GP = GlassPearls
@@ -36,6 +40,7 @@ local state = { token = 0, applyPending = false, restorePending = false }
 SP.state = state
 
 local function say(msg) API.Print(msg) end
+local function Stars() return GP.SparkleStars end
 
 local function db()
     local d = GP.db
@@ -137,9 +142,14 @@ function SP.Report()
         say(("  %s: %s now, %s wanted%s."):format(name, read(name) or "unreadable", SP.WANTED[name],
             before[name] and (", yours was " .. before[name]) or ""))
     end
+    for _, line in ipairs(Stars().Lines()) do say(line) end
 end
 
 local function command(arg)
+    if (arg or ""):match("^%s*target%s*$") then
+        for _, line in ipairs(Stars().Target()) do say(line) end
+        return
+    end
     if (arg or ""):match("^%s*restore%s*$") then
         if SP.enabled then return say("Quest loot sparkle is on: switch it off to get your outline back.") end
         local left = SP.Restore()
@@ -156,6 +166,7 @@ local function enable()
     API.RegisterEvents(events, { "PLAYER_ENTERING_WORLD", "CVAR_UPDATE", "GX_RESTARTED",
         "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED" })
     SP.Apply()
+    Stars().Update()
 end
 
 local function disable()
@@ -167,6 +178,27 @@ local function disable()
     if left and left > 0 then
         say(("Quest loot sparkle: %d outline setting(s) couldn't be put back: /gpearls sparkle restore."):format(left))
     end
+    Stars().Update()
+end
+
+local function configure(panel, refreshers)
+    local P = GP.Pearls
+    local head = GP.UI.Header(panel, "Stars on quest objects (experimental)")
+    head:SetPoint("TOPLEFT", panel, "TOPLEFT", 0, 0)
+    local last, _, refresh = GP.UI.Radios(panel, head, {
+        { "off", "Off" },
+        { "quest", "On the quest object you're facing" },
+        { "all", "On any object you're facing (to try the look)" },
+    }, function() return P.Setting(SP.KEY, "stars") end, function(v) P.SetSetting(SP.KEY, "stars", v) end)
+    refreshers[#refreshers + 1] = refresh
+    local note = GP.UI.Label(panel,
+        "Twinkling stars on the object the game picks for interaction, within about 15 yards, one at a time. "
+            .. "While on, three interact settings are changed for the session only (nothing of yours is saved). "
+            .. "New art: the first time, restart the game. /gpearls sparkle target says what the game reports "
+            .. "about the object you're facing.", "GameFontDisableSmall")
+    note:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -10)
+    note:SetWidth(380)
+    note:SetWordWrap(true)
 end
 
 GP.Pearls.Register({
@@ -181,7 +213,12 @@ GP.Pearls.Register({
     section = "Loot",
     Enable = enable,
     Disable = disable,
-    commands = { sparkle = { help = "[restore] - the outline settings, or put yours back (while off)",
+    defaults = { stars = "off" },
+    choices = { stars = { "off", "quest", "all" } },
+    configure = configure,
+    onSettingChanged = function() Stars().Update() end,
+    commands = { sparkle = { help = "[restore or target] - the outline settings, put yours back (while off), or what "
+        .. "the game says about the object you're facing",
         run = command } },
 })
 

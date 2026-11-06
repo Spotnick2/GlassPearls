@@ -69,6 +69,7 @@ Pearls\Social.lua
 Pearls\WhisperInvite.lua
 Pearls\EasyDelete.lua
 Pearls\Sparkle.lua
+Pearls\SparkleStars.lua
 Pearls\Trades.lua
 Pearls\Fishing.lua
 Pearls\BooksFrame.lua
