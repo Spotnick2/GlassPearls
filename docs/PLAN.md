@@ -38,6 +38,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #37 | Social automation (pearl `social`, off by default): summons, resurrections, invites from people you know, declining duels | built; each call from addon code and whether each popup closes itself wait for day one |
 | #40 | Easy delete (pearl `easydelete`, off by default): DELETE filled in for good items up to a chosen quality | built; the fill from addon code and taint wait for day one |
 | #44 | Quest loot sparkle (pearl `sparkle`, off by default): the outline mode kept off so quest loot sparkles | built; the CVars, their effect and the restore wait for day one |
+| #79 | Quest loot sparkle's stars (experimental option `stars`): NodeRadar's twinkling stars on the soft-interact quest object | built; the temps, the plate and the quest test wait for day one |
 | #45 | Trade summary (pearl `trades`, off by default): the money and items of each completed trade, in chat and a local log | built; the completion message and the event order wait for day one |
 | #39 | Train all (pearl `trainall`, off by default): a Train all button at the class trainer | built; `BuyTrainerService` from addon code and the trainer tooltip's identity wait for day one |
 | #41 | Junk spotlight (pearl `junkspot`, off by default): what the junk seller may sell, marked in the bags and tooltips | built; the marks beside pet care's and the tooltip owner wait for day one |
@@ -379,6 +380,15 @@ story NPC, a multi-page NPC)
       Apply and Cancel (its outline dropdowns commit on Apply: an Apply can overwrite ours, re-applied 1 s
       later); raid settings.
 - [ ] `SetCVar` from the timer; what the restore shows before and after a full restart.
+
+**Quest loot sparkle's stars (#79)** (a quest with objects to click; an ordinary herb or chest nearby)
+- [ ] Our temps alone (the three names at the client's defaults) make the object's soft-interact plate appear.
+- [ ] The values and the plate survive the synced-settings window after login (measured only for persistent values).
+- [ ] Switching the stars off shows the player's own values again (`/gpearls sparkle`).
+- [ ] `/reload` mid-fishing with the stars on: both rebuild; fishing's end hands the names back to the stars.
+- [ ] `C_QuestLog.UnitIsRelatedToActiveQuest` on a quest object's plate and on an ordinary interactable
+      (`/gpearls sparkle target`), and on the owner's screenshot rocks (two sparkle, one doesn't).
+- [ ] The stars' look next to the client's sparkle; the 15-yard reach; the art after a client restart.
 
 **Trade summary (#45)** (two characters trading money and items)
 - [ ] `ERR_TRADE_COMPLETE` by `GetGameMessageInfo` after a trade; its order against `TRADE_CLOSED` and

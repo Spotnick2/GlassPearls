@@ -92,6 +92,15 @@ for _, c in ipairs(P.Commands()) do
     if c.help:find("[test]", 1, true) then SlashCmdList.GLASSPEARLS(c.name .. " test") end
 end
 for _ = 1, 5 do WoW.tick(); WoW.advance(1) end
+-- The quest sparkle's stars on a soft-interact object's plate (#79): the art and its animations.
+WoW.units.softinteract = { id = "rock" }
+WoW.units.nameplate1 = { id = "rock", object = true, quest = true }
+WoW.plates = { WoW.newPlate("nameplate1") }
+P.Set("sparkle", true)
+P.SetSetting("sparkle", "stars", "all")
+WoW.tick(1)
+check(GP.SparkleStars.state.bound ~= nil, "the stars bound for the exercise")
+SlashCmdList.GLASSPEARLS("sparkle target")
 -- A library book's pin: its tooltip (#72).
 for icon, r in pairs(WoW.hbd.world) do
     if r.ref == GP.Books then

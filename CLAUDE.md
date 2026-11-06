@@ -403,14 +403,28 @@ order) and before the options window and bootstrap.
   `data.itemGUID`, the payload's and the cursor item's GUID agree, the edit box empty, the link readable;
   then the box's own `SetText(DELETE_ITEM_CONFIRM_STRING)` (Blizzard's handler enables Yes) and a chat line
   with the link. Never a write on the dialog, never the delete itself. Unmeasured until day one.
-- **`Pearls\Sparkle.lua`**: quest loot sparkle (#44, pearl `sparkle`, Loot & Bags > Loot, **off** by default; no
-  settings, no panel: its trade-off is in `desc`). `SP.WANTED`: `outlineModeShowLootEffectWhenDisabled` "1" and
+- **`Pearls\Sparkle.lua`**: quest loot sparkle (#44, pearl `sparkle`, Loot & Bags > Loot, **off** by default; its
+  trade-off is in `desc`; its one setting, and panel, are the stars', below). `SP.WANTED`: `outlineModeShowLootEffectWhenDisabled` "1" and
   the four outline modes "0" (a reference addon's facts). Applied out of combat at Enable, each loading screen
   and 1 s after any `CVAR_UPDATE` / `GX_RESTARTED` (one token; payloads unread); the player's values
   remembered once (`GlassPearlsDB.sparkle.before`). Disable restores, per CVar, only where it still reads ours
   (a set must answer a plain true), deferred past combat (`PLAYER_REGEN_ENABLED` kept while off), cancelled by
   switching back on; what can't be restored stays and `/gpearls sparkle restore` (while off) finishes it.
-  Unmeasured until day one.
+  Unmeasured until day one. Its panel is the stars' option (`stars` = `off` | `quest` | `all`, #79).
+- **`Pearls\SparkleStars.lua`**: the sparkle's experimental stars (#79): NodeRadar's Marker.lua art and timings
+  (MIT, the same owner; `Media\MarkerStar.tga`, `MarkerVapor.tga`, `SonarGlow.tga`, which the deploy copies and
+  keeps and the package check expects) on the **soft-interact target's nameplate** (one at a time, within about 15
+  yards): a UIParent child anchored to the plate's BOTTOM while the plate's unit reads `UnitIsGameObject` and
+  `UnitIsUnit(unit, "softinteract")` true and, for `quest`, `C_QuestLog.UnitIsRelatedToActiveQuest`; the bound
+  plate re-checked every 0.5 s pass, unbound at once on its token's `NAME_PLATE_UNIT_REMOVED`; it may bind in
+  combat. The plate needs three **temp CVars** (`ST.CVARS`, easy fishing's spelling), Mkb style only, out of combat:
+  **effective values decide** (a name reading other than ours is set, even if easy fishing holds it: fishing
+  records a silent refusal as held); a set read back otherwise is refused for this **stars session** (each time
+  they become wanted; quest <-> all isn't one); a displaced value is set again on the next pass; a name in
+  `GP.Fishing.state.held` is **never removed by us**; cleanup outlives the switch (removed at
+  `PLAYER_REGEN_ENABLED`, the listeners kept while anything is held); a device transition drops ours unremoved.
+  `/gpearls sparkle target`: the soft-interact plate found without the quest test, every read labelled; a
+  blocked identification says "could not determine", never "no plate". Unmeasured until day one.
 - **`Pearls\Trades.lua`**: trade summary (#45, pearl `trades`, Social > Trade, **off** by default; its panel, the
   log, inside). Completion only on the info message named `ERR_TRADE_COMPLETE` (by `GetGameMessageInfo`;
   the localized text as fallback). The money is the observed net change of `GetMoney` from `TRADE_SHOW` to

@@ -2129,6 +2129,43 @@ function GetMaxPlayerLevel()
     return WoW.maxLevel
 end
 
+--------------------------------------------------------------------------------
+-- The quest sparkle's stars (#79). In the 70532 dump: C_NamePlate.GetNamePlates,
+-- UnitIsGameObject, UnitIsQuestBoss, C_QuestLog.UnitIsRelatedToActiveQuest
+-- (documented); the events NAME_PLATE_UNIT_ADDED / _REMOVED (unitToken). A
+-- plate's namePlateUnitToken is Blizzard's field (Blizzard_NamePlates.lua).
+--   WoW.plates = { plate, ... } | "throw" (GetNamePlates); WoW.newPlate(token) -> a shown plate frame
+--   WoW.units[token].object / .quest / .questBoss = true | false | a secret | "throw"
+--   WoW.units.softinteract = { id } (the soft-interact target: UnitIsUnit compares ids);
+--   WoW.unitIsUnitThrows: every UnitIsUnit throws
+--------------------------------------------------------------------------------
+
+WoW.plates = {}
+function WoW.newPlate(token)
+    local p = CreateFrame("Frame", nil, UIParent)
+    p.namePlateUnitToken = token
+    return p
+end
+C_NamePlate = { GetNamePlates = function()
+    if WoW.plates == "throw" then error("plates refused") end
+    return WoW.plates
+end }
+local function unitField(unit, field)
+    local u = WoW.units[unit]
+    local v = u and u[field]
+    if v == "throw" then error(field .. " refused") end
+    if v == nil then return false end
+    return v
+end
+function UnitIsGameObject(unit) return unitField(unit, "object") end
+function UnitIsQuestBoss(unit) return unitField(unit, "questBoss") end
+C_QuestLog.UnitIsRelatedToActiveQuest = function(unit) return unitField(unit, "quest") end
+local unitIsUnitBefore = UnitIsUnit
+function UnitIsUnit(a, b)
+    if WoW.unitIsUnitThrows then error("UnitIsUnit refused") end
+    return unitIsUnitBefore(a, b)
+end
+
 -- Strict globals: any read of an undefined global is an error, except the
 -- addon's own globals that are legitimately nil before first assignment.
 -- LibStub: the embedded libraries' loaders read _G.LibStub before creating it.
