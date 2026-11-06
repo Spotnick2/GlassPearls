@@ -160,4 +160,8 @@
   marker. While on, three interact settings change for the session only; nothing of yours is saved.
   `/gpearls sparkle target` says what the game reports about the object you're facing. New art: restart the
   game once after installing.
+- **Untrained gear** (Loot & Bags, on by default): a weapon or armor you can't use only because you haven't
+  learned its skill yet (a warrior's plate before 40, a mage's first sword) shows its type in yellow instead
+  of red in its tooltip, with a note: who teaches it (a weapon master, or your class trainer for armor) and
+  from which level. Gear your class or race can never use, and anything else red, is left as it is.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.

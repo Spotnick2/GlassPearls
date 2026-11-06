@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64), library books (#72), invite from whispers (#77); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64), library books (#72), invite from whispers (#77), untrained gear (#86); the day-one
 probe (#5) follows. The pearls that sell, buy, pick or destroy were audited offline (#61,
 [docs/AUDIT.md](docs/AUDIT.md): the property, the trace matrix, 15 findings with witness tests, the
 declared exceptions). Nothing
@@ -151,6 +151,22 @@ order) and before the options window and bootstrap.
   (`Merchant.Report`) for restock: "skip" when a sale or repair may still land (a run ended
   unconfirmed, by the buyback check, refused or by combat; an unconfirmed repair; combat; switched
   off mid-visit), "ready" otherwise, from every terminal path. Unmeasured until day one.
+- **`Data\GearSkills.lua`**: **generated** by `Tools\gen_gearskills.py` (never edit it) from the client's SkillLine,
+  SkillRaceClassInfo, ChrRaces and ChrClasses: `learn[classFile][raceID][skillLine] = minLevel` for each weapon (SkillLine
+  category 6) and armor (8) skill a class and race can still learn (an applicable row with Availability 0 and no 0x100
+  NOT_TRAINABLE flag, and none with Availability 1, a starting skill); race masks are two signed 32-bit words over
+  ChrRaces' `PlayableRaceBit` (both 0: unrestricted, a convention no gear row uses); `subclass[itemClassID][subclassID]
+  = skillLine` (weapons and armor, fixed; fishing poles and the rest left out); `kind`; English `names` for the
+  report only. `Tools\gearskills\report.txt` has every class x race decision.
+- **`Pearls\Untrained.lua`**: untrained gear (#86, pearl `untrained`, Loot & Bags > Bags, on by default; no settings).
+  One `TooltipDataProcessor` item post-call (once; it checks `IsOn`): when the item maps to a skill line this
+  character's class and race can still learn (`UnitClass` classFile, `UnitRace` raceID), and **the only red side** in
+  the tooltip data (`leftColor` / `rightColor` at RED_FONT_COLOR) is the **right side of the slot line**, the line whose
+  left text is `_G[itemEquipLoc]` from `GetItemInfoInstant` (the client prints the short type, "Sword", there;
+  `GetItemSubClassInfo`'s name is the long one, used only in the note): that right font string (the post-call's own
+  tooltip, `<name>TextRight<lineIndex>`) turned yellow, and a yellow note "Not trained yet: a weapon master teaches X"
+  (armor: your class trainer) with "from level n" while below it. Any other red side, a secret or an unreadable read:
+  left alone. Unmeasured until day one.
 - **`Pearls\JunkSpot.lua`**: junk spotlight (#41, pearl `junkspot`, Loot & Bags > Merchant, **off** by default;
   its panel inside; `show` = `both` | `bags` | `tooltip`). Shows what the junk seller **may** sell: only while
   it sells (`junk` on and its `autoSell`), only bags 0-4, by `Junk.Judge` alone (the equipment-set snapshot
