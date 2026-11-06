@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64), library books (#72); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64), library books (#72), invite from whispers (#77); the day-one
 probe (#5) follows. The pearls that sell, buy, pick or destroy were audited offline (#61,
 [docs/AUDIT.md](docs/AUDIT.md): the property, the trace matrix, 15 findings with witness tests, the
 declared exceptions). Nothing
@@ -378,6 +378,20 @@ order) and before the options window and bootstrap.
   out of combat. Duels (off): declined unless the challenger (by `GetUnitName(unit, false)`, first name and
   surname) is someone you know. Invites: someone you know (`S.Known(guid)`: Battle.net friend, friend,
   `IsGuildMember`, your group), no roles, not in a group or a queue. Unmeasured until day one.
+- **`Pearls\WhisperInvite.lua`**: invite from whispers (#77, pearl `whisperinvite`, Social > Group, **off** by
+  default; its panel inside; `recentAllies` off). A whisper whose whole text (trimmed, lower-cased) is `inv` or
+  `invite`, from someone known by GUID (`WI.Known`: `GetAccountInfoByGUID(...).isFriend`, `C_FriendList.IsFriend`,
+  `IsGuildMember`, and with the option `C_RecentAllies.IsRecentAllyByGUID`; never the group, never yourself),
+  gets a group invite: `C_PartyInfo.InviteUnit(<the payload's sender string>)`, or for `CHAT_MSG_BN_WHISPER`
+  (`bnSenderID`, a friend by `GetAccountInfoByID(...).isFriend`) `C_BattleNet.InviteFriend` on the **one** game
+  account Blizzard's friends list would invite (WoW, online, `WOW_PROJECT_ID`, a realm, this region, your
+  faction; every field checked plain; none or several is said and left to you). **Every gate needs positive
+  evidence** (`WI.Gate`): solo, or leader (a raid assistant too); a party `IsPartyFull()` plainly false (never
+  a raid conversion), a raid under 40; `CanInvite()` plainly true; no battleground `queued` / `confirm` and,
+  only where `NUM_LE_LFG_CATEGORYS` exists, no `GetLFGMode` (a plain nil differs from unreadable); the sender
+  already grouped is skipped silently. **The 10 s cooldown is consumed as soon as a known sender's keyword is
+  recognized**, before any gate, so a skip is said once; keys: the character's GUID (shared by both paths) and
+  `bn:<id>`. Nothing is whispered back. `/gpearls whisperinvite`: the last 10 requests. Unmeasured until day one.
 - **`Pearls\EasyDelete.lua`**: easy delete (#40, pearl `easydelete`, Loot & Bags > Bags, **off** by default; its
   panel inside). At `DELETE_ITEM_CONFIRM` (a token, replaced before any filtering), a frame later: the quality
   a whole number from Rare (3) to the current `upTo` (`rare` | `epic` | `legendary`, Heirloom 7 above all),

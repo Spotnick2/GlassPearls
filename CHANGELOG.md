@@ -149,4 +149,9 @@
   where. Within 100 yards of one, a note that stays until you click OK, and a line in chat; it comes again
   only after you've gone 150 yards away. Books you carry, keep in your bank or have handed in aren't shown.
   The bank is read when you open it, so open it once for the notes to start. `/gpearls books`.
+- **Invite from whispers** (Social, off by default): a Battle.net friend, a friend or a guild member who
+  whispers you "inv" or "invite" gets a group invite (a Battle.net whisper invites the character they're
+  playing here). Only when you're on your own or lead the group, it has room and you're not in a
+  battleground queue; never turns a party into a raid; one request per person every 10 seconds; optionally
+  your Recent Allies too. `/gpearls whisperinvite`.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.
