@@ -35,6 +35,7 @@ WoW.class, WoW.playerLevel, WoW.money = "MAGE", 26, 100000
 WoW.known[130], WoW.known[3561] = true, true
 local GP = loadAddon()
 local R, P, J = GP.Restock, GP.Pearls, GP.Junk
+WoW.maxLevel = 1   -- at the level cap: food follows the mode (below it, #84: test_restock_foodcap.lua)
 
 -- The stub's timers run by delay, not by clock: soon() runs only the short
 -- ones (the junk seller's steps, the restock's start and steps), leaving the

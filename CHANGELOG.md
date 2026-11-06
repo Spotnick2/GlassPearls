@@ -78,7 +78,8 @@
   your food, water (if you use mana), arrows or bullets (hunters) and class reagents, with the best
   the merchant has that you can use. Only what's at least as good counts toward a target, so you
   move up as you level. At most half your money and 5 gold a visit (both settings); "Ask first" to
-  confirm each time; Shift skips it. Leaves to Buffy the reagents Buffy restocks.
+  confirm each time; Shift skips it. Leaves to Buffy the reagents Buffy restocks. Below the level cap,
+  a visit with food to buy asks first (a setting: ask, don't buy food, or buy as the rest).
 - **Raid mark wheel** (Social, on by default): a wheel of the eight raid marks at your cursor. Bind
   its key in Key Bindings > Glass Pearls, point at a unit (in the world, on its nameplate or on a
   group frame) and press it (no right-click menu entry: an addon's entry broke an enemy's menu). Click a mark to

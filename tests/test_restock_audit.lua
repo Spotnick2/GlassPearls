@@ -33,6 +33,7 @@ WoW.class, WoW.playerLevel, WoW.money = "MAGE", 26, 100000
 WoW.known[130], WoW.known[3561] = true, true
 local GP = loadAddon()
 local R, P = GP.Restock, GP.Pearls
+WoW.maxLevel = 1   -- at the level cap: food follows the mode (below it, #84: test_restock_foodcap.lua)
 P.Set("junk", false)   -- the junk seller out of the way: restock starts 0.3 s after the show
 
 local function soon()

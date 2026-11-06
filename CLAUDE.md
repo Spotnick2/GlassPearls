@@ -250,8 +250,12 @@ order) and before the options window and bootstrap.
   smaller increase stops the run, a larger one is recorded as bought and stops it ("More arrived
   than was bought"), audit #61. "Ask first" (`mode`) shows every line (12 rows: the largest reagent
   set plus water, food and ammunition) and buys from Buy's click, the shown counts as the most under
-  the shown limits. Settings: the four kinds, three targets, mode, two limits, and one synced integer
-  per allowlisted reagent (`r<itemID>`). Unmeasured until day one.
+  the shown limits. **Food below the level cap** (#84, `foodUnderCap` = `ask` (default) | `off` | `buy`;
+  `R.UnderCap`: `UnitLevel` below `GetMaxPlayerLevel()`, true when either can't be read): `ask` sends a
+  visit whose plan has a food line to the Ask window (every line) even in `auto` mode; `off` leaves food
+  out of `R.Plan` (a note says why); water never (the owner: food only). Settings: the four kinds, three
+  targets, mode, the food rule, two limits, and one synced integer per allowlisted reagent (`r<itemID>`).
+  Unmeasured until day one.
 - **`Pearls\RestockFrame.lua`**: its "ask first" window (beside Blizzard's merchant frame, read for
   its position; `Ask(s, lines, limits)`, the limits captured with the plan and carried into `R.Run`)
   and its panel (the kinds and targets, mode, limits, this class's reagents).

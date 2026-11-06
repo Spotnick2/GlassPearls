@@ -99,6 +99,19 @@ function R.Level()
     return plain(call(UnitLevel, "player"), "number")
 end
 
+-- Below the level cap (GetMaxPlayerLevel)? Also true when the level or the
+-- cap can't be read: food then asks, never buys unasked (#84).
+function R.UnderCap()
+    local level, cap = R.Level(), plain(call(GetMaxPlayerLevel), "number")
+    return not (level and cap and level >= cap)
+end
+
+-- What food does below the level cap (#84): "ask" (default), "off" or "buy"; "buy" at the cap.
+function R.FoodRule()
+    if not R.UnderCap() then return "buy" end
+    return setting("foodUnderCap")   -- one of its choices: settings sync stores nothing else
+end
+
 -- A plain "yes, this character knows it".
 local function known(id)
     return plain(call(C_SpellBook.IsSpellKnown, id), "boolean") == true
@@ -280,6 +293,10 @@ function R.Plan()
     -- Water and food.
     for _, kind in ipairs({ "drink", "food" }) do
         local target = R.Target(kind)
+        if target and kind == "food" and R.FoodRule() == "off" then
+            notes[#notes + 1] = "food below the level cap (your setting)"
+            target = nil
+        end
         if target and (kind == "food" or R.MANA[class]) then
             local tbl = d[kind]
             local o, value = best(offers, function(x)
@@ -475,7 +492,10 @@ local function begin(s)
     state.last = { lines = lines, notes = notes }
     if #lines == 0 then return end
     local limits = R.Limits()   -- the limits the plan was made under (the Ask window shows them)
-    if setting("mode") == "ask" then
+    local food = false
+    for _, l in ipairs(lines) do if l.kind == "food" then food = true end end
+    -- Below the level cap, food asks first by default (#84): the whole visit goes to the Ask window.
+    if setting("mode") == "ask" or (food and R.FoodRule() == "ask") then
         Frame().Ask(s, lines, limits)
     else
         R.Run(s, lines, limits)
@@ -561,7 +581,7 @@ local function disable()
 end
 
 -- Every allowlisted reagent's target, a synced setting each.
-local defaults = { mode = "auto", food = true, water = true, ammo = true, reagents = true,
+local defaults = { mode = "auto", food = true, foodUnderCap = "ask", water = true, ammo = true, reagents = true,
                    foodTarget = 20, waterTarget = 20, ammoTarget = 1000, budget = 50, maxSpend = 5 }
 local ranges = { foodTarget = { 0, 200 }, waterTarget = { 0, 200 }, ammoTarget = { 0, 5000 },
                  budget = { 10, 100 }, maxSpend = { 1, 100 } }
@@ -578,13 +598,14 @@ GP.Pearls.Register({
         .. "the best food and water your level can use (water only if you use mana), arrows or bullets for a "
         .. "hunter's ranged weapon, and the reagents of the class spells you know. Only what's at least as good as "
         .. "the merchant's best counts toward a target, so you move up as you level. Each visit spends at most the "
-        .. "share of your money and the gold you set. Hold Shift when you open the merchant to skip it; choose "
+        .. "share of your money and the gold you set. Below the level cap it asks before buying food (a setting: "
+        .. "ask, don't buy, or buy). Hold Shift when you open the merchant to skip it; choose "
         .. "\"Ask first\" to confirm each time. /gpearls restock shows what it would buy here.",
     default = true,
     category = "Loot & Bags",
     section = "Merchant",
     defaults = defaults,
-    choices = { mode = { "auto", "ask" } },
+    choices = { mode = { "auto", "ask" }, foodUnderCap = { "ask", "off", "buy" } },
     ranges = ranges,
     Enable = enable,
     Disable = disable,

@@ -2118,6 +2118,17 @@ function BNGetFriendIndex(bnID)
     end
 end
 
+--------------------------------------------------------------------------------
+-- Restock's food below the level cap (#84). In the 70532 dump: GetMaxPlayerLevel.
+--   WoW.maxLevel (default 60) | a secret | "throw"
+--------------------------------------------------------------------------------
+
+function GetMaxPlayerLevel()
+    if WoW.maxLevel == "throw" then error("max level refused") end
+    if WoW.maxLevel == nil then return 60 end
+    return WoW.maxLevel
+end
+
 -- Strict globals: any read of an undefined global is an error, except the
 -- addon's own globals that are legitimately nil before first assignment.
 -- LibStub: the embedded libraries' loaders read _G.LibStub before creating it.
