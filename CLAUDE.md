@@ -479,17 +479,18 @@ order) and before the options window and bootstrap.
   default). Pings are the client's own (`Blizzard_PingUI`, its Ping key and wheel: only it can ping a
   world spot), so this is marks only, **out of combat only**. Opened by the key `GLASSPEARLS_MARKWHEEL`
   (root `Bindings.xml`, category "Glass Pearls", not in the TOC: the deploy copies it and the package
-  check expects it) over a unit, or by an entry appended with `Menu.ModifyMenu` to the unit menus that
-  carry Blizzard's Raid Target Icon (`M.MENUS`: not ENEMY_PLAYER on Camelot, not VEHICLE or BOSS),
-  registered once at the first enable and kept (its calls during our registration, on a cached
-  menu, are ignored). The mark is set by Blizzard's secure `raidtarget` action, never by our code:
+  check expects it) over a unit. **No entry in Blizzard's unit menus, and no `Menu.ModifyMenu` at all**
+  (#82, removed): anything added through it becomes part of the description Blizzard's layout reads, so
+  the layout runs tainted; an enemy NPC's menu stopped on a secret frame rect ("attempt to perform
+  arithmetic on local 'frameLeft' (a secret number value, while execution tainted by 'GlassPearls')",
+  FrameUtil.lua:223, measured), every row drawn at one spot. Don't add one back. The mark is set by Blizzard's secure `raidtarget` action, never by our code:
   **one `SecureActionButtonTemplate` button** (parented to UIParent, `AnyDown`+`AnyUp`,
   `useOnKeyDown=false`), **disarmed whenever no click is in progress**; the down edge does nothing;
   the release's insecure PreClick checks lockdown, the pearl, the session and the cursor, then sets
   `unit`, `marker`, `action` (`toggle` / `clear`) and `type` last; PostClick closes, which disarms. An
   up with no down of ours is ignored. The unit is a **session** `{ token, guid, epoch }`: the key
   resolves the mouseover at once with `UnitIsUnit` over target, player, focus, group, pets and
-  nameplates; a menu gives its token when built (other tokens refused). It holds while one epoch is
+  nameplates. It holds while one epoch is
   unchanged (bumped by target, focus, pet, roster and world changes and by switching off; the open
   wheel's own plate removal closes it) and, when the GUID was plain at capture, while it reads the
   same (plain then secret is refused). Gates: combat, in a raid leader or assistant,

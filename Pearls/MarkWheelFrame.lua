@@ -315,7 +315,7 @@ function Frame.IsShown() return f ~= nil and f:IsShown() end
 -- The Configuration Panel
 
 function Frame.Configure(panel, refreshers)
-    local KEY, P, M = "markwheel", GP.Pearls, GP.MarkWheel
+    local M = GP.MarkWheel
     local head = GP.UI.Header(panel, "Raid marks at your cursor")
     head:SetPoint("TOPLEFT", panel, "TOPLEFT", 0, 0)
     local key = GP.UI.Label(panel, "")
@@ -327,13 +327,8 @@ function Frame.Configure(panel, refreshers)
         key:SetText(k and ("Key: " .. k)
             or "No key yet: Esc > Options > Key Bindings > Glass Pearls > Raid mark wheel.")
     end
-    local menu, refresh = GP.UI.Check(panel, "Add it to units' right-click menus",
-        function() return P.Setting(KEY, "menu") end, function(on) P.SetSetting(KEY, "menu", on) end,
-        { tip = "A Raid mark wheel entry in the menu of yourself, your target, focus, group members and pets." })
-    menu:SetPoint("TOPLEFT", key, "BOTTOMLEFT", -4, -8)
-    refreshers[#refreshers + 1] = refresh
     local test = GP.UI.Button(panel, "Test", 90, function() M.Test() end)
-    test:SetPoint("TOPLEFT", menu, "BOTTOMLEFT", 4, -12)
+    test:SetPoint("TOPLEFT", key, "BOTTOMLEFT", 0, -12)
     GP.UI.Tooltip(test, "Open the wheel on yourself", "Click a mark to set it on yourself, the centre to clear it.")
     local note = GP.UI.Label(panel,
         "Pings are the game's own: its Ping key, in Key Bindings. The wheel opens out of combat only; in a raid, "

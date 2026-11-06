@@ -29,7 +29,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #22 | Paladin tank reminders (pearl `paladintank`): Righteous Fury off, Salvation on you | built; the IDs and the Cooldown Manager wait for day one |
 | #27 | Training reminder (pearl `training`): a level-up toast, next ranks in spell tooltips, talent points, the other spec | built; the trainer match, the tooltip and dual spec wait for day one |
 | #14 | Restock (pearl `restock`): food, water, ammunition and class reagents at a merchant, after the junk seller | built; the purchase API, the events and the refusal names wait for day one |
-| #34 | Raid mark wheel (pearl `markwheel`): the eight marks at the cursor, from a key or a unit's menu; pings stay the client's own | built; the secure click, the menu entry and the art wait for day one |
+| #34 | Raid mark wheel (pearl `markwheel`): the eight marks at the cursor, from a key; pings stay the client's own (its unit-menu entry removed, #82) | built; the secure click and the art wait for day one |
 | #47 | Auto gossip (pearl `autogossip`): lone options by a setting, and the options you keep choosing; gossip only | built; the icons, the event order, the button hook and the picks wait for day one |
 | #36 | Faster loot (pearl `fastloot`): every slot that safely fits, as the loot window opens; the coins-only text | built; the race with the client's auto loot, the events and the loot methods wait for day one |
 | #42 | Low-rank buffs (pearl `lowbuffs`): a single-target buff on you at a lower rank than its caster could cast; the opt-in whisper to people you know | built; the source units, the downrank rule and the whisper wait for day one |
@@ -251,9 +251,9 @@ Each line is a claim the code relies on that only the live client can settle.
 - [ ] A click on a mark marks the unit (Blizzard's `raidtarget` action), the same mark again removes
       it, the centre clears it, outside or Esc closes. No `ADDON_ACTION_FORBIDDEN`. Exactly one
       action per click, with `ActionButtonUseKeyDown` on and off.
-- [ ] The menu entry shows on yourself, your target, focus, party and raid members and pets, not on
-      an enemy player; it opens the wheel where the menu was, and the click that chose it marks
-      nothing. **Blizzard's own Raid Target Icon and Set Focus entries still work** (no taint).
+- [x] The menu entry: **measured broken and removed** (#82, 2026-11-06). An enemy NPC's menu with it
+      drew every row at one spot (`FrameUtil.lua:223`, a secret `frameLeft` "while execution tainted by
+      'GlassPearls'"); fine with the entry off. No `Menu.ModifyMenu` any more.
 - [ ] The art: `gamepad-radial-menu-wheelbg`, `-selected`, `-bottomtext` and `Radial_Wheel_Icon_Close`
       exist; the highlight lines up with the segments and the icons (screenshot); `RAID_TARGET_1..8`
       exist (the label's names).

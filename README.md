@@ -138,7 +138,7 @@ your bank. Once per entry. "Also at Exalted" is a setting.
 
 **Raid mark wheel** (on by default). A wheel of the eight raid marks at your cursor.
 - Bind its key (Key Bindings > Glass Pearls), point at a unit (in the world, on its nameplate or on
-  a group frame) and press it, or pick "Raid mark wheel" in a unit's right-click menu.
+  a group frame) and press it. (No right-click menu entry: it broke the menus it was added to.)
 - Click a mark to set it (the same mark again removes it), the centre to clear it, outside or Esc to
   close. Out of combat; in a raid, as the leader or an assistant. Pings stay the game's own.
 

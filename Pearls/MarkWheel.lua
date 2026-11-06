@@ -1,7 +1,14 @@
 -- Pearls/MarkWheel.lua: the raid mark wheel (#34). A wheel of the eight raid
--- marks at the cursor, for the unit under it (a key binding) or the unit of a
--- right-click menu (an entry added to Blizzard's unit menus). Out of combat
+-- marks at the cursor, for the unit under it (a key binding). Out of combat
 -- only. Its art, animations and panel are Pearls/MarkWheelFrame.lua.
+--
+-- No entry in Blizzard's unit menus (#82, removed): anything an addon adds
+-- through Menu.ModifyMenu becomes part of the description Blizzard's layout
+-- reads, so the layout runs tainted, and an enemy's menu stopped on a secret
+-- frame rect ("attempt to perform arithmetic on local 'frameLeft' (a secret
+-- number value, while execution tainted by 'GlassPearls')", FrameUtil.lua:223,
+-- the owner's trace, 2026-11-06): every row drawn at one spot. Blizzard's own
+-- Raid Target Icon stays in every unit menu.
 --
 -- Pings are not here: the client's own ping system (Blizzard_PingUI, its Ping
 -- key and wheel) is the only thing that can ping a world spot correctly.
@@ -19,7 +26,7 @@
 -- Which unit: a session { token, guid, epoch } captured when the wheel is
 -- asked for. The key resolves the mouseover at once to a token that survives
 -- the cursor moving (UnitIsUnit over target, player, focus, group, pets,
--- nameplates); a menu gives its own token when the menu is built. A session
+-- nameplates). A session
 -- holds while one epoch is unchanged (bumped by every event that can move a
 -- unit into another token, and by switching the pearl on or off) and, when
 -- the GUID was plain at capture, while it still reads the same.
@@ -42,12 +49,6 @@ M.BUTTON = "GlassPearlsMarkWheelButton"
 M.MARKERS = { 2, 1, 8, 7, 6, 5, 4, 3 }
 M.R_CLEAR = 44       -- the centre ring: Clear
 M.R_OUTER = 160      -- the disc; beyond it is "outside"
--- The unit menus that carry Blizzard's own Raid Target Icon entry on this
--- client (Blizzard_UnitPopupShared/UnitPopupSharedMenus.lua with the Camelot
--- overrides, Blizzard_UnitPopup/Camelot/UnitPopupMenus.lua). Not
--- ENEMY_PLAYER (Camelot's lacks it); not VEHICLE or BOSS, whose tokens no
--- session can validate.
-M.MENUS = { "SELF", "PET", "OTHERPET", "PARTY", "PLAYER", "RAID_PLAYER", "TARGET", "FOCUS" }
 
 -- Tokens a session may hold: each has an event that tells when another unit
 -- can take it.
@@ -80,10 +81,8 @@ M.state = state
 
 local events = CreateFrame("Frame")
 local button, guard    -- built on first open
-local registering, menusRegistered = false, false
 
 local function say(msg) API.Print(msg) end
-local function setting(name) return GP.Pearls.Setting(M.KEY, name) end
 local function Frame() return GP.MarkWheelFrame end
 
 -- One client read: its value, or nil when it threw or is secret.
@@ -191,7 +190,7 @@ local function preClick(self, mouseButton, down)
         if state.session then state.down = true end
         return
     end
-    -- An up with no down of ours (the click that opened us from a menu): nothing.
+    -- An up with no down of ours (a click begun before the wheel opened): nothing.
     if not state.down or InCombatLockdown() then return end
     local s = state.session
     if mouseButton ~= "LeftButton" or not (M.enabled and s and M.Valid(s)) then return end
@@ -332,37 +331,6 @@ end
 function M.Test() return M.Open(M.Capture("player")) end
 
 --------------------------------------------------------------------------------
--- Blizzard's unit menus
-
--- A menu being built (or, at our registration, one built before: ignored).
-local function onMenu(_, root, contextData)
-    if registering or not (M.enabled and setting("menu")) or API.InCombat() then return end
-    local unit = type(contextData) == "table" and contextData.unit
-    if API.IsSecret(unit) or type(unit) ~= "string" or unit:match("^nameplate") then return end
-    local s = M.Capture(unit)
-    if not s then return end
-    root:CreateDivider()
-    root:CreateButton(M.NAME, function()
-        if not setting("menu") then state.last = "the menu entry is off"; return end
-        M.Open(s)
-    end)
-end
-M.OnMenu = onMenu
-
--- Once, the first time the pearl is on; kept (the callback checks).
-local function registerMenus()
-    if menusRegistered then return end
-    menusRegistered = true
-    if not (Menu and Menu.ModifyMenu) then return API.Fail("pearl markwheel menu", "Menu.ModifyMenu missing") end
-    registering = true
-    for _, which in ipairs(M.MENUS) do
-        local ok, err = pcall(Menu.ModifyMenu, "MENU_UNIT_" .. which, onMenu)
-        if not ok then API.Fail("pearl markwheel menu " .. which, err) end
-    end
-    registering = false
-end
-
---------------------------------------------------------------------------------
 -- Commands
 
 function M.BindingText()
@@ -373,7 +341,7 @@ end
 function M.Report()
     local key = M.BindingText()
     say(M.NAME .. ": " .. (M.enabled and "on" or "off") .. "; key " .. (key or "not bound (Key Bindings > Glass Pearls)")
-        .. "; unit menu entry " .. (setting("menu") and "on" or "off") .. ".")
+        .. ".")
     if ask(IsInRaid) == true then
         local lead = ask(UnitIsGroupLeader, "player") == true or ask(UnitIsGroupAssistant, "player") == true
         say("  In a raid: " .. (lead and "you may set marks." or "only the leader or an assistant may set marks."))
@@ -410,7 +378,6 @@ local function enable()
     M.enabled = true
     API.RegisterEvents(events, M.STALE_EVENTS)
     API.RegisterEvents(events, { "NAME_PLATE_UNIT_REMOVED", "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED" })
-    registerMenus()
 end
 
 local function disable()
@@ -424,17 +391,16 @@ end
 GP.Pearls.Register({
     key = M.KEY,
     name = M.NAME,
-    desc = "A wheel of the eight raid marks at your cursor, from a key or a unit's right-click menu.",
+    desc = "A wheel of the eight raid marks at your cursor, from a key.",
     help = "Bind a key in Esc > Options > Key Bindings > Glass Pearls, point at a unit (in the world, on its "
         .. "nameplate or on a group frame) and press it: a wheel of the eight raid marks opens at your cursor. "
         .. "Click a mark to set it (the same mark again removes it), the centre to clear it, outside the wheel or "
-        .. "Esc to close it. The unit's right-click menu has a Raid mark wheel entry too. Out of combat only; in a "
+        .. "Esc to close it. Out of combat only; in a "
         .. "raid, only the leader or an assistant can set marks. Pings are the game's own: its Ping key in "
         .. "Key Bindings. Unverified until the game is live.",
     default = true,
     category = "Social",
     section = "Group",
-    defaults = { menu = true },
     Enable = enable,
     Disable = disable,
     configure = function(panel, refreshers) GP.MarkWheelFrame.Configure(panel, refreshers) end,

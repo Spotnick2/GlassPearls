@@ -1,6 +1,6 @@
 -- The raid mark wheel (#34): the key, the gates, choosing a mark, clearing it,
 -- and every way the wheel closes. The click's edges are
--- test_markwheel_click.lua, the unit's identity and the menus
+-- test_markwheel_click.lua, the unit's identity (and no unit menu entry)
 -- test_markwheel_identity.lua, combat test_markwheel_combat.lua, the art
 -- test_markwheel_frame.lua.
 dofile("tests/wow_stubs.lua")
@@ -110,7 +110,7 @@ WoW.fire("GLOBAL_MOUSE_DOWN", "LeftButton")
 check(M.IsOpen(), "a click on the disc doesn't")
 M.Close("test")
 
--- An up edge with no down of ours (the click that opened it from a menu).
+-- An up edge with no down of ours (a click begun before the wheel opened).
 openOnTarget()
 at(SKULL[1], SKULL[2])
 WoW.click(button, "LeftButton", false)
