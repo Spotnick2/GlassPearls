@@ -195,11 +195,7 @@ local checks = {}
 for _, w in ipairs(content._children) do
     if w._template == "UICheckButtonTemplate" then checks[#checks + 1] = w end
 end
-eq(#checks, 1, "one switch")
-checks[1]:SetChecked(false)
-checks[1]:GetScript("OnClick")(checks[1])
-eq(P.Setting("markwheel", "menu"), false, "  the unit menu entry")
-P.ResetSettings("markwheel")
+eq(#checks, 0, "no switch: the unit menu entry is gone (#82)")
 check(content.key:GetText():find("No key yet", 1, true), "no key: says where to bind one")
 WoW.bindings.GLASSPEARLS_MARKWHEEL = "SHIFT-G"
 GP.Options.Open("cat:Social")

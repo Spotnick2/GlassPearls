@@ -1,13 +1,11 @@
--- The raid mark wheel's unit identity and Blizzard's unit menus (#34). A
--- session { token, guid, epoch } holds while no event can have moved another
--- unit into its token and, when its GUID was plain, while it reads the same.
--- The menu entry: on exactly the menus that carry Blizzard's Raid Target
--- Icon, captured when the menu is built, checked again when clicked.
+-- The raid mark wheel's unit identity (#34). A session { token, guid, epoch }
+-- holds while no event can have moved another unit into its token and, when
+-- its GUID was plain, while it reads the same. No entry in Blizzard's unit
+-- menus (#82: anything added there taints the menu's layout; an enemy's broke).
 dofile("tests/wow_stubs.lua")
 dofile("tests/harness.lua")
 
--- A target menu built before the pearl is first enabled: Menu.ModifyMenu
--- hands it to the new modifier at once (Menu.lua:2723), at our registration.
+-- A target menu built before the pearl loads, and some after: nothing of ours in any.
 local early
 local GP = loadAddon({ before = function()
     WoW.units.target = { id = "OLD", guid = "Creature-0-1-OLD" }
@@ -15,19 +13,16 @@ local GP = loadAddon({ before = function()
 end })
 local M, P = GP.MarkWheel, GP.Pearls
 local NAME = "Raid mark wheel"
-check(WoW.menuButton(early, NAME) == nil, "a menu built before our registration gains no entry")
-
--- Registered on exactly these menus.
-local registered = {}
-for tag in pairs(WoW.menuModifiers) do registered[#registered + 1] = tag end
-table.sort(registered)
-eq(table.concat(registered, ","), "MENU_UNIT_FOCUS,MENU_UNIT_OTHERPET,MENU_UNIT_PARTY,MENU_UNIT_PET,"
-    .. "MENU_UNIT_PLAYER,MENU_UNIT_RAID_PLAYER,MENU_UNIT_SELF,MENU_UNIT_TARGET",
-    "the menus with Blizzard's Raid Target Icon (not ENEMY_PLAYER, VEHICLE, BOSS)")
--- Switching off and on again registers nothing more.
+check(next(WoW.menuModifiers) == nil, "no Menu.ModifyMenu at all: no unit menu is modified (#82)")
+eq(#early.elements, 1, "  a menu built before: Blizzard's entries only")
+for _, which in ipairs({ "TARGET", "FOCUS", "PARTY", "PLAYER", "SELF", "PET" }) do
+    local d = WoW.openMenu(which, { unit = "target" })
+    check(WoW.menuButton(d, NAME) == nil and #d.elements == 1, "  " .. which .. "'s menu: nothing of ours")
+end
 P.Set("markwheel", false)
 P.Set("markwheel", true)
-eq(#WoW.menuModifiers.MENU_UNIT_TARGET, 1, "registered once, kept")
+check(next(WoW.menuModifiers) == nil, "  switching off and on registers nothing either")
+eq(P.Setting("markwheel", "menu"), nil, "the menu setting is gone")
 
 WoW.mouse = { x = 500, y = 400 }
 local function at(dx, dy) WoW.mouse = { x = 500 + dx, y = 400 + dy } end
@@ -38,139 +33,101 @@ local function choose(dx, dy)
     WoW.click(b, "LeftButton", false)
 end
 
--- The entry, on the menu's own unit.
+-- A session captured on the target, opened later (the key does both at once).
 WoW.units.target = { id = "A", guid = "Creature-0-1-A" }
-local d = WoW.openMenu("TARGET", { unit = "target" })
-local entry = WoW.menuButton(d, NAME)
-check(entry ~= nil, "the target's menu has the entry")
-eq(d.elements[#d.elements - 1].kind, "divider", "  after a divider")
-eq(d.elements[2].kind, "divider", "  appended after Blizzard's own entries")
--- Never on a unit you can attack (#82): its menu broke with our elements in it.
-for _, case in ipairs({ { true, "an enemy" }, { WoW.Secret("attack"), "attackable secret" },
-                        { "throw", "attackable throwing" } }) do
-    WoW.units.target.attackable = case[1]
-    local bad = WoW.openMenu("TARGET", { unit = "target" })
-    check(WoW.menuButton(bad, NAME) == nil, case[2] .. ": no entry")
-    eq(#bad.elements, 1, "  nothing of ours in the menu at all (no divider either)")
-end
-WoW.units.target.attackable = false
-d = WoW.openMenu("TARGET", { unit = "target" })
-entry = WoW.menuButton(d, NAME)
-check(entry ~= nil, "a unit plainly not attackable: the entry")
-entry()
-check(M.IsOpen() and M.state.session.token == "target", "  it opens the wheel on the target")
+M.Open(M.Capture("target"))
+check(M.IsOpen() and M.state.session.token == "target", "a captured session opens the wheel on the target")
 choose(0, 100)
 eq(WoW.marks.A, 8, "  and marks it")
 
--- The target changed between the menu and the click: refused.
-d = WoW.openMenu("TARGET", { unit = "target" })
+-- The target changed between the capture and the open: refused.
+local s = M.Capture("target")
 WoW.units.target = { id = "B", guid = "Creature-0-1-B" }
 WoW.fire("PLAYER_TARGET_CHANGED")
 newChat()
-WoW.menuButton(d, NAME)()
-check(not M.IsOpen(), "the target changed after the menu was built: refused")
+M.Open(s)
+check(not M.IsOpen(), "the target changed after the capture: refused")
 check(chatHas("gone or changed"), "  and says so")
 
 -- Even with no event, a plain GUID that changed is refused.
-d = WoW.openMenu("TARGET", { unit = "target" })
+s = M.Capture("target")
 WoW.units.target = { id = "C", guid = "Creature-0-1-C" }
-WoW.menuButton(d, NAME)()
+M.Open(s)
 check(not M.IsOpen(), "the GUID changed, no event: refused")
 
 -- A GUID plain at capture, secret later: refused, not downgraded.
 WoW.units.target = { id = "D", guid = "Creature-0-1-D" }
-d = WoW.openMenu("TARGET", { unit = "target" })
+s = M.Capture("target")
 WoW.units.target.guid = WoW.Secret("UnitGUID")
-WoW.menuButton(d, NAME)()
+M.Open(s)
 check(not M.IsOpen(), "a GUID plain then secret: refused")
 
 -- A secret GUID at capture: the epoch alone vouches for it.
 WoW.units.target = { id = "E", guid = WoW.Secret("UnitGUID") }
-d = WoW.openMenu("TARGET", { unit = "target" })
-WoW.menuButton(d, NAME)()
+M.Open(M.Capture("target"))
 check(M.IsOpen(), "a secret GUID: opens, resting on the epoch")
 M.Close("test")
-d = WoW.openMenu("TARGET", { unit = "target" })
+s = M.Capture("target")
 WoW.fire("PLAYER_TARGET_CHANGED")
-WoW.menuButton(d, NAME)()
+M.Open(s)
 check(not M.IsOpen(), "  and a target change refuses it")
 
 -- Focus, pets, raid pets: their events.
 WoW.units.focus = { id = "F", guid = WoW.Secret("UnitGUID") }
-d = WoW.openMenu("FOCUS", { unit = "focus" })
-check(WoW.menuButton(d, NAME) ~= nil, "the focus's menu has the entry")
+s = M.Capture("focus")
 WoW.fire("PLAYER_FOCUS_CHANGED")
-WoW.menuButton(d, NAME)()
+M.Open(s)
 check(not M.IsOpen(), "the focus changed: refused")
 WoW.units.pet = { id = "P", guid = WoW.Secret("UnitGUID") }
-d = WoW.openMenu("PET", { unit = "pet" })
+s = M.Capture("pet")
 WoW.fire("UNIT_PET", "player")
-WoW.menuButton(d, NAME)()
+M.Open(s)
 check(not M.IsOpen(), "the pet changed: refused")
 WoW.units.raidpet3 = { id = "RP", guid = WoW.Secret("UnitGUID") }
-d = WoW.openMenu("OTHERPET", { unit = "raidpet3" })
-check(WoW.menuButton(d, NAME) ~= nil, "a raid pet's menu has the entry")
+s = M.Capture("raidpet3")
 WoW.fire("GROUP_ROSTER_UPDATE")
-WoW.menuButton(d, NAME)()
+M.Open(s)
 check(not M.IsOpen(), "the roster changed (its slot may hold another pet now): refused")
 WoW.units.party2 = { id = "P2", guid = "Player-1-P2" }
-d = WoW.openMenu("PARTY", { unit = "party2" })
-WoW.menuButton(d, NAME)()
-check(M.IsOpen() and M.state.session.token == "party2", "a party member's menu opens on them")
+M.Open(M.Capture("party2"))
+check(M.IsOpen() and M.state.session.token == "party2", "a party member's session opens on them")
 WoW.fire("GROUP_ROSTER_UPDATE")
 check(not M.IsOpen(), "  a roster change while open closes it")
 
--- Tokens no session can validate: no entry.
-for _, token in ipairs({ "boss1", "vehicle", "arena1", "nameplate4", "mouseover" }) do
+-- Tokens no session can validate: no capture.
+for _, token in ipairs({ "boss1", "vehicle", "arena1", "mouseover" }) do
     WoW.units[token] = { id = token, guid = "Creature-0-1-" .. token }
-    d = WoW.openMenu("TARGET", { unit = token })
-    check(WoW.menuButton(d, NAME) == nil, "no entry for the token " .. token)
+    check(M.Capture(token) == nil, "no session for the token " .. token)
 end
-d = WoW.openMenu("PLAYER", { name = "Someone" })
-check(WoW.menuButton(d, NAME) == nil, "no entry for a menu without a unit (a name from chat)")
-d = WoW.openMenu("TARGET", { unit = WoW.Secret("unit") })
-check(WoW.menuButton(d, NAME) == nil, "no entry for a secret token")
+check(M.Capture(WoW.Secret("unit")) == nil, "no session for a secret token")
 
--- The setting, read when the menu is built and again on the click.
-WoW.units.target = { id = "G", guid = "Creature-0-1-G" }
-d = WoW.openMenu("TARGET", { unit = "target" })
-P.SetSetting("markwheel", "menu", false)
-WoW.menuButton(d, NAME)()
-check(not M.IsOpen(), "the entry turned off after the menu was built: nothing")
-d = WoW.openMenu("TARGET", { unit = "target" })
-check(WoW.menuButton(d, NAME) == nil, "  and new menus have no entry")
-P.SetSetting("markwheel", "menu", true)
-
--- A responder kept across switching off and on again is dead (a secret GUID:
+-- A session kept across switching off and on again is dead (a secret GUID:
 -- only the epoch can tell).
 WoW.units.target = { id = "G2", guid = WoW.Secret("UnitGUID") }
-d = WoW.openMenu("TARGET", { unit = "target" })
+s = M.Capture("target")
 P.Set("markwheel", false)
-check(WoW.menuButton(WoW.openMenu("TARGET", { unit = "target" }), NAME) == nil, "switched off: no entry")
 WoW.units.target = { id = "H", guid = WoW.Secret("UnitGUID") }   -- unobserved while off
 P.Set("markwheel", true)
-WoW.menuButton(d, NAME)()
-check(not M.IsOpen(), "a responder from before switching off and on: refused")
+M.Open(s)
+check(not M.IsOpen(), "a session from before switching off and on: refused")
 
--- No entry in combat; an entry built before combat, clicked in it: refused.
+-- A session from before combat, opened in it: refused.
 WoW.units.target = { id = "J", guid = "Creature-0-1-J" }
-local before = WoW.openMenu("TARGET", { unit = "target" })
+local before = M.Capture("target")
 WoW.fire("PLAYER_REGEN_DISABLED")
-d = WoW.openMenu("TARGET", { unit = "target" })
-check(WoW.menuButton(d, NAME) == nil, "in combat: no entry")
 newChat()
-WoW.menuButton(before, NAME)()
-check(not M.IsOpen(), "an entry from before combat, clicked in combat: refused")
+M.Open(before)
+check(not M.IsOpen(), "a session from before combat, opened in combat: refused")
 check(chatHas("Not in combat"), "  and says why")
 check(not M.Test() and not M.IsOpen(), "Test in combat: refused")
 WoW.fire("PLAYER_REGEN_ENABLED")
 
 -- A read that throws: refused.
 WoW.units.target = { id = "I", guid = "Creature-0-1-I" }
-d = WoW.openMenu("TARGET", { unit = "target" })
+s = M.Capture("target")
 local realExists = UnitExists
 UnitExists = function(token) if token == "target" then error("boom") end return realExists(token) end
-WoW.menuButton(d, NAME)()
+M.Open(s)
 check(not M.IsOpen(), "a read that throws: refused")
 UnitExists = realExists
 

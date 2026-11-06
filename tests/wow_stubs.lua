@@ -2118,20 +2118,6 @@ function BNGetFriendIndex(bnID)
     end
 end
 
---------------------------------------------------------------------------------
--- The raid mark wheel's menu entry on units you can't attack only (#82). In the
--- 70532 dump: UnitCanAttack(unit, target).
---   WoW.units[token].attackable = true | false | a secret | "throw" (absent: false)
---------------------------------------------------------------------------------
-
-function UnitCanAttack(a, b)
-    local u = a == "player" and WoW.units[b] or nil
-    local v = u and u.attackable
-    if v == "throw" then error("UnitCanAttack refused") end
-    if v == nil then return false end
-    return v
-end
-
 -- Strict globals: any read of an undefined global is an error, except the
 -- addon's own globals that are legitimately nil before first assignment.
 -- LibStub: the embedded libraries' loaders read _G.LibStub before creating it.
