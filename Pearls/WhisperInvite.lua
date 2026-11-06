@@ -142,7 +142,10 @@ local GAME_FIELDS = { "clientProgram", "isOnline", "wowProjectID", "realmID", "i
 function WI.GameAccount(bnID)
     local client, project = rawget(_G, "BNET_CLIENT_WOW"), rawget(_G, "WOW_PROJECT_ID")
     if type(client) ~= "string" or type(project) ~= "number" then return nil, "this game can't be told apart" end
-    local faction = text((select(2, read(UnitFactionGroup, "player"))))
+    -- The first return, the faction tag ("Alliance" in every locale), as Blizzard's friends frame
+    -- compares factionName (FriendsFrame.lua:389, :2164); never the second, the localized label.
+    local okF, faction = read(UnitFactionGroup, "player")
+    faction = okF and text(faction)
     if not faction then return nil, "your faction can't be read" end
     local okI, index = read(rawget(_G, "BNGetFriendIndex"), bnID)
     if not okI or not number(index) then return nil, "they can't be found on your friends list" end

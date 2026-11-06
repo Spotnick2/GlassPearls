@@ -232,7 +232,10 @@ function C_ChatInfo.RegisterAddonMessagePrefix(prefix)
     WoW.prefixes[prefix] = true
     return 0
 end
-function UnitFactionGroup(unit) if unit == "player" then return WoW.player.faction, WoW.player.faction end end
+-- The tag, then the localized label: distinct here, as on a non-English client (Alliance, Allianz).
+function UnitFactionGroup(unit)
+    if unit == "player" then return WoW.player.faction, WoW.player.faction .. " (localized)" end
+end
 function IsLoggedIn() return WoW.loggedIn == true end
 function debugprofilestop() return (GetTime() or 0) * 1000 end
 function fastrandom(a, b) return math.random(a, b) end
