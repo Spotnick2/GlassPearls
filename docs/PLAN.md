@@ -225,6 +225,8 @@ Each line is a claim the code relies on that only the live client can settle.
 - [ ] Placement (screenshot), both looks.
 
 **Restock (#14)** (a mage and a hunter, a food and drink vendor, a reagent vendor, a bowyer)
+- [ ] Below the level cap (#84): `GetMaxPlayerLevel()` reads 60; a visit with food to buy opens the Ask
+      window; at 60 it buys on its own.
 - [ ] `BuyMerchantItem(index, n)`: is `n` in items (Blizzard's "buy multiple" says so)? A pack item
       (vials, 5 per pack) bought 10 at a time? A request above `GetMerchantItemMaxStack`?
 - [ ] After a purchase: `BAG_UPDATE_DELAYED` arrives, and the count is complete by then (within 2 s).

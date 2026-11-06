@@ -160,8 +160,16 @@ function Frame.Configure(panel, refreshers)
         { { "auto", "Buy when the merchant opens" }, { "ask", "Ask first" } }, get("mode"), put("mode"))
     refreshers[#refreshers + 1] = refreshMode
 
+    -- Below the level cap (#84): food asks first by default.
+    local cap = GP.UI.Header(panel, "Food below the level cap")
+    cap:SetPoint("TOPLEFT", last, "BOTTOMLEFT", -4, -12)
+    local capLast, _, refreshCap = GP.UI.Radios(panel, cap,
+        { { "ask", "Ask first" }, { "off", "Don't buy food" }, { "buy", "Buy as above" } },
+        get("foodUnderCap"), put("foodUnderCap"))
+    refreshers[#refreshers + 1] = refreshCap
+
     local limits = GP.UI.Header(panel, "Each visit, at most")
-    limits:SetPoint("TOPLEFT", last, "BOTTOMLEFT", -4, -12)
+    limits:SetPoint("TOPLEFT", capLast, "BOTTOMLEFT", -4, -12)
     a = number(limits, "% of your money", "budget", 10, 100, 6, -8)
     number(a, "gold", "maxSpend", 1, 100)
 

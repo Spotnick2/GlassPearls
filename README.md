@@ -53,7 +53,8 @@ list"). By the seller's own rules and lists; nothing while the seller doesn't se
 **Restock** (on by default). At a merchant, after junk is sold, tops up your food, water,
 ammunition and class reagents with the best you can use, within a spending limit per visit. Only
 what's at least as good counts toward a target, so you move up as you level. "Ask first" to confirm
-each time; hold Shift to skip.
+each time; hold Shift to skip. Below the level cap it asks before buying food (or never buys it, or
+buys it as the rest: a setting).
 
 ### Interface
 
