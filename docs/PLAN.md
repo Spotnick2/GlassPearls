@@ -380,6 +380,10 @@ story NPC, a multi-page NPC)
       Apply and Cancel (its outline dropdowns commit on Apply: an Apply can overwrite ours, re-applied 1 s
       later); raid settings.
 - [ ] `SetCVar` from the timer; what the restore shows before and after a full restart.
+- [x] Measured 2026-11-06 (#88): the settings persist with every add-on disabled (`graphicsOutlineMode` and
+      `raidGraphicsOutlineMode` in `Config.wtf`, `outlineModeShowLootEffectWhenDisabled` in the account's
+      `config-cache.wtf`; the recorded before values 2, 2, 0), so the sparkle stays; the pearl says to switch
+      it off first. With outlines off the client's sparkle also marks a quest-giver NPC ("!"), not only loot.
 
 **Quest loot sparkle's stars (#79)** (a quest with objects to click; an ordinary herb or chest nearby)
 - [ ] Our temps alone (the three names at the client's defaults) make the object's soft-interact plate appear.

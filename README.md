@@ -36,7 +36,8 @@ the moment the loot window opens.
 
 **Quest loot sparkle** (off by default). Keeps the game's sparkle on lootable quest items by turning
 the outline mode off, and again after a graphics preset puts it back. Switched off, your own outline
-settings come back (the game may need a restart to show them).
+settings come back (the game may need a restart to show them). These are the game's own saved settings:
+disabling Glass Pearls in the add-on list leaves them as they are, so switch the pearl off first.
 - Experimental: twinkling stars on the quest object you're facing, within about 15 yards (or on any
   object you're facing, to try the look). Three interact settings change for the session only.
 

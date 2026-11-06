@@ -206,8 +206,9 @@ GP.Pearls.Register({
     name = "Quest loot sparkle",
     desc = "Turns the outline mode off so the game's sparkle shows on quest loot, and keeps it off after "
         .. "graphics changes while on. Switched off, your own outline settings come back where they still read "
-        .. "ours (the game may need a restart to show the outline again). Don't use it with another addon that "
-        .. "does the same.",
+        .. "ours (the game may need a restart to show the outline again). These are the game's own saved "
+        .. "settings: disabling Glass Pearls in the add-on list leaves them as they are, so switch this off first. "
+        .. "Don't use it with another addon that does the same.",
     default = false,
     category = "Loot & Bags",
     section = "Loot",
