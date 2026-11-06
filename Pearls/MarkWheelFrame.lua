@@ -329,7 +329,8 @@ function Frame.Configure(panel, refreshers)
     end
     local menu, refresh = GP.UI.Check(panel, "Add it to units' right-click menus",
         function() return P.Setting(KEY, "menu") end, function(on) P.SetSetting(KEY, "menu", on) end,
-        { tip = "A Raid mark wheel entry in the menu of yourself, your target, focus, group members and pets." })
+        { tip = "A Raid mark wheel entry in the menu of yourself, your target, focus, group members and pets, "
+            .. "never of a unit you can attack (it breaks that menu): over an enemy, use the key." })
     menu:SetPoint("TOPLEFT", key, "BOTTOMLEFT", -4, -8)
     refreshers[#refreshers + 1] = refresh
     local test = GP.UI.Button(panel, "Test", 90, function() M.Test() end)

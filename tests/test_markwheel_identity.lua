@@ -45,6 +45,18 @@ local entry = WoW.menuButton(d, NAME)
 check(entry ~= nil, "the target's menu has the entry")
 eq(d.elements[#d.elements - 1].kind, "divider", "  after a divider")
 eq(d.elements[2].kind, "divider", "  appended after Blizzard's own entries")
+-- Never on a unit you can attack (#82): its menu broke with our elements in it.
+for _, case in ipairs({ { true, "an enemy" }, { WoW.Secret("attack"), "attackable secret" },
+                        { "throw", "attackable throwing" } }) do
+    WoW.units.target.attackable = case[1]
+    local bad = WoW.openMenu("TARGET", { unit = "target" })
+    check(WoW.menuButton(bad, NAME) == nil, case[2] .. ": no entry")
+    eq(#bad.elements, 1, "  nothing of ours in the menu at all (no divider either)")
+end
+WoW.units.target.attackable = false
+d = WoW.openMenu("TARGET", { unit = "target" })
+entry = WoW.menuButton(d, NAME)
+check(entry ~= nil, "a unit plainly not attackable: the entry")
 entry()
 check(M.IsOpen() and M.state.session.token == "target", "  it opens the wheel on the target")
 choose(0, 100)

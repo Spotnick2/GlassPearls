@@ -481,7 +481,8 @@ order) and before the options window and bootstrap.
   (root `Bindings.xml`, category "Glass Pearls", not in the TOC: the deploy copies it and the package
   check expects it) over a unit, or by an entry appended with `Menu.ModifyMenu` to the unit menus that
   carry Blizzard's Raid Target Icon (`M.MENUS`: not ENEMY_PLAYER on Camelot, not VEHICLE or BOSS),
-  registered once at the first enable and kept (its calls during our registration, on a cached
+  **only for a unit `UnitCanAttack("player", unit)` reads plainly false** (#82: our elements in an enemy
+  NPC's menu broke its layout, every row at one spot; measured, the cause unconfirmed), registered once at the first enable and kept (its calls during our registration, on a cached
   menu, are ignored). The mark is set by Blizzard's secure `raidtarget` action, never by our code:
   **one `SecureActionButtonTemplate` button** (parented to UIParent, `AnyDown`+`AnyUp`,
   `useOnKeyDown=false`), **disarmed whenever no click is in progress**; the down edge does nothing;

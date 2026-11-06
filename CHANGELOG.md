@@ -81,7 +81,8 @@
   confirm each time; Shift skips it. Leaves to Buffy the reagents Buffy restocks.
 - **Raid mark wheel** (Social, on by default): a wheel of the eight raid marks at your cursor. Bind
   its key in Key Bindings > Glass Pearls, point at a unit (in the world, on its nameplate or on a
-  group frame) and press it, or pick "Raid mark wheel" in a unit's right-click menu. Click a mark to
+  group frame) and press it, or pick "Raid mark wheel" in the right-click menu of a unit you can't attack
+  (an enemy's menu broke with it in; over an enemy, use the key). Click a mark to
   set it (the same mark again removes it), the centre to clear it, outside or Esc to close. Out of
   combat; in a raid, as the leader or an assistant. It opens and closes with a short animation, in
   WoW Forever's own wheel art or Glass UI's glass. Pings are the game's own: its Ping key.

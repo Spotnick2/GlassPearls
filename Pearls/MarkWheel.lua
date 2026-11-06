@@ -339,6 +339,10 @@ local function onMenu(_, root, contextData)
     if registering or not (M.enabled and setting("menu")) or API.InCombat() then return end
     local unit = type(contextData) == "table" and contextData.unit
     if API.IsSecret(unit) or type(unit) ~= "string" or unit:match("^nameplate") then return end
+    -- Never on a unit you can attack: our elements in an enemy NPC's menu broke its layout, every row
+    -- drawn at one spot (the owner, 2026-11-06, #82; fine with the entry off). Only a plain false adds
+    -- it. The key still opens the wheel over enemies; Blizzard's Raid Target Icon stays in the menu.
+    if ask(UnitCanAttack, "player", unit) ~= false then return end
     local s = M.Capture(unit)
     if not s then return end
     root:CreateDivider()
