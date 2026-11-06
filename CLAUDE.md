@@ -422,7 +422,7 @@ order) and before the options window and bootstrap.
   records a silent refusal as held); a set read back otherwise is refused for this **stars session** (each time
   they become wanted; quest <-> all isn't one); a displaced value is set again on the next pass; a name in
   `GP.Fishing.state.held` is **never removed by us**; cleanup outlives the switch (removed at
-  `PLAYER_REGEN_ENABLED`, the listeners kept while anything is held); a device transition drops ours unremoved.
+  `PLAYER_REGEN_ENABLED`; a failed removal stays held and is retried each pass, the listeners and passes kept while anything is held); a device transition drops ours unremoved.
   `/gpearls sparkle target`: the soft-interact plate found without the quest test, every read labelled; a
   blocked identification says "could not determine", never "no plate". Unmeasured until day one.
 - **`Pearls\Trades.lua`**: trade summary (#45, pearl `trades`, Social > Trade, **off** by default; its panel, the

@@ -213,6 +213,30 @@ combat(false)
 eq(WoW.tempCount("remove"), 0, "off then on again in combat: the obsolete removal never runs")
 check(ours(), "  the values stay")
 
+-- A removal that fails stays held and is retried (Codex review, PR #81).
+WoW.tempRemoveThrows.SoftTargetInteract = true
+stars("off")
+eq(value("SoftTargetInteract"), "3", "a removal that throws: our value still there")
+check(ST.state.held.SoftTargetInteract ~= nil, "  still held")
+check(ST.state.active, "  the listeners kept")
+check(ST._test.driver._scripts.OnUpdate ~= nil, "  and the passes, to retry")
+check(GP.failures["pearl sparkle stars remove SoftTargetInteract"] ~= nil, "  recorded")
+GP.failures["pearl sparkle stars remove SoftTargetInteract"] = nil
+pass()
+eq(value("SoftTargetInteract"), "3", "  retried while it still throws: still there")
+WoW.tempRemoveThrows.SoftTargetInteract = nil
+pass()
+check(none(), "  the next pass once it works: removed")
+check(not ST.state.active and ST._test.driver._scripts.OnUpdate == nil, "  then nothing left running")
+stars("quest")
+WoW.cvarInfo.SoftTargetInteractRange = { secure = true }
+stars("off")
+check(ST.state.held.SoftTargetInteractRange ~= nil, "a name ineligible at cleanup: still held, not given up")
+WoW.cvarInfo.SoftTargetInteractRange = nil
+pass()
+check(none() and not ST.state.active, "  eligible again: removed on the next pass")
+stars("quest")
+
 --------------------------------------------------------------------------------
 -- Gamepad
 

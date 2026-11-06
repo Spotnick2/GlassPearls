@@ -22,7 +22,9 @@
 -- - A name easy fishing holds (GP.Fishing.state.held, read only) is never
 --   removed by us: dropped from our held, left to fishing's cleanup.
 -- - Cleanup outlives the switch: off in combat, removed at
---   PLAYER_REGEN_ENABLED; the listeners stay while anything is held.
+--   PLAYER_REGEN_ENABLED; a removal that fails (ineligible, a throw) stays
+--   held and is retried each pass; the listeners and the passes stay while
+--   anything is held.
 -- - INPUT_DEVICE_INTERFACE_TRANSITION drops what we hold unremoved
 --   (Blizzard's temps replace them) and reconciles a frame later.
 
@@ -120,12 +122,14 @@ local function fishingHolds(name)
         and F.state.held[name] ~= nil
 end
 
+-- Our temp removed; held kept until that succeeds, so the next pass retries
+-- (Codex review, PR #81). A name fishing holds is handed to it, unremoved.
 local function release(name)
-    state.held[name] = nil
-    if fishingHolds(name) then return end          -- fishing's for its session: never removed by us
+    if fishingHolds(name) then state.held[name] = nil; return end
     if not eligible(name) then return end
     local ok, err = pcall(C_CVar.RemoveTempCVar, name)
-    if not ok then API.Fail("pearl sparkle stars remove " .. name, err) end
+    if not ok then return API.Fail("pearl sparkle stars remove " .. name, err) end
+    state.held[name] = nil
 end
 
 -- One pass over the CVars: what's wanted against what reads.
@@ -371,7 +375,8 @@ function ST.Update()
         events:UnregisterAllEvents()
     end
     state.active = active
-    driver:SetScript("OnUpdate", on and function(_, elapsed)
+    -- The passes run while on, and while a removal is left to retry.
+    driver:SetScript("OnUpdate", active and function(_, elapsed)
         since = since + elapsed
         if since < ST.TICK then return end
         since = 0
