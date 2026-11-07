@@ -46,6 +46,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #41 | Junk spotlight (pearl `junkspot`, off by default): what the junk seller may sell, marked in the bags and tooltips | built; the marks beside pet care's and the tooltip owner wait for day one |
 | #64 | Easy fishing (pearl `fishing`): one key casts and reels in; the Interact Key, focused sounds and hidden NPC names while fishing, all through temp CVars | built; the channel ID, the key's edges, the bobber's reach and the temp CVars wait for day one |
 | #72 | Library books (pearl `books`): the books you still need on the world map and minimap, and a note when you come near one | built; the bank count, the pins and the hand spots wait for day one |
+| #93 | Library books' compass (setting `compass`): NodeRadar's compass toward the toast's book until reached, 150 yd away or no longer needed | built; the arrow's direction, the art and the drag wait for a check in game |
 | #77 | Invite from whispers (pearl `whisperinvite`, off by default): "inv" or "invite" from a Battle.net friend, friend or guild member (Recent Allies by option) sends a group invite | built; the invite calls, the Battle.net game account fields and the queue reads wait for day one |
 | #61 | Audit: the pearls that sell, buy, pick or destroy (Junk, Restock, AutoGossip, the bags-full delete) | done offline ([docs/AUDIT.md](AUDIT.md): 15 findings fixed, each with a witness test); its day-one lines are below, marked "audit #61" |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
@@ -468,6 +469,10 @@ story NPC, a multi-page NPC)
 - [ ] `UPDATE_BINDINGS` after our own override calls (no loop, by design).
 
 **Library books (#72)** (a character with books still to find; one with a book in the bank)
+- [ ] #93, the compass: after a toast, the arrow points at the book walking around it (NodeRadar's convention
+      on our spots), the distance falls, it ends within 10 yd; hidden in a fight and back after; on a flight
+      and back; the art after a client restart; Alt-drag, a `/reload` keeps the spot; a cave book points at
+      the entrance and ends there.
 - [ ] **The bank count before the bank is opened** (decides `B.BANK_COUNT_UNOPENED`): a known banked book's
       `C_Item.GetItemCount(item, true)` right after login and `/reload`, after opening the bank, and after
       moving it out and back. If it counts the bank before opening, set the constant true.

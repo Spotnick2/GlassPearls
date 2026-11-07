@@ -74,6 +74,7 @@ Pearls\SparkleStars.lua
 Pearls\Trades.lua
 Pearls\Fishing.lua
 Pearls\BooksFrame.lua
+Pearls\BooksCompass.lua
 Pearls\Books.lua
 Pearls\Untrained.lua
 Options.lua
