@@ -191,7 +191,11 @@ local function acquire(display, kind, atlas)
         local t = icon.tint or { 1, 1, 1 }
         f.tex:SetVertexColor(t[1], t[2], t[3])
     end
-    f:Show()
+    -- Hidden, unanchored: HereBeDragons shows and places only what it draws. A
+    -- reused frame shown here kept its old anchor on the minimap, and a pin on
+    -- another continent is never touched by the library (#95).
+    f:Hide()
+    f:ClearAllPoints()
     return f
 end
 

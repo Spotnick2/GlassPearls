@@ -51,6 +51,13 @@ eq(call.args[2], theo.spots[1].y, "  HereBeDragons' x is our y (west)")
 eq(call.args[3], theo.spots[1].x, "  its y is our x (north)")
 eq(call.args[4], B.SHOW_CONTINENT, "  zone and continent maps")
 eq(call.icon._clicks, false, "clicks go through to the map")
+-- Shown only by HereBeDragons (#95): a reused frame comes back hidden and unanchored.
+check(not call.icon:IsShown(), "pins handed over hidden: the library shows them")
+call.icon:SetPoint("CENTER", UIParent, "CENTER", 20, -30)
+call.icon:Show()
+B.Build()
+check(not call.icon:IsShown(), "a rebuild: the reused frame hidden")
+eq(#call.icon._points, 0, "  its old anchor cleared")
 
 -- No note for an unknown book.
 newChat()
