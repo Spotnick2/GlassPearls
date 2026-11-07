@@ -10,23 +10,33 @@
 -- (C_QuestLog.UnitIsRelatedToActiveQuest: unmeasured for a game object;
 -- `/gpearls sparkle target` tells). "all" ignores the quest test.
 --
--- The plate needs three CVars, held as temp CVars (nothing of the player's
--- saved or written), only in mouse-and-keyboard style (Blizzard_Gamepad sets
--- and removes these temps itself), only out of combat:
--- - Effective values decide: a name reading other than ours is set, whoever
---   held it (easy fishing records a silent refusal as held). Read back at
---   once other than ours: refused for this stars session (a session starts
---   each time the stars become wanted; quest <-> all doesn't start one).
---   Ours and later other (fishing's session end or reset removed it):
---   displaced, set again on the next pass out of combat.
--- - A name easy fishing holds (GP.Fishing.state.held, read only) is never
---   removed by us: dropped from our held, left to fishing's cleanup.
--- - Cleanup outlives the switch: off in combat, removed at
---   PLAYER_REGEN_ENABLED; a removal that fails (ineligible, a throw) stays
---   held and is retried each pass; the listeners and the passes stay while
---   anything is held.
--- - INPUT_DEVICE_INTERFACE_TRANSITION drops what we hold unremoved
---   (Blizzard's temps replace them) and reconciles a frame later.
+-- The plate needs three of the player's CVars (#90): the client reports two of
+-- them secure (measured 2026-11-06), so temps never reached them; they are
+-- claimed like NodeRadar's marker does, persistently, with SetCVar (Codex,
+-- four rounds). GlassPearlsDB.sparkle:
+--   soft[name] = { old, ours, st }, st:
+--     owned        confirmed ours (wanted)
+--     unconfirmed  set, the read-back unreadable (wanted)
+--     release      to put back to old (not wanted)
+--     retained     our put-back may have happened (a logout, or turned on
+--                  again before a put-back was confirmed): the next read decides
+--     cancelled    someone else changed it while wanted: theirs stands until
+--                  the stars go off and on (no old kept)
+--   softActive     set while wanted: a reload isn't a turn-on
+--   softPending    first claims of this activation not run yet
+-- Edges (no CVar access): on (wanted, softActive unset) and off. Every read and
+-- write happens in a pass, per name, right after a plain read; nothing writes
+-- from an event. Gates: no pass while unsettled (until SETTLE seconds after
+-- the first PLAYER_ENTERING_WORLD: the client's synced CVars arrive late,
+-- NodeRadar measured) or logging out; a name in the gamepad UI or held as a
+-- temp by easy fishing is masked (its saved value can't be read); combat
+-- blocks writes, not judgments. A name already at ours is the player's: never
+-- claimed, never put back. NodeRadar claims the same names: whoever wrote one
+-- puts it back, and the other's stars may stop until switched off and on.
+-- At logout, best effort, ours is put back (the record kept, retained) so
+-- removing Glass Pearls leaves the player's values; the next login reapplies.
+-- A whole-pearl-off login finishes a put-back: Start (the registry's, every
+-- pearl at login) arms the passes.
 
 GlassPearls = GlassPearls or {}
 local GP = GlassPearls
@@ -38,20 +48,25 @@ ST.MODES = { "off", "quest", "all" }
 -- The names easy fishing uses for the same CVars (Pearls/Fishing.lua), so its held table matches.
 ST.CVARS = { { "SoftTargetInteract", "3" }, { "SoftTargetInteractRange", "60" }, { "SoftTargetIconGameObject", "1" } }
 ST.TICK = 0.5
+ST.SETTLE = 5
 ST.MEDIA = "Interface\\AddOns\\GlassPearls\\Media\\"
 ST.STAR, ST.SPREAD, ST.GLOW, ST.STARS = 48, 30, 96, 4
 ST.TEAL = { 0.35, 0.9, 0.75 }
 
+local STATES = { owned = true, unconfirmed = true, release = true, retained = true, cancelled = true }
+
 local state = {
-    held = {},       -- name -> our value: set by us, to remove when not wanted (the cleanup marker)
-    refused = {},    -- name -> why, for this stars session
-    wanted = false,  -- the CVars wanted at the last pass (a change to true starts a session)
-    bound = nil,     -- { unit, plate }: the plate the stars are on
-    active = false,  -- the listeners registered
+    bound = nil,       -- { unit, plate }: the plate the stars are on
+    active = false,    -- the listeners registered
+    started = false,   -- Start ran (the lifecycle frame registered)
+    settleAt = nil,    -- GetTime() from which the client's synced CVars are in
+    loggingOut = false,
+    notes = {},        -- name -> what the last first claim found, for the report
 }
 ST.state = state
 
 local events = CreateFrame("Frame")
+local life = CreateFrame("Frame")
 local driver = CreateFrame("Frame")
 local since = 0
 
@@ -90,30 +105,37 @@ local function mkb()
     return how == "ok" and types ~= nil and s == types.Mkb
 end
 
-function ST.Wanted() return ST.Mode() ~= "off" and mkb() end
+function ST.Wanted() return ST.Mode() ~= "off" end
 
 --------------------------------------------------------------------------------
--- The temp CVars
+-- The CVars (#90)
 
 local function read(name)
     local v, how = call(C_CVar.GetCVar, name)
     if how ~= "ok" or type(v) ~= "string" then return nil end
     return v
 end
+-- CVars can read back reformatted ("60.000000" for 60).
 local function same(a, b)
     if a == b then return true end
     local x, y = tonumber(a), tonumber(b)
     return x ~= nil and x == y
 end
 
--- May the temp functions act on it (they fail silently otherwise)? true, or false and why.
-local function eligible(name)
-    local ok, value, _, _, _, _, isSecure, isReadOnly = pcall(C_CVar.GetCVarInfo, name)
-    if not ok then return false, "unreadable" end
-    if API.IsSecret(value) or type(value) ~= "string" then return false, "unknown to the client" end
-    if API.IsSecret(isSecure) or isSecure ~= false then return false, "secure" end
-    if API.IsSecret(isReadOnly) or isReadOnly ~= false then return false, "read-only" end
-    return true
+-- The store, its records checked (a saved file can hold anything): nil before the saved variables.
+local function store()
+    local d = GP.db
+    if type(d) ~= "table" then return nil end
+    if type(d.sparkle) ~= "table" then d.sparkle = {} end
+    local s = d.sparkle
+    if type(s.soft) ~= "table" then s.soft = {} end
+    if type(s.softPending) ~= "table" then s.softPending = {} end
+    for name, r in pairs(s.soft) do
+        local ok = type(r) == "table" and STATES[r.st]
+            and (r.st == "cancelled" or (type(r.old) == "string" and type(r.ours) == "string"))
+        if not ok then s.soft[name] = nil end
+    end
+    return s
 end
 
 local function fishingHolds(name)
@@ -122,46 +144,113 @@ local function fishingHolds(name)
         and F.state.held[name] ~= nil
 end
 
--- Our temp removed; held kept until that succeeds, so the next pass retries
--- (Codex review, PR #81). A name fishing holds is handed to it, unremoved.
-local function release(name)
-    if fishingHolds(name) then state.held[name] = nil; return end
-    if not eligible(name) then return end
-    local ok, err = pcall(C_CVar.RemoveTempCVar, name)
-    if not ok then return API.Fail("pearl sparkle stars remove " .. name, err) end
-    state.held[name] = nil
+-- Why a name can't be judged now (its saved value hidden behind a temp), or nil.
+local function masked(name)
+    if not mkb() then return "the gamepad UI" end
+    if fishingHolds(name) then return "easy fishing" end
+end
+local function unsettled() return state.settleAt == nil or GetTime() < state.settleAt end
+
+-- SetCVar in a pcall: true when the call returned (its result is judged by a read).
+local function set(name, value)
+    local ok, err = pcall(C_CVar.SetCVar, name, value)
+    if not ok then API.Fail("pearl sparkle stars " .. name, err) end
+    return ok
 end
 
--- One pass over the CVars: what's wanted against what reads.
-function ST.Temps()
+-- The edges, from Update (no CVar access).
+local function edges(s)
     local want = ST.Wanted()
-    if want and not state.wanted then state.refused = {} end   -- a new stars session
-    state.wanted = want
-    if API.InCombat() then return end                         -- PLAYER_REGEN_ENABLED comes back
-    if not want then
-        for name in pairs(state.held) do release(name) end
-        return
+    if want and not s.softActive then
+        s.softActive, s.softPending, state.notes = true, {}, {}
+        for _, c in ipairs(ST.CVARS) do
+            local r = s.soft[c[1]]
+            if r == nil then s.softPending[c[1]] = true
+            elseif r.st == "release" then r.st = "retained" end      -- its put-back may have happened
+        end
+    elseif not want and s.softActive then
+        s.softActive, s.softPending = nil, {}
+        for name, r in pairs(s.soft) do
+            if r.st == "cancelled" then s.soft[name] = nil
+            elseif r.st == "owned" or r.st == "unconfirmed" then r.st = "release" end
+        end
     end
+end
+
+-- One name, one plain read, then at most one write and its read-back.
+local function step(s, name, ours, want, blocked)
+    if masked(name) then return end
+    local v = read(name)
+    if v == nil then return end
+    local r = s.soft[name]
+    if r == nil then
+        if not s.softPending[name] then return end
+        if same(v, ours) then
+            s.softPending[name], state.notes[name] = nil, "yours"   -- already at ours: never put back
+            return
+        end
+        if blocked then return end
+        s.softPending[name] = nil
+        if not set(name, ours) then state.notes[name] = "the set threw"; return end
+        local b = read(name)
+        if b == nil then s.soft[name] = { old = v, ours = ours, st = "unconfirmed" }
+        elseif same(b, ours) then s.soft[name] = { old = v, ours = ours, st = "owned" }
+        elseif same(b, v) then state.notes[name] = "the set didn't take"
+        else state.notes[name] = "changed meanwhile" end
+    elseif r.st == "cancelled" then
+        return                                                     -- theirs, until off and on
+    elseif r.st == "owned" or r.st == "unconfirmed" then
+        if same(v, r.ours) then r.st = "owned" else s.soft[name] = { st = "cancelled" } end
+    elseif r.st == "release" then
+        if not same(v, r.ours) then s.soft[name] = nil; return end   -- put back, or theirs now
+        if blocked or not set(name, r.old) then return end
+        local b = read(name)
+        if b ~= nil and not same(b, r.ours) then s.soft[name] = nil end
+    elseif r.st == "retained" then
+        if same(v, r.ours) then r.st = want and "owned" or "release"; return end
+        if not same(v, r.old) then s.soft[name] = want and { st = "cancelled" } or nil; return end
+        if not want then s.soft[name] = nil; return end               -- already the player's
+        if blocked or not set(name, r.ours) then return end
+        local b = read(name)
+        if b == nil then r.st = "unconfirmed"
+        elseif same(b, r.ours) then r.st = "owned"
+        elseif not same(b, r.old) then s.soft[name] = { st = "cancelled" } end
+    end
+end
+
+-- One pass over the CVars.
+function ST.Claims()
+    local s = store()
+    if not s then return end
+    edges(s)
+    if state.loggingOut or unsettled() then return end
+    local want, blocked = ST.Wanted(), API.InCombat()
+    for _, c in ipairs(ST.CVARS) do step(s, c[1], c[2], want, blocked) end
+end
+
+-- Best effort at logout: ours put back so removing Glass Pearls leaves the
+-- player's values; the record kept (retained) for the next login to decide.
+local function atLogout()
+    state.loggingOut = true
+    local s = store()
+    if not s or unsettled() or API.InCombat() then return end
     for _, c in ipairs(ST.CVARS) do
-        local name, value = c[1], c[2]
-        local now = read(name)
-        if not state.refused[name] and now ~= nil and not same(now, value) then
-            local ok, why = eligible(name)
-            if not ok then
-                state.refused[name] = why
-            else
-                local done, err = pcall(C_CVar.SetTempCVar, name, value)
-                if not done then
-                    state.refused[name] = "the set threw"
-                    API.Fail("pearl sparkle stars " .. name, err)
-                else
-                    state.held[name] = value
-                    local back = read(name)
-                    if back ~= nil and not same(back, value) then state.refused[name] = "refused by the client" end
-                end
+        local name = c[1]
+        local r = s.soft[name]
+        if r and (r.st == "owned" or r.st == "unconfirmed") and not masked(name) then
+            local v = read(name)
+            if v ~= nil and same(v, r.ours) and set(name, r.old) then
+                local b = read(name)
+                if b == nil or not same(b, r.ours) then r.st = "retained" end
             end
         end
     end
+end
+
+-- Anything left to do: a claim to keep, a put-back, a first claim.
+local function pending()
+    local s = store()
+    return s ~= nil and (next(s.soft) ~= nil or next(s.softPending) ~= nil)
 end
 
 --------------------------------------------------------------------------------
@@ -358,24 +447,22 @@ function ST.Reconcile()
 end
 
 --------------------------------------------------------------------------------
--- The listeners and the ticker: while the option is on, or anything is held
+-- The listeners and the ticker: while the option is on, or anything is left to do
 
-local EVENTS = { "PLAYER_REGEN_ENABLED", "PLAYER_REGEN_DISABLED", "INPUT_DEVICE_INTERFACE_TRANSITION",
-                 "NAME_PLATE_UNIT_ADDED", "NAME_PLATE_UNIT_REMOVED" }
+local EVENTS = { "PLAYER_REGEN_ENABLED", "PLAYER_REGEN_DISABLED", "NAME_PLATE_UNIT_ADDED", "NAME_PLATE_UNIT_REMOVED" }
 
--- The one entry point: the pearl's Enable / Disable, a setting change, the ticker, events.
+-- The one entry point: the pearl's Enable / Disable, a setting change, Start, the ticker, events.
 function ST.Update()
-    ST.Temps()
+    ST.Claims()
     ST.Reconcile()
-    local on = ST.Mode() ~= "off"
-    local active = on or next(state.held) ~= nil
+    local active = ST.Mode() ~= "off" or pending()
     if active and not state.active then
         API.RegisterEvents(events, EVENTS)
     elseif not active and state.active then
         events:UnregisterAllEvents()
     end
     state.active = active
-    -- The passes run while on, and while a removal is left to retry.
+    -- The passes run while on, and while a claim is left to keep, put back or make.
     driver:SetScript("OnUpdate", active and function(_, elapsed)
         since = since + elapsed
         if since < ST.TICK then return end
@@ -386,18 +473,34 @@ end
 
 events:SetScript("OnEvent", function(_, event, ...)
     API.NoteCombat(event)
-    if event == "INPUT_DEVICE_INTERFACE_TRANSITION" then
-        state.held = {}                                     -- Blizzard's temps replace ours: dropped unremoved
-        C_Timer.After(0, ST.Update)
-    elseif event == "NAME_PLATE_UNIT_REMOVED" then
+    if event == "NAME_PLATE_UNIT_REMOVED" then
         local unit = ...
-        if state.bound and not API.IsSecret(unit) and unit == state.bound.unit then unbind() end
+        if state.bound and not API.IsSecret(unit) and unit == state.bound.unit then ST.Unbind() end
     elseif event == "NAME_PLATE_UNIT_ADDED" then
         ST.Reconcile()
     elseif event == "PLAYER_REGEN_ENABLED" then
         ST.Update()
     end
 end)
+
+-- The settle window and the logout put-back, from the first login on, whatever the pearl.
+life:SetScript("OnEvent", function(_, event)
+    if event == "PLAYER_ENTERING_WORLD" then
+        if state.settleAt == nil then state.settleAt = GetTime() + ST.SETTLE end
+        ST.Update()
+    elseif event == "PLAYER_LOGOUT" then
+        atLogout()
+    end
+end)
+
+-- At login, for the pearl on or off (Pearls.StartAll): the lifecycle frame,
+-- then a first Update, which applies a due off edge and arms the passes.
+function ST.Start()
+    if state.started then return end
+    state.started = true
+    API.RegisterEvents(life, { "PLAYER_ENTERING_WORLD", "PLAYER_LOGOUT" })
+    ST.Update()
+end
 
 --------------------------------------------------------------------------------
 -- Reports
@@ -408,16 +511,37 @@ local function label(fn, ...)
     return tostring(v)
 end
 
+local WHAT = {
+    owned = "ours (yours was %s)",
+    unconfirmed = "ours, not confirmed yet (yours was %s)",
+    release = "to put back to yours, %s",
+    retained = "put back to yours (%s) at logout, decided at the next read",
+    cancelled = "changed since: yours stands",
+}
+
 -- The CVars' lines for /gpearls sparkle.
 function ST.Lines()
-    local lines = { ("  Stars: %s%s."):format(ST.Mode(), ST.Mode() ~= "off" and not mkb()
-        and " (the CVars wait: not in mouse-and-keyboard style)" or "") }
+    local s = store() or { soft = {}, softPending = {} }
+    local wait
+    if state.loggingOut then wait = "logging out"
+    elseif unsettled() then wait = "the login settling"
+    elseif API.InCombat() then wait = "combat" end
+    local lines = { ("  Stars: %s%s."):format(ST.Mode(), wait and (" (the settings wait: " .. wait .. ")") or "") }
     for _, c in ipairs(ST.CVARS) do
         local name = c[1]
         local parts = { ("%s now, %s wanted"):format(read(name) or "unreadable", c[2]) }
-        if state.held[name] then parts[#parts + 1] = "ours" end
-        if state.refused[name] then parts[#parts + 1] = "unavailable: " .. state.refused[name] end
-        if fishingHolds(name) then parts[#parts + 1] = "easy fishing holds it" end
+        local r = s.soft[name]
+        if r then
+            parts[#parts + 1] = WHAT[r.st]:format(tostring(r.old))
+        elseif s.softPending[name] then
+            parts[#parts + 1] = "to set"
+        elseif state.notes[name] == "yours" then
+            parts[#parts + 1] = "yours, already at ours"
+        elseif state.notes[name] then
+            parts[#parts + 1] = state.notes[name]
+        end
+        local m = masked(name)
+        if m and (r or s.softPending[name]) then parts[#parts + 1] = "waiting: " .. m end
         lines[#lines + 1] = ("    %s: %s."):format(name, table.concat(parts, ", "))
     end
     return lines
@@ -470,4 +594,5 @@ function ST.Target()
         .. "none observed, which doesn't prove an object isn't interactable)." }
 end
 
-ST._test = { events = events, driver = driver, root = function() return root end, stars = function() return stars end }
+ST._test = { events = events, life = life, driver = driver, root = function() return root end,
+    stars = function() return stars end, store = store }

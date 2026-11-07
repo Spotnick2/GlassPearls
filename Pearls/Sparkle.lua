@@ -17,7 +17,8 @@
 --
 -- The experimental option `stars` (off / quest / all, #79) is
 -- Pearls/SparkleStars.lua: this file only calls its Update from Enable,
--- Disable and a setting change, and adds its lines to the report.
+-- Disable and a setting change, its Start at every login (on or off: its
+-- CVars are put back even while off, #90), and adds its lines to the report.
 
 GlassPearls = GlassPearls or {}
 local GP = GlassPearls
@@ -193,8 +194,9 @@ local function configure(panel, refreshers)
     refreshers[#refreshers + 1] = refresh
     local note = GP.UI.Label(panel,
         "Twinkling stars on the object the game picks for interaction, within about 15 yards, one at a time. "
-            .. "While on, three interact settings are changed for the session only (nothing of yours is saved). "
-            .. "New art: the first time, restart the game. /gpearls sparkle target says what the game reports "
+            .. "While on, three interact settings are changed and saved; yours come back when the stars go off. "
+            .. "One you or another add-on change meanwhile stays yours (with NodeRadar's stars too: whichever "
+            .. "turned it on puts it back, so the other's stars may stop until switched off and on). New art: the first time, restart the game. /gpearls sparkle target says what the game reports "
             .. "about the object you're facing.", "GameFontDisableSmall")
     note:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -10)
     note:SetWidth(380)
@@ -214,6 +216,7 @@ GP.Pearls.Register({
     section = "Loot",
     Enable = enable,
     Disable = disable,
+    Start = function() Stars().Start() end,   -- the stars' CVars, put back even while off (#90)
     defaults = { stars = "off" },
     choices = { stars = { "off", "quest", "all" } },
     configure = configure,

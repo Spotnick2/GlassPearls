@@ -68,8 +68,9 @@ order) and before the options window and bootstrap.
   `Radios`, `Number`, `Search`, `SetList`: a paged list of one sync set), Blizzard templates in both looks; a
   value control returns a `refresh`.
 - **`Pearls.lua`**: the registry. `Pearls.Register{ key, name, desc, default, category, section,
-  Enable, Disable, defaults, configure, help, onReset, onSettingChanged }` (the last after any
-  change of its settings, from any route, sync included: for a pearl that must rebuild); `IsOn`, `IsLive`, `NeedsReload`,
+  Enable, Disable, defaults, configure, help, onReset, onSettingChanged, Start }` (`onSettingChanged` after any
+  change of its settings, from any route, sync included: for a pearl that must rebuild; `Start` once at login for
+  every pearl, on or off, after the enables: for a pearl that must finish a cleanup while off, #90); `IsOn`, `IsLive`, `NeedsReload`,
   `PendingReload`, `Set`, `List`, `Categories` (in `CATEGORIES` order), `InCategory`, `Search`,
   `Setting` / `SetSetting` / `ResetSettings` (a pearl's own settings in
   `GlassPearlsDB.settings[key]`), `StartAll` (at login). Only what differs from a default is saved.
@@ -417,12 +418,19 @@ order) and before the options window and bootstrap.
   yards): a UIParent child anchored to the plate's BOTTOM while the plate's unit reads `UnitIsGameObject` and
   `UnitIsUnit(unit, "softinteract")` true and, for `quest`, `C_QuestLog.UnitIsRelatedToActiveQuest`; the bound
   plate re-checked every 0.5 s pass, unbound at once on its token's `NAME_PLATE_UNIT_REMOVED`; it may bind in
-  combat. The plate needs three **temp CVars** (`ST.CVARS`, easy fishing's spelling), Mkb style only, out of combat:
-  **effective values decide** (a name reading other than ours is set, even if easy fishing holds it: fishing
-  records a silent refusal as held); a set read back otherwise is refused for this **stars session** (each time
-  they become wanted; quest <-> all isn't one); a displaced value is set again on the next pass; a name in
-  `GP.Fishing.state.held` is **never removed by us**; cleanup outlives the switch (removed at
-  `PLAYER_REGEN_ENABLED`; a failed removal stays held and is retried each pass, the listeners and passes kept while anything is held); a device transition drops ours unremoved.
+  combat. The plate needs three CVars (`ST.CVARS`, easy fishing's spelling); `GetCVarInfo` calls two **secure**
+  (measured 2026-11-06), so temps never reached them: **claimed like NodeRadar's marker, persistently with
+  `SetCVar`** (#90, Codex four rounds; the file's header has the table). `GlassPearlsDB.sparkle.soft[name] =
+  { old, ours, st }` (`owned`, `unconfirmed`, `release`, `retained`: our put-back may have happened, `cancelled`:
+  someone else's change while on, theirs until off and on), `softActive` (a reload isn't a turn-on),
+  `softPending` (this activation's first claims). Edges touch no CVar; **every read and write is in a pass, per
+  name, right after a plain read** (no `CVAR_UPDATE`). No pass until `ST.SETTLE` (5) s after the first
+  `PLAYER_ENTERING_WORLD` (the client's synced CVars arrive late) or while logging out; a name is **masked** in
+  the gamepad UI or while easy fishing holds a temp of it (its saved value hidden); combat blocks writes, not
+  judgments. A name already at ours is the player's: never claimed or put back (NodeRadar's, likewise: whoever
+  wrote a name puts it back). Logout puts ours back (settled, unmasked, out of combat), the record `retained`
+  for the next login. `Start` (the registry's) arms the passes even with the pearl off. Tests:
+  `test_sparkle_claims` (Codex's traces), `test_sparkle_claims_boot` (a whole-pearl-off login).
   `/gpearls sparkle target`: the soft-interact plate found without the quest test, every read labelled; a
   blocked identification says "could not determine", never "no plate". Unmeasured until day one.
 - **`Pearls\Trades.lua`**: trade summary (#45, pearl `trades`, Social > Trade, **off** by default; its panel, the
