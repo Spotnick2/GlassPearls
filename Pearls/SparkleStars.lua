@@ -532,7 +532,8 @@ function ST.Lines()
         local parts = { ("%s now, %s wanted"):format(read(name) or "unreadable", c[2]) }
         local r = s.soft[name]
         if r then
-            parts[#parts + 1] = WHAT[r.st]:format(tostring(r.old))
+            local old = tonumber(r.old) and ("%g"):format(tonumber(r.old)) or tostring(r.old)   -- "10.000000": 10
+            parts[#parts + 1] = WHAT[r.st]:format(old)
         elseif s.softPending[name] then
             parts[#parts + 1] = "to set"
         elseif state.notes[name] == "yours" then

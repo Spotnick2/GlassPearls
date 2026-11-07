@@ -393,10 +393,9 @@ story NPC, a multi-page NPC)
       `SoftTargetInteractRange` read secure (`GetCVarInfo`), so the pearl never set them; they read 3 and 60 only
       because NodeRadar's marker set them on the owner's other account (its save: old 1 and 10), stored in no WTF
       file (server-side). Replaced by #90's persistent claims.
-- [ ] #90: at the client's defaults (put the two back by hand first: `/console SoftTargetInteract 1`,
-      `/console SoftTargetInteractRange 10`, NodeRadar's marker off), the stars on: `/gpearls sparkle` says each
-      is "ours (yours was ...)" after 5 s, and the stars show; off: yours come back. `SetCVar` on a secure CVar
-      from addon code out of combat (NodeRadar's evidence, 70450).
+- [x] #90, measured 2026-11-07 (the owner, 70790): from the client's defaults, the stars on: all three "ours
+      (yours was 1 / 10.000000 / 0)"; off: 1, 10.000000, 0 back. `SetCVar` on the two secure CVars works from
+      Glass Pearls out of combat; the client reads the range back as "10.000000" (the report shows numbers).
 - [ ] #90: a `/reload` and a full exit with the stars on: no claim lost, the values ours again after 5 s; with
       the stars off at the next login, put back.
 - [x] Measured 2026-11-06 (with those two at 3 and 60): the soft-interact icon on a quest crystal, the stars on

@@ -66,6 +66,12 @@ settle()
 eq(saved(IA) .. "," .. saved(RANGE) .. "," .. saved(ICON), "3,60,1", "settled: the three set, saved values (SetCVar)")
 eq(st(IA) .. st(RANGE) .. st(ICON), "ownedownedowned", "  each owned")
 eq(rec(RANGE).old, "10", "  the player's value kept")
+WoW.cvarValues[RANGE] = "60.000000"            -- the client's own formatting of a saved number
+check(lines():find("SoftTargetInteractRange: 60.000000 now, 60 wanted, ours", 1, true), "  read back reformatted: still ours")
+rec(RANGE).old = "10.000000"
+check(lines():find("ours (yours was 10).", 1, true), "  the old value shown as a number")
+rec(RANGE).old = "10"
+WoW.cvarValues[RANGE] = "60"
 check(next(store().softPending) == nil, "  nothing pending")
 eq(store().softActive, true, "  the activation saved")
 eq(#WoW.tempCalls, 0, "  no temp CVar at all")
