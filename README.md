@@ -39,7 +39,15 @@ the outline mode off, and again after a graphics preset puts it back. Switched o
 settings come back (the game may need a restart to show them). These are the game's own saved settings:
 disabling Glass Pearls in the add-on list leaves them as they are, so switch the pearl off first.
 - Experimental: twinkling stars on the quest object you're facing, within about 15 yards (or on any
-  object you're facing, to try the look). Three interact settings change for the session only.
+  object you're facing, to try the look). Three interact settings are changed and saved while the stars
+  are on; yours come back when they go off, and one you change meanwhile stays yours. NodeRadar's stars use
+  the same three: whichever turned one on puts it back, so the other's stars may stop until switched off and
+  on. Removing Glass Pearls with the stars on can leave them changed: switch the stars off first.
+
+**Untrained gear** (on by default). A weapon or armor you can't use only because you haven't learned
+its skill yet (a warrior's plate before level 40, a mage's first sword) shows its type in yellow, not
+red, with a note in its tooltip: a weapon master teaches weapons, your class trainer armor, and from
+which level. Anything else red, and gear your class can never use, stays as it is.
 
 **Sell junk & repair** (on by default). At a merchant, it sells your junk, then repairs, guild funds
 first when your guild allows it.
@@ -75,8 +83,11 @@ continent) and the minimap, at each place a book you still need can be found.
 - Within 100 yards of a book you still need, a note shows the book, where it is and how far, and
   stays until you click OK; a line in chat too. It comes again only after you've gone 150 yards
   away. No notes in instances, while dead or on a flight.
+- Then a compass under your character points at that book, with how far it is, until you reach it, go
+  150 yards away or no longer need it (hidden in a fight). Hover it for the book; Alt-drag it to move it;
+  `/gpearls books compass reset` puts it back. New art: restart the game once after installing.
 - The bank is read when you open it: open it once so the notes can start.
-- Its gear switches the world map, the minimap and the notes. `/gpearls books` counts what's left
+- Its gear switches the world map, the minimap, the notes and the compass. `/gpearls books` counts what's left
   and names the nearest.
 
 ### Combat

@@ -110,6 +110,7 @@ function Frame.Configure(panel, refreshers)
     local a = check(head, "On the world map", "worldmap", -4, -6)
     a = check(a, "On the minimap", "minimap")
     a = check(a, "A note when I come near one I still need", "nearby")
+    a = check(a, "Then a compass pointing at it", "compass", 16)
     local test = GP.UI.Button(panel, "Test", 90, function()
         if not GP.Books.enabled then return API.Print("Library books is off: /gpearls books on.") end
         local book = GP.BookData.books[1]

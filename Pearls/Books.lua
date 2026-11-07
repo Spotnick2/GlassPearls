@@ -29,7 +29,15 @@
 -- pcall, every return plain; distance only to spots on the same continent
 -- (its GetWorldDistance ignores the instance). A latch per book: alerted once
 -- on coming within ENTER yards of any of its spots, re-armed only by a plain
--- reading LEAVE yards from all of them. Quiet in an instance, dead or on a taxi.
+-- reading LEAVE yards from all of them (a book with no spot on this continent
+-- keeps its latch: #93). Quiet in an instance, dead or on a taxi.
+--
+-- The compass (#93, setting `compass`, Pearls/BooksCompass.lua draws it): the
+-- toast's book becomes the target (in memory). Ended by arriving within NEAR
+-- yards (backing away doesn't bring it back), its LEAVE re-arm, its state
+-- proved have / done / hidden, the pearl, `nearby` or `compass` off. Hidden,
+-- kept, while unknown, quiet, unreadable, on another continent or in combat:
+-- the ticker reconciles it every second, toast or not (Codex, three rounds).
 
 GlassPearls = GlassPearls or {}
 local GP = GlassPearls
@@ -39,6 +47,7 @@ GP.Books = B
 
 B.KEY = "books"
 B.ENTER, B.LEAVE = 100, 150
+B.NEAR = 10            -- yards: the compass's book reached
 B.SHOW_CONTINENT = 2   -- HBD_PINS_WORLDMAP_SHOW_CONTINENT (HereBeDragons-Pins-2.0.lua)
 B.SIZE = 14
 B.ICON = "Interface\\Icons\\INV_Misc_Book_09"
@@ -52,6 +61,7 @@ local frames = { world = {}, mini = {} }   -- pools, one per display
 local used = { world = 0, mini = 0 }
 local states = {}          -- item -> state, as last refreshed
 local latched = {}         -- item -> true once alerted, until LEAVE yards away
+local target               -- the compass's book (#93), or nil
 local bankOpen = false
 local session = 0          -- bumped by Enable and Disable; deferred calls check it
 local pending = false
@@ -191,6 +201,51 @@ local function quiet()
     local okT, taxi = pcall(UnitOnTaxi, "player")
     if not okT or API.IsSecret(taxi) or taxi ~= false then return true end
     return false
+end
+B.Quiet = quiet
+
+-- Combat: Glass Pearls' noted combat or lockdown, or UnitAffectingCombat plainly
+-- true (NodeRadar's read: after a reload in combat the lockdown can read false).
+function B.InCombat()
+    if API.InCombat() then return true end
+    local ok, v = pcall(UnitAffectingCombat, "player")
+    return ok and not API.IsSecret(v) and v == true
+end
+
+--------------------------------------------------------------------------------
+-- The compass's target (#93)
+
+local function ring() return GP.BooksCompass end
+local function hideRing() if ring() then ring().Hide() end end
+local function compassOn() return B.enabled and setting("nearby") and setting("compass") and true or false end
+
+function B.Target() return target end
+
+local function clearTarget()
+    target = nil
+    hideRing()
+end
+-- The ring reached its book (its own frame, the same rule as the ticker's).
+function B.Arrive() clearTarget() end
+
+-- The target against its state: false when it can't be shown now (cleared, or kept hidden).
+-- (The switches clear it themselves; a toast sets it only with the compass on.)
+local function stateAllows()
+    if not target then hideRing(); return false end
+    local s = states[target.item]
+    if s == "have" or s == "done" or s == "hidden" then clearTarget(); return false end
+    if s ~= "need" then hideRing(); return false end           -- unknown: kept, hidden
+    return true
+end
+
+-- With a usable reading (not quiet, the position plain): arrival clears, else
+-- shown; the ring's own frame hides it at once in combat or on a failed read.
+local function reconcile(continent, north, west)
+    if not stateAllows() then return end
+    local d, spot = B.Nearest(target, continent, north, west)
+    if not d then return hideRing() end                        -- another continent: kept
+    if d <= B.NEAR then return clearTarget() end
+    ring().Show(target, spot)
 end
 
 --------------------------------------------------------------------------------
@@ -333,6 +388,7 @@ function B.Refresh(force)
         if states[book.item] ~= s then changed, states[book.item] = true, s end
     end
     if changed then B.Build() end
+    stateAllows()                                              -- shown again by the ticker
 end
 
 -- One refresh a frame later, however many events asked.
@@ -348,7 +404,10 @@ local function schedule()
 end
 
 events:SetScript("OnEvent", function(_, event, arg)
-    if event == "BANKFRAME_OPENED" then bankOpen = true
+    API.NoteCombat(event)
+    if event == "PLAYER_REGEN_DISABLED" then return hideRing()
+    elseif event == "PLAYER_REGEN_ENABLED" then return B.Tick()  -- the compass back at once
+    elseif event == "BANKFRAME_OPENED" then bankOpen = true
     elseif event == "BANKFRAME_CLOSED" then
         recordBank()
         bankOpen = false
@@ -357,37 +416,46 @@ events:SetScript("OnEvent", function(_, event, arg)
     schedule()
 end)
 B.EVENTS = { "PLAYER_ENTERING_WORLD", "QUEST_TURNED_IN", "QUEST_LOG_UPDATE", "BAG_UPDATE_DELAYED",
-             "BANKFRAME_OPENED", "BANKFRAME_CLOSED", "PLAYERBANKSLOTS_CHANGED", "UNIT_FACTION" }
+             "BANKFRAME_OPENED", "BANKFRAME_CLOSED", "PLAYERBANKSLOTS_CHANGED", "UNIT_FACTION",
+             "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED" }
 
 --------------------------------------------------------------------------------
 -- Nearby
 
--- One second: newly entered books alerted (a chat line each, the nearest on the toast).
+-- One second: newly entered books alerted (a chat line each, the nearest on
+-- the toast), then the compass reconciled, toast or not. In order: the latches
+-- (a re-arm ends that book's compass), the toast's book as the new target, then
+-- that target's arrival or show (Codex: an expired one never shows for a tick).
 function B.Tick()
-    if not (B.enabled and setting("nearby")) or quiet() then return end
+    if not (B.enabled and setting("nearby")) or quiet() then return end   -- a shown ring hides itself
     local continent, north, west = B.Position()
     if not continent then return end
     local entered = {}
     for _, book in ipairs(data().books) do
         local d, spot = B.Nearest(book, continent, north, west)
-        if not d or d >= B.LEAVE then
+        if d and d >= B.LEAVE then
             latched[book.item] = nil
-        elseif d <= B.ENTER and not latched[book.item] and states[book.item] == "need" then
+            if target == book then target = nil end
+        elseif d and d <= B.ENTER and not latched[book.item] and states[book.item] == "need" then
             latched[book.item] = true
             entered[#entered + 1] = { book = book, spot = spot, yards = d }
         end
     end
-    if #entered == 0 then return end
-    table.sort(entered, function(a, b)
-        if a.yards ~= b.yards then return a.yards < b.yards end
-        return a.book.item < b.book.item
-    end)
-    for _, e in ipairs(entered) do
-        local near = e.book.entrance and "near its cave entrance" or ("about %d yards away"):format(math.floor(e.yards + 0.5))
-        API.Print(("Library book nearby: %s, %s (%s)."):format(B.Name(e.book), near, B.Where(e.spot)))
+    if #entered > 0 then
+        table.sort(entered, function(a, b)
+            if a.yards ~= b.yards then return a.yards < b.yards end
+            return a.book.item < b.book.item
+        end)
+        for _, e in ipairs(entered) do
+            local near = e.book.entrance and "near its cave entrance"
+                or ("about %d yards away"):format(math.floor(e.yards + 0.5))
+            API.Print(("Library book nearby: %s, %s (%s)."):format(B.Name(e.book), near, B.Where(e.spot)))
+        end
+        local first = entered[1]
+        if GP.BooksFrame then GP.BooksFrame.Show(B.View(first.book, first.spot, first.yards)) end
+        if compassOn() then target = first.book end
     end
-    local first = entered[1]
-    if GP.BooksFrame then GP.BooksFrame.Show(B.View(first.book, first.spot, first.yards)) end
+    reconcile(continent, north, west)
 end
 
 -- What the toast shows.
@@ -438,6 +506,10 @@ local function summary()
 end
 
 local function command(arg)
+    if arg and arg:match("^%s*compass%s+reset%s*$") then
+        if ring() then ring().ResetPosition() end
+        return API.Print("Library books: the compass is back under your character.")
+    end
     if not B.enabled then return API.Print("Library books is off: /gpearls books on.") end
     if arg == "test" then
         local book = data().books[1]
@@ -468,6 +540,7 @@ local function disable()
     stopTicker()
     clear()
     states = {}
+    clearTarget()
     if GP.BooksFrame then GP.BooksFrame.Hide() end
 end
 
@@ -479,17 +552,21 @@ GP.Pearls.Register({
         .. "continent) and the minimap. Hover one for the book and where it is. Books you carry, keep in your bank "
         .. "or have handed in aren't shown. Within 100 yards of a book you still need, a note appears (it stays "
         .. "until you click it) and a line in chat; it comes again only after you've gone 150 yards away. "
+        .. "A compass under your character then points at that book until you reach it, go 150 yards away, or "
+        .. "no longer need it (Alt-drag it to move it; /gpearls books compass reset puts it back). "
         .. "No notes in instances, while dead or on a flight.",
     default = true,
     category = "Interface",
     section = "Maps",
-    defaults = { worldmap = true, minimap = true, nearby = true },
+    defaults = { worldmap = true, minimap = true, nearby = true, compass = true },
     Enable = enable,
     Disable = disable,
     onSettingChanged = function(name)
         if not B.enabled then return end
         if name == "nearby" then
-            if setting("nearby") then startTicker() else stopTicker() end
+            if setting("nearby") then startTicker() else stopTicker(); clearTarget() end
+        elseif name == "compass" then
+            if not setting("compass") then clearTarget() end
         else
             B.Build()
         end
@@ -497,12 +574,14 @@ GP.Pearls.Register({
     configure = function(panel, refreshers)
         if GP.BooksFrame then GP.BooksFrame.Configure(panel, refreshers) end
     end,
-    commands = { books = { help = "[test] - library books still to find and the nearest, or show a test note",
+    commands = { books = { help = "[test or compass reset] - library books still to find and the nearest, a test "
+                               .. "note, or the compass back under your character",
                            run = command } },
 })
 
 B._test = {
     events = events, frames = frames, used = used, states = function() return states end,
     latched = latched, ticker = function() return ticker end, recordBank = recordBank, store = store,
+    setTarget = function(b) target = b end,
     bankOpen = function() return bankOpen end,
 }

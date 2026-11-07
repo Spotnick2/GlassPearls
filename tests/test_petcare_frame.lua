@@ -228,7 +228,9 @@ local function tip(id, data)
     end
     return table.concat(added, "\n")
 end
-eq(#(WoW.tooltipPostCalls[Enum.TooltipDataType.Item] or {}), 1, "one item tooltip hook")
+-- Untrained gear (#86) has an item hook of its own: pet care's is counted apart.
+local others = GP.Untrained.state.hooked and 1 or 0
+eq(#(WoW.tooltipPostCalls[Enum.TooltipDataType.Item] or {}) - others, 1, "one item tooltip hook")
 eq(tip(QUAIL), FR.TIP, "tooltip (the default): edible")
 eq(tip(BREAD), "", "  not edible: nothing")
 eq(tip(nil, { id = WoW.Secret("id") }), "", "  a secret ID: nothing")
@@ -250,7 +252,7 @@ P.Set("petcare", false)
 P.SetSetting("petcare", "food", "both")
 eq(tip(QUAIL), "", "switched off: nothing")
 P.Set("petcare", true)
-eq(#WoW.tooltipPostCalls[Enum.TooltipDataType.Item], 1, "  still one hook after switching back on")
+eq(#WoW.tooltipPostCalls[Enum.TooltipDataType.Item] - others, 1, "  still one hook after switching back on")
 
 --------------------------------------------------------------------------------
 -- The bag marks

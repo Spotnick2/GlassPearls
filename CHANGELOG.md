@@ -151,6 +151,9 @@
   where. Within 100 yards of one, a note that stays until you click OK, and a line in chat; it comes again
   only after you've gone 150 yards away. Books you carry, keep in your bank or have handed in aren't shown.
   The bank is read when you open it, so open it once for the notes to start. `/gpearls books`.
+  Then a compass under your character points at that book until you reach it, go 150 yards away or no longer
+  need it (NodeRadar's compass; Alt-drag to move it, `/gpearls books compass reset`; restart the game once
+  for its art).
 - **Invite from whispers** (Social, off by default): a Battle.net friend, a friend or a guild member who
   whispers you "inv" or "invite" gets a group invite (a Battle.net whisper invites the character they're
   playing here). Only when you're on your own or lead the group, it has room and you're not in a
@@ -158,7 +161,13 @@
   your Recent Allies too. `/gpearls whisperinvite`.
 - **Quest loot sparkle**: an experimental option, twinkling stars on the quest object you're facing (within
   about 15 yards; or on any object you're facing, to try the look), the gathering sparkle of NodeRadar's
-  marker. While on, three interact settings change for the session only; nothing of yours is saved.
+  marker. While on, three interact settings are changed and saved; yours come back when the stars go off,
+  and one you or another add-on change meanwhile stays yours. (The game doesn't let add-ons change two of
+  them for the session only, so before this the stars showed only where NodeRadar had set them.)
   `/gpearls sparkle target` says what the game reports about the object you're facing. New art: restart the
   game once after installing.
+- **Untrained gear** (Loot & Bags, on by default): a weapon or armor you can't use only because you haven't
+  learned its skill yet (a warrior's plate before 40, a mage's first sword) shows its type in yellow instead
+  of red in its tooltip, with a note: who teaches it (a weapon master, or your class trainer for armor) and
+  from which level. Gear your class or race can never use, and anything else red, is left as it is.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.

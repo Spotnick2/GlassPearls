@@ -19,6 +19,8 @@
 --       onReset = function() end,    -- optional: after Reset put its settings back
 --       onSettingChanged = function(name, value) end,  -- optional: after any change of its settings,
 --                                    -- local or from settings sync (a pearl that must rebuild)
+--       Start = function() end,      -- optional: once at login, on or off, after the enables (a pearl
+--                                    -- that must finish a cleanup while off: the stars' CVars, #90)
 --   })
 --
 -- Only what the player chose is saved (GlassPearlsDB.pearls[key], a boolean,
@@ -50,6 +52,7 @@ function Pearls.Register(def)
     assert(type(def.name) == "string" and def.name ~= "", "Pearls.Register: a name")
     assert(type(def.Enable) == "function", "Pearls.Register: an Enable function")
     assert(def.configure == nil or type(def.configure) == "function", "Pearls.Register: configure is a function")
+    assert(def.Start == nil or type(def.Start) == "function", "Pearls.Register: Start is a function")
     assert(def.defaults == nil or type(def.defaults) == "table", "Pearls.Register: defaults is a table")
     def.default = def.default == true
     def.category = type(def.category) == "string" and def.category ~= "" and def.category or Pearls.DEFAULT_CATEGORY
@@ -273,11 +276,13 @@ function Pearls.CleanSettings(all)
     end
 end
 
--- At PLAYER_LOGIN, from GlassPearls.lua: every pearl that is on.
+-- At PLAYER_LOGIN, from GlassPearls.lua: every pearl that is on, then every
+-- pearl's Start, on or off.
 function Pearls.StartAll()
     for _, def in ipairs(order) do
         if Pearls.IsOn(def.key) then enable(def) end
     end
+    for _, def in ipairs(order) do run(def, "Start") end
 end
 
 Pearls._test = {

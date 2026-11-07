@@ -38,12 +38,15 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #37 | Social automation (pearl `social`, off by default): summons, resurrections, invites from people you know, declining duels | built; each call from addon code and whether each popup closes itself wait for day one |
 | #40 | Easy delete (pearl `easydelete`, off by default): DELETE filled in for good items up to a chosen quality | built; the fill from addon code and taint wait for day one |
 | #44 | Quest loot sparkle (pearl `sparkle`, off by default): the outline mode kept off so quest loot sparkles | built; the CVars, their effect and the restore wait for day one |
-| #79 | Quest loot sparkle's stars (experimental option `stars`): NodeRadar's twinkling stars on the soft-interact quest object | built; the temps, the plate and the quest test wait for day one |
+| #86 | Untrained gear (pearl `untrained`): gear red only for a skill your class and race can still learn, in yellow with a note | built; the tooltip's red slot-line side and its data colour wait for day one |
+| #79 | Quest loot sparkle's stars (experimental option `stars`): NodeRadar's twinkling stars on the soft-interact quest object | built; the stars measured 2026-11-06 (with NodeRadar's values); the quest test waits |
+| #90 | The stars' three interact CVars claimed like NodeRadar's marker (two are secure: temps never reached them) | built; the claim at the defaults, the put-back and a full exit wait for a check in game |
 | #45 | Trade summary (pearl `trades`, off by default): the money and items of each completed trade, in chat and a local log | built; the completion message and the event order wait for day one |
 | #39 | Train all (pearl `trainall`, off by default): a Train all button at the class trainer | built; `BuyTrainerService` from addon code and the trainer tooltip's identity wait for day one |
 | #41 | Junk spotlight (pearl `junkspot`, off by default): what the junk seller may sell, marked in the bags and tooltips | built; the marks beside pet care's and the tooltip owner wait for day one |
 | #64 | Easy fishing (pearl `fishing`): one key casts and reels in; the Interact Key, focused sounds and hidden NPC names while fishing, all through temp CVars | built; the channel ID, the key's edges, the bobber's reach and the temp CVars wait for day one |
 | #72 | Library books (pearl `books`): the books you still need on the world map and minimap, and a note when you come near one | built; the bank count, the pins and the hand spots wait for day one |
+| #93 | Library books' compass (setting `compass`): NodeRadar's compass toward the toast's book until reached, 150 yd away or no longer needed | built; the arrow's direction, the art and the drag wait for a check in game |
 | #77 | Invite from whispers (pearl `whisperinvite`, off by default): "inv" or "invite" from a Battle.net friend, friend or guild member (Recent Allies by option) sends a group invite | built; the invite calls, the Battle.net game account fields and the queue reads wait for day one |
 | #61 | Audit: the pearls that sell, buy, pick or destroy (Junk, Restock, AutoGossip, the bags-full delete) | done offline ([docs/AUDIT.md](AUDIT.md): 15 findings fixed, each with a witness test); its day-one lines are below, marked "audit #61" |
 | GlassUI#163 | Glass UI lists Glass Pearls as a dynamic member | Glass UI's session |
@@ -387,20 +390,32 @@ story NPC, a multi-page NPC)
 - [x] Measured 2026-11-06 (`/gpearls sparkle`): all five read the wanted values after the apply (loot effect
       1, the four outline modes 0); the sparkle shows on quest objects from a distance.
 
+**Untrained gear (#86)** (a low warrior with plate; a mage with a sword and an axe; a shaman with a two-handed mace)
+- [ ] The weapon or armor type is the **right side of the slot line** ("Two-Hand  Sword", "Chest  Plate") and the
+      only red side when only the skill is missing; its tooltip data's `rightColor` is RED_FONT_COLOR; `_G[equipLoc]`
+      equals the slot text; `lineData.lineIndex` names the right font string (GameTooltip, ItemRefTooltip,
+      the shopping tooltips).
+- [ ] A level requirement or a class restriction shows as its own red line (so it vetoes).
+- [ ] SkillRaceClassInfo's conventions: rows flagged 0x100 really can't be trained (shaman two-handed maces and
+      axes); a race's starting skill is known from level 1; plate and mail at 40, polearms at 20.
+
 **Quest loot sparkle's stars (#79)** (a quest with objects to click; an ordinary herb or chest nearby)
-- [ ] Our temps alone (the three names at the client's defaults) make the object's soft-interact plate appear.
-      **Not yet: measured 2026-11-06, `SoftTargetInteract` and `SoftTargetInteractRange` read secure
-      (`GetCVarInfo`), so the pearl never sets them** ("unavailable: secure"); they read 3 and 60 only because
-      NodeRadar's marker set them on the owner's other account (its save: old 1 and 10), stored in no WTF file
-      (server-side). `SoftTargetIconGameObject` is ours. At the defaults the stars may never show: #90.
+- [x] Our temps alone make the plate appear: **no, measured 2026-11-06**: `SoftTargetInteract` and
+      `SoftTargetInteractRange` read secure (`GetCVarInfo`), so the pearl never set them; they read 3 and 60 only
+      because NodeRadar's marker set them on the owner's other account (its save: old 1 and 10), stored in no WTF
+      file (server-side). Replaced by #90's persistent claims.
+- [x] #90, measured 2026-11-07 (the owner, 70790): from the client's defaults, the stars on: all three "ours
+      (yours was 1 / 10.000000 / 0)"; off: 1, 10.000000, 0 back. `SetCVar` on the two secure CVars works from
+      Glass Pearls out of combat; the client reads the range back as "10.000000" (the report shows numbers).
+- [ ] #90: a `/reload` and a full exit with the stars on: no claim lost, the values ours again after 5 s; with
+      the stars off at the next login, put back.
 - [x] Measured 2026-11-06 (with those two at 3 and 60): the soft-interact icon on a quest crystal, the stars on
       it within reach, the client's sparkle from further away; the earlier "No soft-interact object plate" was
       right (the only object near was a decorative crate). The client's sparkle also shows on a quest crystal the
       player can't interact with (no icon, no plate, `target` says none): sparkle without stars means the client
       offers no interaction, nothing the pearl can change.
-- [ ] The values and the plate survive the synced-settings window after login (measured only for persistent values).
 - [ ] Switching the stars off shows the player's own values again (`/gpearls sparkle`).
-- [ ] `/reload` mid-fishing with the stars on: both rebuild; fishing's end hands the names back to the stars.
+- [ ] Fishing with the stars on: the icon "waiting: easy fishing" while it holds the temp, judged after.
 - [ ] `C_QuestLog.UnitIsRelatedToActiveQuest` on a quest object's plate and on an ordinary interactable
       (`/gpearls sparkle target`), and on the owner's screenshot rocks (two sparkle, one doesn't).
 - [ ] The stars' look next to the client's sparkle; the 15-yard reach; the art after a client restart.
@@ -454,6 +469,10 @@ story NPC, a multi-page NPC)
 - [ ] `UPDATE_BINDINGS` after our own override calls (no loop, by design).
 
 **Library books (#72)** (a character with books still to find; one with a book in the bank)
+- [ ] #93, the compass: after a toast, the arrow points at the book walking around it (NodeRadar's convention
+      on our spots), the distance falls, it ends within 10 yd; hidden in a fight and back after; on a flight
+      and back; the art after a client restart; Alt-drag, a `/reload` keeps the spot; a cave book points at
+      the entrance and ends there.
 - [ ] **The bank count before the bank is opened** (decides `B.BANK_COUNT_UNOPENED`): a known banked book's
       `C_Item.GetItemCount(item, true)` right after login and `/reload`, after opening the bank, and after
       moving it out and back. If it counts the bank before opening, set the constant true.
