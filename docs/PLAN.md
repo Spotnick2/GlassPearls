@@ -38,6 +38,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #37 | Social automation (pearl `social`, off by default): summons, resurrections, invites from people you know, declining duels | built; each call from addon code and whether each popup closes itself wait for day one |
 | #40 | Easy delete (pearl `easydelete`, off by default): DELETE filled in for good items up to a chosen quality | built; the fill from addon code and taint wait for day one |
 | #44 | Quest loot sparkle (pearl `sparkle`, off by default): the outline mode kept off so quest loot sparkles | built; the CVars, their effect and the restore wait for day one |
+| #86 | Untrained gear (pearl `untrained`): gear red only for a skill your class and race can still learn, in yellow with a note | built; the tooltip's red slot-line side and its data colour wait for day one |
 | #79 | Quest loot sparkle's stars (experimental option `stars`): NodeRadar's twinkling stars on the soft-interact quest object | built; the temps, the plate and the quest test wait for day one |
 | #45 | Trade summary (pearl `trades`, off by default): the money and items of each completed trade, in chat and a local log | built; the completion message and the event order wait for day one |
 | #39 | Train all (pearl `trainall`, off by default): a Train all button at the class trainer | built; `BuyTrainerService` from addon code and the trainer tooltip's identity wait for day one |
@@ -386,6 +387,15 @@ story NPC, a multi-page NPC)
       it off first. With outlines off the client's sparkle also marks a quest-giver NPC ("!"), not only loot.
 - [x] Measured 2026-11-06 (`/gpearls sparkle`): all five read the wanted values after the apply (loot effect
       1, the four outline modes 0); the sparkle shows on quest objects from a distance.
+
+**Untrained gear (#86)** (a low warrior with plate; a mage with a sword and an axe; a shaman with a two-handed mace)
+- [ ] The weapon or armor type is the **right side of the slot line** ("Two-Hand  Sword", "Chest  Plate") and the
+      only red side when only the skill is missing; its tooltip data's `rightColor` is RED_FONT_COLOR; `_G[equipLoc]`
+      equals the slot text; `lineData.lineIndex` names the right font string (GameTooltip, ItemRefTooltip,
+      the shopping tooltips).
+- [ ] A level requirement or a class restriction shows as its own red line (so it vetoes).
+- [ ] SkillRaceClassInfo's conventions: rows flagged 0x100 really can't be trained (shaman two-handed maces and
+      axes); a race's starting skill is known from level 1; plate and mail at 40, polearms at 20.
 
 **Quest loot sparkle's stars (#79)** (a quest with objects to click; an ordinary herb or chest nearby)
 - [ ] Our temps alone (the three names at the client's defaults) make the object's soft-interact plate appear.

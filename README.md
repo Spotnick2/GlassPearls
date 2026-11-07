@@ -41,6 +41,11 @@ disabling Glass Pearls in the add-on list leaves them as they are, so switch the
 - Experimental: twinkling stars on the quest object you're facing, within about 15 yards (or on any
   object you're facing, to try the look). Three interact settings change for the session only.
 
+**Untrained gear** (on by default). A weapon or armor you can't use only because you haven't learned
+its skill yet (a warrior's plate before level 40, a mage's first sword) shows its type in yellow, not
+red, with a note in its tooltip: a weapon master teaches weapons, your class trainer armor, and from
+which level. Anything else red, and gear your class can never use, stays as it is.
+
 **Sell junk & repair** (on by default). At a merchant, it sells your junk, then repairs, guild funds
 first when your guild allows it.
 - Grey items with a price, and anything you list with `/gpearls sell` (shift-click the item).

@@ -16,7 +16,9 @@ check(not PC.state.hunter, "a mage: not a hunter")
 for _, e in ipairs(PC.EVENTS) do
     check(not PC._test.events:IsEventRegistered(e), "  not registered: " .. e)
 end
-eq(WoW.tooltipPostCalls[Enum.TooltipDataType.Item], nil, "  no tooltip hook")
+-- Untrained gear (#86) has an item hook of its own: pet care's is counted apart.
+eq(#(WoW.tooltipPostCalls[Enum.TooltipDataType.Item] or {}) - (GP.Untrained.state.hooked and 1 or 0), 0,
+    "  no tooltip hook")
 for _, cf in ipairs(WoW.containerFrames) do
     check(not (WoW.hooked[cf] and WoW.hooked[cf].UpdateItems), "  no bag hook")
 end

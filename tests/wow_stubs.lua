@@ -371,7 +371,7 @@ function C_Item.GetItemInfoInstant(x)
     local id = idOf(x)
     if not id then return end
     local it = WoW.items[id] or {}
-    return id, "Type", "Subtype", "", it.icon or 134400, it.classID or 15, it.subclassID or 0
+    return id, "Type", "Subtype", it.equipLoc or "", it.icon or 134400, it.classID or 15, it.subclassID or 0
 end
 function C_Item.GetItemSpell(x)
     local it = WoW.items[idOf(x)]
@@ -2165,6 +2165,21 @@ function UnitIsUnit(a, b)
     if WoW.unitIsUnitThrows then error("UnitIsUnit refused") end
     return unitIsUnitBefore(a, b)
 end
+
+--------------------------------------------------------------------------------
+-- Untrained gear (#86). In the 70532 dump: C_Item.GetItemSubClassInfo. The
+-- slot names are Blizzard's GlobalStrings (INVTYPE_*). WoW.items[id].equipLoc
+-- feeds GetItemInfoInstant's fourth return.
+--   WoW.subclassNames[classID][subclassID] = the client's (long) subclass name
+--------------------------------------------------------------------------------
+
+WoW.subclassNames = { [2] = { [0] = "One-Handed Axes", [5] = "Two-Handed Maces", [6] = "Polearms",
+    [7] = "One-Handed Swords", [8] = "Two-Handed Swords", [10] = "Staves" }, [4] = { [4] = "Plate" } }
+function C_Item.GetItemSubClassInfo(classID, subclassID)
+    local t = WoW.subclassNames[classID]
+    return t and t[subclassID], false
+end
+INVTYPE_WEAPON, INVTYPE_2HWEAPON, INVTYPE_CHEST = "One-Hand", "Two-Hand", "Chest"
 
 -- Strict globals: any read of an undefined global is an error, except the
 -- addon's own globals that are legitimately nil before first assignment.
