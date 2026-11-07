@@ -41,7 +41,7 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 `Pearls\MarkWheel.lua` → `Pearls\AutoGossipFrame.lua` → `Pearls\AutoGossip.lua` → `Pearls\FastLootFrame.lua` →
 `Pearls\FastLoot.lua` → `Pearls\LowBuffs.lua` → `Pearls\InstanceGearFrame.lua` → `Pearls\InstanceGear.lua` →
 `Pearls\PetCareFrame.lua` → `Pearls\PetCare.lua` → ... → `Pearls\Fishing.lua` → `Pearls\BooksFrame.lua` →
-`Pearls\Books.lua`)* →
+`Pearls\BooksCompass.lua` → `Pearls\Books.lua`)* →
 `Options.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
@@ -602,10 +602,23 @@ order) and before the options window and bootstrap.
   **Nearby**: a 1 s ticker while on; HereBeDragons' position inside one pcall, every return plain; distance only
   to spots on the same continent (`GetWorldDistance` ignores the instance); a latch per book, alerted once within
   `ENTER` (100) yd, re-armed only by a plain reading `LEAVE` (150) yd from all its spots; quiet in an instance,
-  dead, on a taxi. Several at once: a chat line each, the nearest on the toast. `/gpearls books [test]`.
+  dead, on a taxi (a book with no spot on this continent keeps its latch, #93). Several at once: a chat line
+  each, the nearest on the toast. **The compass** (#93, `compass`, on; Codex three rounds): the toast's book
+  is the target (in memory). Ended by arrival within `NEAR` (10) yd (backing away brings nothing back), its
+  LEAVE re-arm, a state proved have / done / hidden, the pearl, `nearby` or `compass` off; kept and hidden
+  while unknown, quiet, unreadable, on another continent or in combat (`B.InCombat`: noted combat, lockdown
+  or `UnitAffectingCombat`). The ticker reconciles it every second, toast or not, in order: latches, the new
+  target, then arrival or show. `/gpearls books [test | compass reset]` (reset works while off).
   Unmeasured until day one.
 - **`Pearls\BooksFrame.lua`**: its toast (icon, name, where, how far; **stays until OK**: no timeout, not in
-  `UISpecialFrames`; position per character) and its panel (the three switches, Test).
+  `UISpecialFrames`; position per character) and its panel (the four switches, Test).
+- **`Pearls\BooksCompass.lua`**: the compass's ring (#93), NodeRadar's (`Compass.lua` and its six
+  `Media\Compass*.tga`, MIT, the same owner): lens with the book's icon, rim bronze (WoW Forever) or pearl
+  (Glass UI, `Theme.Active()`), arrow and arc at `bearing - facing` (NodeRadar's measured convention:
+  `atan2(-east, north)`, `GetPlayerFacing` counter-clockwise from north), "n yd" capsule, the book's tooltip
+  (plus the cave line), mouse motion only. Its OnUpdate runs only while shown: hides at once (quiet, combat,
+  a read failing, another continent) and ends the target on arrival. Alt-drag (NodeRadar's grip from live
+  input), the whole footprint clamped, saved in `GlassPearlsCharDB.booksCompass`. Built on its first show.
 - **`Data\SpellRanks.lua`**: **generated** by `Tools\gen_ranks.py` (never edit it): every class
   spell that comes in ranks, `groups[g]` (IDs, lowest rank first) and `ranks[id] = { g, rank,
   level }`, from the client's SkillLine (class trees: category 7 with flag 0x400; pet lines lack

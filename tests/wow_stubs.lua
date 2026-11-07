@@ -2040,6 +2040,14 @@ function WoW.pressKey(key, down)
 end
 
 --------------------------------------------------------------------------------
+-- Library books' compass (#93). In the 70532 dump (the _G walk): GetPlayerFacing, IsAltKeyDown.
+--   WoW.facing = radians | "throw" | a WoW.Secret | nil; WoW.altDown
+function GetPlayerFacing()
+    if WoW.facing == "throw" then error("facing refused") end
+    return WoW.facing
+end
+function IsAltKeyDown() return WoW.altDown == true end
+
 -- Library books (#72). In the 70532 dump: C_QuestLog.IsQuestFlaggedCompleted,
 -- C_Item.GetItemIconByID, C_Map.GetMapInfo (documented). The position is the
 -- fake HereBeDragons' (WoW.playerWorld, above).

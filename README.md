@@ -75,8 +75,11 @@ continent) and the minimap, at each place a book you still need can be found.
 - Within 100 yards of a book you still need, a note shows the book, where it is and how far, and
   stays until you click OK; a line in chat too. It comes again only after you've gone 150 yards
   away. No notes in instances, while dead or on a flight.
+- Then a compass under your character points at that book, with how far it is, until you reach it, go
+  150 yards away or no longer need it (hidden in a fight). Hover it for the book; Alt-drag it to move it;
+  `/gpearls books compass reset` puts it back. New art: restart the game once after installing.
 - The bank is read when you open it: open it once so the notes can start.
-- Its gear switches the world map, the minimap and the notes. `/gpearls books` counts what's left
+- Its gear switches the world map, the minimap, the notes and the compass. `/gpearls books` counts what's left
   and names the nearest.
 
 ### Combat
