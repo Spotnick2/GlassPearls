@@ -36,6 +36,16 @@ eq(wcall.icon._clicks, false, "clicks pass through to the map")
 eq(wcall.icon._motion, true, "  hover still shows the tooltip")
 check(wcall.icon:GetScript("OnClick") == nil, "  and nothing happens on a click")
 
+-- Shown only by HereBeDragons (#95): a frame it drew on the minimap, reused by
+-- a rebuild (each loading screen), comes back hidden and unanchored, so a pin
+-- on another continent, which the library never touches, can't stay on screen.
+check(not mcall.icon:IsShown() and not wcall.icon:IsShown(), "pins handed over hidden: the library shows them")
+mcall.icon:SetPoint("CENTER", UIParent, "CENTER", 20, -30)   -- (the minimap, in game)
+mcall.icon:Show()
+LM.Build()
+check(not mcall.icon:IsShown(), "a rebuild: the reused minimap frame hidden")
+eq(#mcall.icon._points, 0, "  its old anchor cleared")
+
 -- Icons: the client's atlas when it has one, else the file and a tint.
 eq(wcall.icon.tex._atlas, nil, "no 'Dungeon' atlas: the file")
 check(wcall.icon.tex._file ~= nil, "  a file texture")

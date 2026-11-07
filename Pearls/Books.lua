@@ -263,7 +263,10 @@ local function acquire(display)
         frames[display][used[display]] = f
     end
     f:SetSize(B.SIZE, B.SIZE)
-    f:Show()
+    -- Hidden, unanchored: HereBeDragons shows and places only what it draws; a
+    -- pin on another continent is never touched by it (#95).
+    f:Hide()
+    f:ClearAllPoints()
     return f
 end
 
