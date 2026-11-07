@@ -380,9 +380,24 @@ story NPC, a multi-page NPC)
       Apply and Cancel (its outline dropdowns commit on Apply: an Apply can overwrite ours, re-applied 1 s
       later); raid settings.
 - [ ] `SetCVar` from the timer; what the restore shows before and after a full restart.
+- [x] Measured 2026-11-06 (#88): the settings persist with every add-on disabled (`graphicsOutlineMode` and
+      `raidGraphicsOutlineMode` in `Config.wtf`, `outlineModeShowLootEffectWhenDisabled` in the account's
+      `config-cache.wtf`; the recorded before values 2, 2, 0), so the sparkle stays; the pearl says to switch
+      it off first. With outlines off the client's sparkle also marks a quest-giver NPC ("!"), not only loot.
+- [x] Measured 2026-11-06 (`/gpearls sparkle`): all five read the wanted values after the apply (loot effect
+      1, the four outline modes 0); the sparkle shows on quest objects from a distance.
 
 **Quest loot sparkle's stars (#79)** (a quest with objects to click; an ordinary herb or chest nearby)
 - [ ] Our temps alone (the three names at the client's defaults) make the object's soft-interact plate appear.
+      **Not yet: measured 2026-11-06, `SoftTargetInteract` and `SoftTargetInteractRange` read secure
+      (`GetCVarInfo`), so the pearl never sets them** ("unavailable: secure"); they read 3 and 60 only because
+      NodeRadar's marker set them on the owner's other account (its save: old 1 and 10), stored in no WTF file
+      (server-side). `SoftTargetIconGameObject` is ours. At the defaults the stars may never show: #90.
+- [x] Measured 2026-11-06 (with those two at 3 and 60): the soft-interact icon on a quest crystal, the stars on
+      it within reach, the client's sparkle from further away; the earlier "No soft-interact object plate" was
+      right (the only object near was a decorative crate). The client's sparkle also shows on a quest crystal the
+      player can't interact with (no icon, no plate, `target` says none): sparkle without stars means the client
+      offers no interaction, nothing the pearl can change.
 - [ ] The values and the plate survive the synced-settings window after login (measured only for persistent values).
 - [ ] Switching the stars off shows the player's own values again (`/gpearls sparkle`).
 - [ ] `/reload` mid-fishing with the stars on: both rebuild; fishing's end hands the names back to the stars.

@@ -129,7 +129,8 @@
 - **Quest loot sparkle** (Loot & Bags, off by default): keeps the game's sparkle on lootable quest items by
   turning the outline mode off, and again after a graphics preset puts it back. Switched off, your own
   outline settings come back (the game may need a restart to show them). `/gpearls sparkle` shows the
-  settings; `/gpearls sparkle restore` finishes putting yours back if a change was refused.
+  settings; `/gpearls sparkle restore` finishes putting yours back if a change was refused. They are the
+  game's own saved settings: disabling the add-on leaves them as they are, so switch the pearl off first.
 - **Trade summary** (Social, off by default): after each completed trade, one line in your chat: "You gave
   12g to Name" or "You received 3g from Name" (or how your money changed, when both sides offered), and
   the items each way. The last 10 are kept in its panel, on that character only; `/gpearls trades`.
