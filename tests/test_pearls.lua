@@ -11,6 +11,9 @@ local function pearl(key, default, opts)
         Enable = function() calls[#calls + 1] = key .. "+"; if opts.boom then error("boom") end end,
     }
     if not opts.noDisable then def.Disable = function() calls[#calls + 1] = key .. "-" end end
+    if opts.start then
+        def.Start = function() calls[#calls + 1] = key .. "!"; if opts.start == "boom" then error("start boom") end end
+    end
     return def
 end
 
@@ -22,8 +25,8 @@ local GP = loadAddon({ pearls = false,   -- only the pearls this test registers
     before = function(GP)
         local R = GP.Pearls.Register
         R(pearl("alpha", true, { name = "Alpha" }))
-        R(pearl("beta", false, { name = "Beta", desc = "the second" }))
-        R(pearl("gamma", false, { name = "gamma", noDisable = true }))
+        R(pearl("beta", false, { name = "Beta", desc = "the second", start = "boom" }))
+        R(pearl("gamma", false, { name = "gamma", noDisable = true, start = true }))
         R(pearl("boom", true, { name = "Boom", boom = true }))
     end,
 })
@@ -33,6 +36,8 @@ local P = GP.Pearls
 check(not pcall(P.Register, pearl("alpha", true)), "a duplicate key is refused")
 check(not pcall(P.Register, pearl("Bad-Key", true)), "a key must be lower-case letters or digits")
 check(not pcall(P.Register, { key = "noenable", name = "x" }), "a pearl needs Enable")
+check(not pcall(P.Register, { key = "badstart", name = "x", Enable = function() end, Start = true }),
+    "Start, when given, is a function")
 local names = {}
 for _, def in ipairs(P.List()) do names[#names + 1] = def.name end
 eq(table.concat(names, ","), "Alpha,Beta,Boom,gamma", "listed by name, case-insensitively")
@@ -44,7 +49,9 @@ eq(GP.db.pearls.gone, false, "a key no pearl claims is kept")
 eq(GP.db.pearls.junk, nil, "a non-boolean is dropped")
 
 -- Login: every pearl that is on, once; a pearl that throws doesn't stop the rest.
-eq(table.concat(calls, ","), "alpha+,beta+,boom+", "login enables the pearls that are on")
+eq(table.concat(calls, ","), "alpha+,beta+,boom+,beta!,gamma!",
+    "login enables the pearls that are on, then runs every Start, an off pearl's too (#90)")
+check(GP.failures["pearl beta start"]:find("start boom", 1, true), "  a Start that throws is recorded")
 check(P.IsLive("alpha") and P.IsLive("beta"), "they are live")
 check(not P.IsLive("boom"), "a pearl whose Enable threw is not live")
 check(GP.failures["pearl boom enable"]:find("boom", 1, true), "  and its error is recorded")

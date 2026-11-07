@@ -39,7 +39,15 @@ the outline mode off, and again after a graphics preset puts it back. Switched o
 settings come back (the game may need a restart to show them). These are the game's own saved settings:
 disabling Glass Pearls in the add-on list leaves them as they are, so switch the pearl off first.
 - Experimental: twinkling stars on the quest object you're facing, within about 15 yards (or on any
-  object you're facing, to try the look). Three interact settings change for the session only.
+  object you're facing, to try the look). Three interact settings are changed and saved while the stars
+  are on; yours come back when they go off, and one you change meanwhile stays yours. NodeRadar's stars use
+  the same three: whichever turned one on puts it back, so the other's stars may stop until switched off and
+  on. Removing Glass Pearls with the stars on can leave them changed: switch the stars off first.
+
+**Untrained gear** (on by default). A weapon or armor you can't use only because you haven't learned
+its skill yet (a warrior's plate before level 40, a mage's first sword) shows its type in yellow, not
+red, with a note in its tooltip: a weapon master teaches weapons, your class trainer armor, and from
+which level. Anything else red, and gear your class can never use, stays as it is.
 
 **Sell junk & repair** (on by default). At a merchant, it sells your junk, then repairs, guild funds
 first when your guild allows it.

@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64), library books (#72), invite from whispers (#77); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64), library books (#72), invite from whispers (#77), untrained gear (#86); the day-one
 probe (#5) follows. The pearls that sell, buy, pick or destroy were audited offline (#61,
 [docs/AUDIT.md](docs/AUDIT.md): the property, the trace matrix, 15 findings with witness tests, the
 declared exceptions). Nothing
@@ -68,8 +68,9 @@ order) and before the options window and bootstrap.
   `Radios`, `Number`, `Search`, `SetList`: a paged list of one sync set), Blizzard templates in both looks; a
   value control returns a `refresh`.
 - **`Pearls.lua`**: the registry. `Pearls.Register{ key, name, desc, default, category, section,
-  Enable, Disable, defaults, configure, help, onReset, onSettingChanged }` (the last after any
-  change of its settings, from any route, sync included: for a pearl that must rebuild); `IsOn`, `IsLive`, `NeedsReload`,
+  Enable, Disable, defaults, configure, help, onReset, onSettingChanged, Start }` (`onSettingChanged` after any
+  change of its settings, from any route, sync included: for a pearl that must rebuild; `Start` once at login for
+  every pearl, on or off, after the enables: for a pearl that must finish a cleanup while off, #90); `IsOn`, `IsLive`, `NeedsReload`,
   `PendingReload`, `Set`, `List`, `Categories` (in `CATEGORIES` order), `InCategory`, `Search`,
   `Setting` / `SetSetting` / `ResetSettings` (a pearl's own settings in
   `GlassPearlsDB.settings[key]`), `StartAll` (at login). Only what differs from a default is saved.
@@ -151,6 +152,22 @@ order) and before the options window and bootstrap.
   (`Merchant.Report`) for restock: "skip" when a sale or repair may still land (a run ended
   unconfirmed, by the buyback check, refused or by combat; an unconfirmed repair; combat; switched
   off mid-visit), "ready" otherwise, from every terminal path. Unmeasured until day one.
+- **`Data\GearSkills.lua`**: **generated** by `Tools\gen_gearskills.py` (never edit it) from the client's SkillLine,
+  SkillRaceClassInfo, ChrRaces and ChrClasses: `learn[classFile][raceID][skillLine] = minLevel` for each weapon (SkillLine
+  category 6) and armor (8) skill a class and race can still learn (an applicable row with Availability 0 and no 0x100
+  NOT_TRAINABLE flag, and none with Availability 1, a starting skill); race masks are two signed 32-bit words over
+  ChrRaces' `PlayableRaceBit` (both 0: unrestricted, a convention no gear row uses); `subclass[itemClassID][subclassID]
+  = skillLine` (weapons and armor, fixed; fishing poles and the rest left out); `kind`; English `names` for the
+  report only. `Tools\gearskills\report.txt` has every class x race decision.
+- **`Pearls\Untrained.lua`**: untrained gear (#86, pearl `untrained`, Loot & Bags > Bags, on by default; no settings).
+  One `TooltipDataProcessor` item post-call (once; it checks `IsOn`): when the item maps to a skill line this
+  character's class and race can still learn (`UnitClass` classFile, `UnitRace` raceID), and **the only red side** in
+  the tooltip data (`leftColor` / `rightColor` at RED_FONT_COLOR) is the **right side of the slot line**, the line whose
+  left text is `_G[itemEquipLoc]` from `GetItemInfoInstant` (the client prints the short type, "Sword", there;
+  `GetItemSubClassInfo`'s name is the long one, used only in the note): that right font string (the post-call's own
+  tooltip, `<name>TextRight<lineIndex>`) turned yellow, and a yellow note "Not trained yet: a weapon master teaches X"
+  (armor: your class trainer) with "from level n" while below it. Any other red side, a secret or an unreadable read:
+  left alone. Unmeasured until day one.
 - **`Pearls\JunkSpot.lua`**: junk spotlight (#41, pearl `junkspot`, Loot & Bags > Merchant, **off** by default;
   its panel inside; `show` = `both` | `bags` | `tooltip`). Shows what the junk seller **may** sell: only while
   it sells (`junk` on and its `autoSell`), only bags 0-4, by `Junk.Judge` alone (the equipment-set snapshot
@@ -417,12 +434,19 @@ order) and before the options window and bootstrap.
   yards): a UIParent child anchored to the plate's BOTTOM while the plate's unit reads `UnitIsGameObject` and
   `UnitIsUnit(unit, "softinteract")` true and, for `quest`, `C_QuestLog.UnitIsRelatedToActiveQuest`; the bound
   plate re-checked every 0.5 s pass, unbound at once on its token's `NAME_PLATE_UNIT_REMOVED`; it may bind in
-  combat. The plate needs three **temp CVars** (`ST.CVARS`, easy fishing's spelling), Mkb style only, out of combat:
-  **effective values decide** (a name reading other than ours is set, even if easy fishing holds it: fishing
-  records a silent refusal as held); a set read back otherwise is refused for this **stars session** (each time
-  they become wanted; quest <-> all isn't one); a displaced value is set again on the next pass; a name in
-  `GP.Fishing.state.held` is **never removed by us**; cleanup outlives the switch (removed at
-  `PLAYER_REGEN_ENABLED`; a failed removal stays held and is retried each pass, the listeners and passes kept while anything is held); a device transition drops ours unremoved.
+  combat. The plate needs three CVars (`ST.CVARS`, easy fishing's spelling); `GetCVarInfo` calls two **secure**
+  (measured 2026-11-06), so temps never reached them: **claimed like NodeRadar's marker, persistently with
+  `SetCVar`** (#90, Codex four rounds; the file's header has the table). `GlassPearlsDB.sparkle.soft[name] =
+  { old, ours, st }` (`owned`, `unconfirmed`, `release`, `retained`: our put-back may have happened, `cancelled`:
+  someone else's change while on, theirs until off and on), `softActive` (a reload isn't a turn-on),
+  `softPending` (this activation's first claims). Edges touch no CVar; **every read and write is in a pass, per
+  name, right after a plain read** (no `CVAR_UPDATE`). No pass until `ST.SETTLE` (5) s after the first
+  `PLAYER_ENTERING_WORLD` (the client's synced CVars arrive late) or while logging out; a name is **masked** in
+  the gamepad UI or while easy fishing holds a temp of it (its saved value hidden); combat blocks writes, not
+  judgments. A name already at ours is the player's: never claimed or put back (NodeRadar's, likewise: whoever
+  wrote a name puts it back). Logout puts ours back (settled, unmasked, out of combat), the record `retained`
+  for the next login. `Start` (the registry's) arms the passes even with the pearl off. Tests:
+  `test_sparkle_claims` (Codex's traces), `test_sparkle_claims_boot` (a whole-pearl-off login).
   `/gpearls sparkle target`: the soft-interact plate found without the quest test, every read labelled; a
   blocked identification says "could not determine", never "no plate". Unmeasured until day one.
 - **`Pearls\Trades.lua`**: trade summary (#45, pearl `trades`, Social > Trade, **off** by default; its panel, the

@@ -161,7 +161,13 @@
   your Recent Allies too. `/gpearls whisperinvite`.
 - **Quest loot sparkle**: an experimental option, twinkling stars on the quest object you're facing (within
   about 15 yards; or on any object you're facing, to try the look), the gathering sparkle of NodeRadar's
-  marker. While on, three interact settings change for the session only; nothing of yours is saved.
+  marker. While on, three interact settings are changed and saved; yours come back when the stars go off,
+  and one you or another add-on change meanwhile stays yours. (The game doesn't let add-ons change two of
+  them for the session only, so before this the stars showed only where NodeRadar had set them.)
   `/gpearls sparkle target` says what the game reports about the object you're facing. New art: restart the
   game once after installing.
+- **Untrained gear** (Loot & Bags, on by default): a weapon or armor you can't use only because you haven't
+  learned its skill yet (a warrior's plate before 40, a mage's first sword) shows its type in yellow instead
+  of red in its tooltip, with a note: who teaches it (a weapon master, or your class trainer for armor) and
+  from which level. Gear your class or race can never use, and anything else red, is left as it is.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.
