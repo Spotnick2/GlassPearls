@@ -395,7 +395,9 @@ story NPC, a multi-page NPC)
       (server-side). `SoftTargetIconGameObject` is ours. At the defaults the stars may never show: #90.
 - [x] Measured 2026-11-06 (with those two at 3 and 60): the soft-interact icon on a quest crystal, the stars on
       it within reach, the client's sparkle from further away; the earlier "No soft-interact object plate" was
-      right (the only object near was a decorative crate).
+      right (the only object near was a decorative crate). The client's sparkle also shows on a quest crystal the
+      player can't interact with (no icon, no plate, `target` says none): sparkle without stars means the client
+      offers no interaction, nothing the pearl can change.
 - [ ] The values and the plate survive the synced-settings window after login (measured only for persistent values).
 - [ ] Switching the stars off shows the player's own values again (`/gpearls sparkle`).
 - [ ] `/reload` mid-fishing with the stars on: both rebuild; fishing's end hands the names back to the stars.
