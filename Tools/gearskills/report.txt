@@ -1,0 +1,2584 @@
+gen_gearskills.py, build 1.60.1.70790
+
+WARRIOR Human (1):
+  Swords             starting skill (rows 140): left alone
+  Axes               starting skill (rows 629): left alone
+  Bows               learnable from 0 (rows 127)
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Maces   learnable from 0 (rows 625)
+  Two-Handed Axes    learnable from 0 (rows 622)
+  Daggers            learnable from 0 (rows 634)
+  Thrown             learnable from 0 (rows 640)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Orc (2):
+  Swords             starting skill (rows 140): left alone
+  Axes               starting skill (rows 629): left alone
+  Bows               learnable from 0 (rows 127)
+  Guns               learnable from 0 (rows 134)
+  Maces              learnable from 0 (rows 637)
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Maces   learnable from 0 (rows 625)
+  Two-Handed Axes    starting skill (rows 621): left alone
+  Daggers            learnable from 0 (rows 634)
+  Thrown             learnable from 0 (rows 640)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Dwarf (3):
+  Swords             learnable from 0 (rows 638)
+  Axes               starting skill (rows 629): left alone
+  Bows               learnable from 0 (rows 127)
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Maces   learnable from 0 (rows 625)
+  Two-Handed Axes    starting skill (rows 621): left alone
+  Daggers            learnable from 0 (rows 634)
+  Thrown             learnable from 0 (rows 640)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR NightElf (4):
+  Swords             starting skill (rows 140): left alone
+  Axes               learnable from 0 (rows 630)
+  Bows               learnable from 0 (rows 127)
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Maces   learnable from 0 (rows 625)
+  Two-Handed Axes    learnable from 0 (rows 622)
+  Daggers            starting skill (rows 633): left alone
+  Thrown             learnable from 0 (rows 640)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Scourge (5):
+  Swords             starting skill (rows 140): left alone
+  Axes               learnable from 0 (rows 630)
+  Bows               learnable from 0 (rows 127)
+  Guns               learnable from 0 (rows 134)
+  Maces              learnable from 0 (rows 637)
+  Two-Handed Swords  starting skill (rows 626): left alone
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Maces   learnable from 0 (rows 625)
+  Two-Handed Axes    learnable from 0 (rows 622)
+  Daggers            starting skill (rows 633): left alone
+  Thrown             learnable from 0 (rows 640)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Tauren (6):
+  Swords             learnable from 0 (rows 638)
+  Axes               starting skill (rows 629): left alone
+  Bows               learnable from 0 (rows 127)
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Maces   starting skill (rows 624): left alone
+  Two-Handed Axes    learnable from 0 (rows 622)
+  Daggers            learnable from 0 (rows 634)
+  Thrown             learnable from 0 (rows 640)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Gnome (7):
+  Swords             starting skill (rows 140): left alone
+  Axes               learnable from 0 (rows 630)
+  Bows               learnable from 0 (rows 127)
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Maces   learnable from 0 (rows 625)
+  Two-Handed Axes    learnable from 0 (rows 622)
+  Daggers            starting skill (rows 633): left alone
+  Thrown             learnable from 0 (rows 640)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Troll (8):
+  Swords             learnable from 0 (rows 638)
+  Axes               starting skill (rows 629): left alone
+  Bows               learnable from 0 (rows 127)
+  Guns               learnable from 0 (rows 134)
+  Maces              learnable from 0 (rows 637)
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Maces   learnable from 0 (rows 625)
+  Two-Handed Axes    learnable from 0 (rows 622)
+  Daggers            starting skill (rows 633): left alone
+  Thrown             starting skill (rows 639): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Goblin (9):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR BloodElf (10):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Draenei (11):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Worgen (22):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Pandaren (24):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Pandaren (25):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Pandaren (26):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Nightborne (27):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR HighmountainTauren (28):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR VoidElf (29):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR LightforgedDraenei (30):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR ZandalariTroll (31):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR KulTiran (32):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR DarkIronDwarf (34):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Vulpera (35):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR MagharOrc (36):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Mechagnome (37):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Dracthyr (52):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Dracthyr (70):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR EarthenDwarf (84):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR EarthenDwarf (85):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Harronir (86):
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  learnable from 0 (rows 627)
+  Staves             learnable from 0 (rows 139)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Skyborne (95):
+  Swords             starting skill (rows 140): left alone
+  Axes               learnable from 0 (rows 630)
+  Bows               starting skill (rows 2534): left alone
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  starting skill (rows 626): left alone
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Maces   starting skill (rows 2533): left alone
+  Two-Handed Axes    learnable from 0 (rows 622)
+  Daggers            starting skill (rows 2527): left alone
+  Thrown             starting skill (rows 639): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+WARRIOR Skyborne (96):
+  Swords             starting skill (rows 140): left alone
+  Axes               learnable from 0 (rows 630)
+  Bows               starting skill (rows 2534): left alone
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 636): left alone
+  Two-Handed Swords  starting skill (rows 626): left alone
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Maces   starting skill (rows 2533): left alone
+  Two-Handed Axes    learnable from 0 (rows 622)
+  Daggers            starting skill (rows 2527): left alone
+  Thrown             starting skill (rows 639): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+PALADIN Human (1):
+  Swords             learnable from 0 (rows 328)
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Swords  learnable from 0 (rows 125)
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Orc (2):
+  Swords             learnable from 0 (rows 328)
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Swords  learnable from 0 (rows 125)
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Dwarf (3):
+  Swords             learnable from 0 (rows 328)
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Swords  learnable from 0 (rows 125)
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN NightElf (4):
+  Swords             learnable from 0 (rows 328)
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Swords  learnable from 0 (rows 125)
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Scourge (5):
+  Swords             learnable from 0 (rows 328)
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Swords  learnable from 0 (rows 125)
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Tauren (6):
+  Swords             learnable from 0 (rows 328)
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Swords  learnable from 0 (rows 125)
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Gnome (7):
+  Swords             learnable from 0 (rows 328)
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Swords  learnable from 0 (rows 125)
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Troll (8):
+  Swords             learnable from 0 (rows 328)
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Swords  learnable from 0 (rows 125)
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Goblin (9):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN BloodElf (10):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Draenei (11):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Worgen (22):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Pandaren (24):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Pandaren (25):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Pandaren (26):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Nightborne (27):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN HighmountainTauren (28):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN VoidElf (29):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN LightforgedDraenei (30):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN ZandalariTroll (31):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN KulTiran (32):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN DarkIronDwarf (34):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Vulpera (35):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN MagharOrc (36):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Mechagnome (37):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Dracthyr (52):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Dracthyr (70):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN EarthenDwarf (84):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN EarthenDwarf (85):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Harronir (86):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Skyborne (95):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+PALADIN Skyborne (96):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Two-Handed Maces   starting skill (rows 123): left alone
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Polearms           learnable from 20 (rows 136)
+  Plate Mail         learnable from 40 (rows 21)
+  Mail               starting skill (rows 146): left alone
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+HUNTER Human (1):
+  Swords             learnable from 0 (rows 328)
+  Axes               learnable from 0 (rows 628)
+  Bows               starting skill (rows 126): left alone
+  Guns               learnable from 0 (rows 635)
+  Two-Handed Swords  learnable from 0 (rows 125)
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Orc (2):
+  Swords             learnable from 0 (rows 328)
+  Axes               starting skill (rows 117): left alone
+  Bows               starting skill (rows 126): left alone
+  Guns               learnable from 0 (rows 635)
+  Two-Handed Swords  learnable from 0 (rows 125)
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Dwarf (3):
+  Swords             learnable from 0 (rows 328)
+  Axes               starting skill (rows 117): left alone
+  Bows               learnable from 0 (rows 127)
+  Guns               starting skill (rows 133): left alone
+  Two-Handed Swords  learnable from 0 (rows 125)
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER NightElf (4):
+  Swords             learnable from 0 (rows 328)
+  Axes               learnable from 0 (rows 628)
+  Bows               starting skill (rows 126): left alone
+  Guns               learnable from 0 (rows 635)
+  Two-Handed Swords  learnable from 0 (rows 125)
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129,631): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Scourge (5):
+  Swords             learnable from 0 (rows 328)
+  Bows               learnable from 0 (rows 127)
+  Two-Handed Swords  learnable from 0 (rows 125)
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Tauren (6):
+  Swords             learnable from 0 (rows 328)
+  Axes               starting skill (rows 117): left alone
+  Bows               learnable from 0 (rows 127)
+  Guns               starting skill (rows 133): left alone
+  Two-Handed Swords  learnable from 0 (rows 125)
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Gnome (7):
+  Swords             learnable from 0 (rows 328)
+  Bows               learnable from 0 (rows 127)
+  Two-Handed Swords  learnable from 0 (rows 125)
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Troll (8):
+  Swords             learnable from 0 (rows 328)
+  Axes               starting skill (rows 117): left alone
+  Bows               starting skill (rows 126): left alone
+  Guns               learnable from 0 (rows 635)
+  Two-Handed Swords  learnable from 0 (rows 125)
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Goblin (9):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER BloodElf (10):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Draenei (11):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Worgen (22):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Pandaren (24):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Pandaren (25):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Pandaren (26):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Nightborne (27):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER HighmountainTauren (28):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER VoidElf (29):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER LightforgedDraenei (30):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER ZandalariTroll (31):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER KulTiran (32):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER DarkIronDwarf (34):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Vulpera (35):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER MagharOrc (36):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Mechagnome (37):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Dracthyr (52):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Dracthyr (70):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER EarthenDwarf (84):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER EarthenDwarf (85):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Harronir (86):
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Skyborne (95):
+  Swords             starting skill (rows 2535): left alone
+  Axes               learnable from 0 (rows 628)
+  Bows               starting skill (rows 126): left alone
+  Guns               learnable from 0 (rows 635)
+  Two-Handed Swords  starting skill (rows 2526): left alone
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+HUNTER Skyborne (96):
+  Swords             starting skill (rows 2535): left alone
+  Axes               learnable from 0 (rows 628)
+  Bows               starting skill (rows 126): left alone
+  Guns               learnable from 0 (rows 635)
+  Two-Handed Swords  starting skill (rows 2526): left alone
+  Staves             learnable from 0 (rows 139)
+  Two-Handed Axes    learnable from 0 (rows 122)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             learnable from 0 (rows 143)
+  Crossbows          learnable from 0 (rows 128)
+  Polearms           learnable from 20 (rows 136)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Human (1):
+  Swords             learnable from 0 (rows 328)
+  Axes               starting skill (rows 629): left alone
+  Bows               learnable from 0 (rows 127)
+  Guns               learnable from 0 (rows 134)
+  Maces              learnable from 0 (rows 325)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Orc (2):
+  Swords             learnable from 0 (rows 328)
+  Axes               starting skill (rows 629): left alone
+  Bows               learnable from 0 (rows 127)
+  Guns               learnable from 0 (rows 134)
+  Maces              learnable from 0 (rows 325)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Dwarf (3):
+  Swords             learnable from 0 (rows 328)
+  Axes               starting skill (rows 629): left alone
+  Bows               learnable from 0 (rows 127)
+  Guns               learnable from 0 (rows 134)
+  Maces              learnable from 0 (rows 325)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE NightElf (4):
+  Swords             learnable from 0 (rows 328)
+  Axes               learnable from 0 (rows 630)
+  Bows               learnable from 0 (rows 127)
+  Guns               learnable from 0 (rows 134)
+  Maces              learnable from 0 (rows 325)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Scourge (5):
+  Swords             learnable from 0 (rows 328)
+  Axes               learnable from 0 (rows 630)
+  Bows               learnable from 0 (rows 127)
+  Guns               learnable from 0 (rows 134)
+  Maces              learnable from 0 (rows 325)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Tauren (6):
+  Swords             learnable from 0 (rows 328)
+  Axes               starting skill (rows 629): left alone
+  Bows               learnable from 0 (rows 127)
+  Guns               learnable from 0 (rows 134)
+  Maces              learnable from 0 (rows 325)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Gnome (7):
+  Swords             learnable from 0 (rows 328)
+  Axes               learnable from 0 (rows 630)
+  Bows               learnable from 0 (rows 127)
+  Guns               learnable from 0 (rows 134)
+  Maces              learnable from 0 (rows 325)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Troll (8):
+  Swords             learnable from 0 (rows 328)
+  Axes               starting skill (rows 629): left alone
+  Bows               learnable from 0 (rows 127)
+  Guns               learnable from 0 (rows 134)
+  Maces              learnable from 0 (rows 325)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Goblin (9):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE BloodElf (10):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Draenei (11):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Worgen (22):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Pandaren (24):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Pandaren (25):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Pandaren (26):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Nightborne (27):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE HighmountainTauren (28):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE VoidElf (29):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE LightforgedDraenei (30):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE ZandalariTroll (31):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE KulTiran (32):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE DarkIronDwarf (34):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Vulpera (35):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE MagharOrc (36):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Mechagnome (37):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Dracthyr (52):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Dracthyr (70):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE EarthenDwarf (84):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE EarthenDwarf (85):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Harronir (86):
+  Guns               learnable from 0 (rows 134)
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Skyborne (95):
+  Swords             starting skill (rows 2535): left alone
+  Axes               learnable from 0 (rows 630)
+  Bows               starting skill (rows 2534): left alone
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 2536): left alone
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+ROGUE Skyborne (96):
+  Swords             starting skill (rows 2535): left alone
+  Axes               learnable from 0 (rows 630)
+  Bows               starting skill (rows 2534): left alone
+  Guns               learnable from 0 (rows 134)
+  Maces              starting skill (rows 2536): left alone
+  Daggers            starting skill (rows 129): left alone
+  Thrown             starting skill (rows 142): left alone
+  Crossbows          learnable from 0 (rows 128)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+PRIEST Human (1):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Daggers            learnable from 0 (rows 323)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Orc (2):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Daggers            learnable from 0 (rows 323)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Dwarf (3):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Daggers            learnable from 0 (rows 323)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST NightElf (4):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Daggers            learnable from 0 (rows 323)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Scourge (5):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Daggers            learnable from 0 (rows 323)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Tauren (6):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Daggers            learnable from 0 (rows 323)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Gnome (7):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Daggers            learnable from 0 (rows 323)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Troll (8):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Daggers            learnable from 0 (rows 323)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Goblin (9):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST BloodElf (10):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Draenei (11):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Worgen (22):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Pandaren (24):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Pandaren (25):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Pandaren (26):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Nightborne (27):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST HighmountainTauren (28):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST VoidElf (29):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST LightforgedDraenei (30):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST ZandalariTroll (31):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST KulTiran (32):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST DarkIronDwarf (34):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Vulpera (35):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST MagharOrc (36):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Mechagnome (37):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Dracthyr (52):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Dracthyr (70):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST EarthenDwarf (84):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST EarthenDwarf (85):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Harronir (86):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Skyborne (95):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+PRIEST Skyborne (96):
+  Maces              starting skill (rows 135): left alone
+  Staves             learnable from 0 (rows 139)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+SHAMAN Human (1):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   not trainable (rows 702, flag 0x100)
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Daggers            learnable from 0 (rows 323)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Orc (2):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   not trainable (rows 702, flag 0x100)
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Daggers            learnable from 0 (rows 323)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Dwarf (3):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   not trainable (rows 702, flag 0x100)
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Daggers            learnable from 0 (rows 323)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN NightElf (4):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   not trainable (rows 702, flag 0x100)
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Daggers            learnable from 0 (rows 323)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Scourge (5):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   not trainable (rows 702, flag 0x100)
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Daggers            learnable from 0 (rows 323)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Tauren (6):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   not trainable (rows 702, flag 0x100)
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Daggers            learnable from 0 (rows 323)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Gnome (7):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   not trainable (rows 702, flag 0x100)
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Daggers            learnable from 0 (rows 323)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Troll (8):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   not trainable (rows 702, flag 0x100)
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Daggers            learnable from 0 (rows 323)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Goblin (9):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN BloodElf (10):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Draenei (11):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Worgen (22):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Pandaren (24):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Pandaren (25):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Pandaren (26):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Nightborne (27):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN HighmountainTauren (28):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN VoidElf (29):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN LightforgedDraenei (30):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN ZandalariTroll (31):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN KulTiran (32):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN DarkIronDwarf (34):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Vulpera (35):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN MagharOrc (36):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Mechagnome (37):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Dracthyr (52):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Dracthyr (70):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN EarthenDwarf (84):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN EarthenDwarf (85):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Harronir (86):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Skyborne (95):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   starting skill (rows 2533): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Daggers            starting skill (rows 2527): left alone
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+SHAMAN Skyborne (96):
+  Axes               learnable from 0 (rows 335)
+  Maces              starting skill (rows 135): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   starting skill (rows 2533): left alone
+  Two-Handed Axes    not trainable (rows 701, flag 0x100)
+  Daggers            starting skill (rows 2527): left alone
+  Mail               learnable from 40 (rows 145)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Shield             starting skill (rows 246): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+MAGE Human (1):
+  Swords             learnable from 0 (rows 328)
+  Staves             starting skill (rows 138): left alone
+  Daggers            learnable from 0 (rows 323)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Orc (2):
+  Swords             learnable from 0 (rows 328)
+  Staves             starting skill (rows 138): left alone
+  Daggers            learnable from 0 (rows 323)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Dwarf (3):
+  Swords             learnable from 0 (rows 328)
+  Staves             starting skill (rows 138): left alone
+  Daggers            learnable from 0 (rows 323)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE NightElf (4):
+  Swords             learnable from 0 (rows 328)
+  Staves             starting skill (rows 138): left alone
+  Daggers            learnable from 0 (rows 323)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Scourge (5):
+  Swords             learnable from 0 (rows 328)
+  Staves             starting skill (rows 138): left alone
+  Daggers            learnable from 0 (rows 323)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Tauren (6):
+  Swords             learnable from 0 (rows 328)
+  Staves             starting skill (rows 138): left alone
+  Daggers            learnable from 0 (rows 323)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Gnome (7):
+  Swords             learnable from 0 (rows 328)
+  Staves             starting skill (rows 138): left alone
+  Daggers            learnable from 0 (rows 323)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Troll (8):
+  Swords             learnable from 0 (rows 328)
+  Staves             starting skill (rows 138): left alone
+  Daggers            learnable from 0 (rows 323)
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Goblin (9):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE BloodElf (10):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Draenei (11):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Worgen (22):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Pandaren (24):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Pandaren (25):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Pandaren (26):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Nightborne (27):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE HighmountainTauren (28):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE VoidElf (29):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE LightforgedDraenei (30):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE ZandalariTroll (31):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE KulTiran (32):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE DarkIronDwarf (34):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Vulpera (35):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE MagharOrc (36):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Mechagnome (37):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Dracthyr (52):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Dracthyr (70):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE EarthenDwarf (84):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE EarthenDwarf (85):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Harronir (86):
+  Staves             starting skill (rows 138): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Skyborne (95):
+  Swords             learnable from 0 (rows 2555)
+  Staves             starting skill (rows 138): left alone
+  Daggers            starting skill (rows 2527): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+MAGE Skyborne (96):
+  Swords             learnable from 0 (rows 2555)
+  Staves             starting skill (rows 138): left alone
+  Daggers            starting skill (rows 2527): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Human (1):
+  Swords             learnable from 0 (rows 328)
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Orc (2):
+  Swords             learnable from 0 (rows 328)
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Dwarf (3):
+  Swords             learnable from 0 (rows 328)
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK NightElf (4):
+  Swords             learnable from 0 (rows 328)
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Scourge (5):
+  Swords             learnable from 0 (rows 328)
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Tauren (6):
+  Swords             learnable from 0 (rows 328)
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Gnome (7):
+  Swords             learnable from 0 (rows 328)
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Troll (8):
+  Swords             learnable from 0 (rows 328)
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Goblin (9):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK BloodElf (10):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Draenei (11):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Worgen (22):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Pandaren (24):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Pandaren (25):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Pandaren (26):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Nightborne (27):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK HighmountainTauren (28):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK VoidElf (29):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK LightforgedDraenei (30):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK ZandalariTroll (31):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK KulTiran (32):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK DarkIronDwarf (34):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Vulpera (35):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK MagharOrc (36):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Mechagnome (37):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Dracthyr (52):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Dracthyr (70):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK EarthenDwarf (84):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK EarthenDwarf (85):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Harronir (86):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Skyborne (95):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+WARLOCK Skyborne (96):
+  Staves             learnable from 0 (rows 139)
+  Daggers            starting skill (rows 129): left alone
+  Wands              starting skill (rows 144): left alone
+  Cloth              starting skill (rows 148): left alone
+DRUID Human (1):
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   learnable from 0 (rows 124)
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Orc (2):
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   learnable from 0 (rows 124)
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Dwarf (3):
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   learnable from 0 (rows 124)
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID NightElf (4):
+  Maces              learnable from 0 (rows 643)
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   learnable from 0 (rows 124)
+  Daggers            starting skill (rows 642): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Scourge (5):
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   learnable from 0 (rows 124)
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Tauren (6):
+  Maces              starting skill (rows 644): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   learnable from 0 (rows 124)
+  Daggers            learnable from 0 (rows 641)
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Gnome (7):
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   learnable from 0 (rows 124)
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Troll (8):
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   learnable from 0 (rows 124)
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Goblin (9):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID BloodElf (10):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Draenei (11):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Worgen (22):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Pandaren (24):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Pandaren (25):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Pandaren (26):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Nightborne (27):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID HighmountainTauren (28):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID VoidElf (29):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID LightforgedDraenei (30):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID ZandalariTroll (31):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID KulTiran (32):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID DarkIronDwarf (34):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Vulpera (35):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID MagharOrc (36):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Mechagnome (37):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Dracthyr (52):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Dracthyr (70):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID EarthenDwarf (84):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID EarthenDwarf (85):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Harronir (86):
+  Staves             starting skill (rows 138): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Skyborne (95):
+  Maces              starting skill (rows 644): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   starting skill (rows 2533): left alone
+  Daggers            starting skill (rows 642,2527): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)
+DRUID Skyborne (96):
+  Maces              starting skill (rows 644): left alone
+  Staves             starting skill (rows 138): left alone
+  Two-Handed Maces   starting skill (rows 2533): left alone
+  Daggers            starting skill (rows 642,2527): left alone
+  Polearms           learnable from 20 (rows 2483)
+  Leather            starting skill (rows 147): left alone
+  Cloth              starting skill (rows 148): left alone
+  Fist Weapons       learnable from 0 (rows 330)

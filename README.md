@@ -44,6 +44,11 @@ disabling Glass Pearls in the add-on list leaves them as they are, so switch the
   the same three: whichever turned one on puts it back, so the other's stars may stop until switched off and
   on. Removing Glass Pearls with the stars on can leave them changed: switch the stars off first.
 
+**Untrained gear** (on by default). A weapon or armor you can't use only because you haven't learned
+its skill yet (a warrior's plate before level 40, a mage's first sword) shows its type in yellow, not
+red, with a note in its tooltip: a weapon master teaches weapons, your class trainer armor, and from
+which level. Anything else red, and gear your class can never use, stays as it is.
+
 **Sell junk & repair** (on by default). At a merchant, it sells your junk, then repairs, guild funds
 first when your guild allows it.
 - Grey items with a price, and anything you list with `/gpearls sell` (shift-click the item).
