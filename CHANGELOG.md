@@ -73,7 +73,9 @@
   your class trainer now teaches you, what was already waiting, the talent points you have to
   spend (Talented's early ones included) and what it costs. Only what you can really learn. Spell
   tooltips say when the next ranks come. With dual spec, your other spec's waiting talent ranks.
-  Trainer lists from WhatsTraining (thanks, Sveng).
+  Trainer lists from WhatsTraining (thanks, Sveng), up to date with the trainers of build 70888:
+  the new spells, the new levels and costs, nothing the game removed, and the Mutilate, Lacerate
+  and bear ranks no longer shown as missing a talent or a requirement.
 - **Restock** (Loot & Bags, on by default): at a merchant, after selling junk and repairing, tops up
   your food, water (if you use mana), arrows or bullets (hunters) and class reagents, with the best
   the merchant has that you can use. Only what's at least as good counts toward a target, so you

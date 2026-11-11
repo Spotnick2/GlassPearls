@@ -216,10 +216,12 @@ order) and before the options window and bootstrap.
   hidden in combat, where Blizzard's Cooldown Manager is the pointer. No client sounds.
 - **`Data\Training.lua`**: **generated** by `Tools\gen_training.py` (never edit it): what each class
   trainer teaches, from WhatsTraining's curated Forever lists (`References\Addons\Class\WhatsTraining`,
-  by Sveng, MIT: read as text, never run), checked against the client's SpellName and SpellLevels
-  (`Tools\training\report.txt`). Per class: entries `{ id, level, cost, req, talent, race, faction,
-  skill }` and override groups. The client's own tables can't tell trainer spells from talents
-  and quest rewards, which is why the curated list is the source.
+  by Sveng, MIT: read as text, never run), checked against the client's SpellName, SpellLevels and
+  TraitDefinition (every `talent` a trait spell) (`Tools\training\report.txt`). Per class: entries
+  `{ id, level, cost, req, talent, race, faction, skill }` and override groups. The client's own
+  tables can't tell trainer spells from talents and quest rewards, which is why the curated list is
+  the source. Where the list lags the client, `FIXES` in the script corrects an ID, checked on every
+  run (a stale one stops it): today Mutilate's talent, 1310706 → 399956 (#97).
 - **`Pearls\Training.lua`**: the training reminder (#27, pearl `training`, Combat > Spells, on by
   default). On `PLAYER_LEVEL_UP` (held in combat), a toast: what the trainer now teaches (levels
   passed), what was already waiting, the other spec's waiting talent ranks, talent points, the
