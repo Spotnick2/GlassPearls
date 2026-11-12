@@ -118,6 +118,26 @@ for _, e in ipairs(GP.TrainingData.classes.ROGUE.spells) do if e.id == 8687 then
 WoW.known[8691] = true
 eq(T.Status(poison, T.Context(36)), "known", "Instant Poison II known: I counts as learned (override group)")
 WoW.known[8691] = nil
+-- The trainer data's refresh (#97): Mutilate's talent is the client's trait
+-- spell 399956 (the list still names 1310706, gone from the client: our fix).
+local function classEntry(class, id)
+    for _, e in ipairs(GP.TrainingData.classes[class].spells) do if e.id == id then return e end end
+end
+WoW.known[399956] = true
+eq(T.Status(classEntry("ROGUE", 1241582), T.Context(50)), "available", "Mutilate 2 with the Mutilate talent: available")
+WoW.known[399956] = nil
+eq(T.Status(classEntry("ROGUE", 1241582), T.Context(50)), "talent", "  without it: waiting for the talent")
+-- A druid: Dire Bear Form replaces Bear Form, and Lacerate has two rank-1 IDs.
+WoW.class = "DRUID"
+WoW.known[9634] = true
+eq(T.Status(classEntry("DRUID", 99), T.Context(40)), "available",
+    "Dire Bear Form known, Bear Form gone from the book: Demoralizing Roar's requirement still counts")
+WoW.known[9634] = nil
+eq(T.Status(classEntry("DRUID", 99), T.Context(40)), "req", "  neither form: a missing requirement")
+WoW.known[1328617] = true
+eq(T.Status(classEntry("DRUID", 1328616), T.Context(34)), "available", "Lacerate 1 by its other ID: Lacerate 2 available")
+WoW.known[1328617] = nil
+eq(T.Status(classEntry("DRUID", 1328616), T.Context(34)), "req", "  no Lacerate 1: a missing requirement")
 WoW.class = "PALADIN"
 
 -- A level jump: only the levels passed (4 to 8: 6 and 8 are new; a level-4
