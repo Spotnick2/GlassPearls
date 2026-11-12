@@ -24,6 +24,4 @@ GlassPearls.AuraDurations = {
     [1044] = 10,   -- Blessing of Freedom (buffs: Blessing of Freedom)
     [25780] = 1800,   -- Righteous Fury (paladintank: Righteous Fury)
     [407627] = 0,   -- Righteous Fury (paladintank: Righteous Fury)
-    [1038] = 3600,   -- Salvation (paladintank: Salvation)
-    [25895] = 3600,   -- Mass Salvation (paladintank: Salvation)
 }

@@ -1,19 +1,18 @@
 -- Pearls/PaladinTank.lua: paladin tank reminders (#22). Out of combat, for a
--- paladin who knows Righteous Fury: "Righteous Fury is off", a heads-up before
--- it ends, and "Salvation is on you" with its time left. In combat the game
--- hides auras, so these hide; Blizzard's Cooldown Manager (Forever's paladin
--- set tracks Righteous Fury and Salvation, with client-drawn alerts) is the
--- in-combat half, and the help points to it.
+-- paladin who knows Righteous Fury: "Righteous Fury is off" and a heads-up
+-- before it ends. In combat the game hides auras, so these hide; Blizzard's
+-- Cooldown Manager (Forever's paladin set tracks Righteous Fury, with
+-- client-drawn alerts) is the in-combat half, and the help points to it.
+-- There is no Salvation reminder any more: the client removed Salvation
+-- (1038) and Mass Salvation (25895) in build 70862 (#98).
 --
 -- Every client language: spell IDs only, the client's own spell names; the
--- paladin by classFile, never a class name. Forever's names changed: Blessing
--- of Salvation is "Salvation" (1038), Greater Blessing of Salvation "Mass
--- Salvation" (25895); Righteous Fury is 25780 (and 407627, a rune variant;
--- 407628 isn't Fury). The reads are Core/AuraAlert.lua's three answers:
--- "off" needs both Fury IDs proven absent, and an unknown read changes
--- nothing (the reminders are last observed). Cleared and read again after a
--- death. No client sounds: they can't follow these gates. Unverified until
--- 2026-11-04.
+-- paladin by classFile, never a class name. Righteous Fury is 25780 (and
+-- 407627, a rune variant; 407628 isn't Fury). The reads are
+-- Core/AuraAlert.lua's three answers: "off" needs both Fury IDs proven
+-- absent, and an unknown read changes nothing (the reminder is last
+-- observed). Cleared and read again after a death. No client sounds: they
+-- can't follow these gates. Unverified until 2026-11-04.
 
 GlassPearls = GlassPearls or {}
 local GP = GlassPearls
@@ -24,8 +23,7 @@ GP.PaladinTank = T
 
 T.KEY = "paladintank"
 T.FURY = { 25780, 407627 }
-T.SALVATION = { 1038, 25895 }
-T.SOON = 60                      -- the heads-up, seconds before Fury ends
+T.SOON = 60                     -- the heads-up, seconds before Fury ends
 T.TEST_SECONDS = 10
 T.DEFAULT_Y = -120               -- below the buff alerts (90) and the fixate alert (260)
 
@@ -33,8 +31,6 @@ local events = CreateFrame("Frame")
 local state = {
     fury = nil,         -- "present" | "absent" | nil (never proven); last observed
     furyExp = 0,        -- its plain expiration while present (0: none)
-    salv = nil,         -- "present" | "absent" | nil
-    salvID = nil, salvExp = 0, salvFrom = nil,
     lastRead = {},
     test = false,
 }
@@ -98,19 +94,19 @@ end
 -- Reading
 
 -- present (any ID), absent (every ID proven absent), or nil (can't tell),
--- with the latest plain expiration, the ID and its source unit.
+-- with the latest plain expiration.
 local function readGroup(ids)
-    local anyPresent, allAbsent, exp, which, src = false, true, 0, nil, nil
+    local anyPresent, allAbsent, exp = false, true, 0
     for _, id in ipairs(ids) do
-        local r, e, _, s = AA.Read(id)
+        local r, e = AA.Read(id)
         state.lastRead[id] = r
         if r == "present" then
             anyPresent = true
-            if not which or (e or 0) > exp then which, exp, src = id, e or 0, s end
+            if (e or 0) > exp then exp = e or 0 end
         end
         if r ~= "absent" then allAbsent = false end
     end
-    if anyPresent then return "present", exp, which, src end
+    if anyPresent then return "present", exp end
     if allAbsent then return "absent" end
     return nil
 end
@@ -119,43 +115,23 @@ function T.Evaluate()
     if not T.enabled then return end
     local r, exp = readGroup(T.FURY)
     if r then state.fury, state.furyExp = r, r == "present" and exp or 0 end
-    local s, sexp, sid, src = readGroup(T.SALVATION)
-    if s then
-        state.salv = s
-        if s == "present" then
-            state.salvID, state.salvExp = sid, sexp
-            state.salvFrom = src and src ~= "player" and AA.Source(src) or nil
-        else
-            state.salvID, state.salvExp, state.salvFrom = nil, 0, nil
-        end
-    end
     T.Render()
 end
 
 -- Forget everything (a death, switched off): the next read decides.
 local function forget()
-    state.fury, state.furyExp, state.salv, state.salvID, state.salvExp, state.salvFrom = nil, 0, nil, nil, 0, nil
+    state.fury, state.furyExp = nil, 0
 end
 
 --------------------------------------------------------------------------------
 -- The lines
 
--- A Salvation whose known expiration passed has ended: it is never reported
--- again until a fresh read proves one present (Codex review of #24). (Fury's
--- expiry only drops the heads-up: "off" still needs a proven read.)
-local function expireSalvation(t)
-    if state.salv == "present" and state.salvExp > 0 and t >= state.salvExp then
-        state.salv, state.salvID, state.salvExp, state.salvFrom = "absent", nil, 0, nil
-    end
-end
-
--- The lines to show now: { { id, text }, ... }.
+-- The lines to show now: { { id, text }, ... }, one at most (off, or ending
+-- soon). Fury's expiry only drops the heads-up: "off" needs a proven read.
 function T.Lines()
     local lines, t = {}, now()
-    expireSalvation(t)
     if state.test then
         lines[1] = { T.FURY[1], spellName(T.FURY[1]) .. " is off" }
-        lines[2] = { T.SALVATION[1], spellName(T.SALVATION[1]) .. " is on you  " .. T.Clock(T.TEST_SECONDS) }
         return lines
     end
     if not T.Active() then return lines end
@@ -169,15 +145,6 @@ function T.Lines()
                 lines[#lines + 1] = { T.FURY[1], spellName(T.FURY[1]) .. " ends in " .. T.Clock(left) }
             end
         end
-    end
-    if setting("salv") and state.salv == "present" then
-        local text = spellName(state.salvID) .. " is on you"
-        if state.salvExp > 0 then
-            local left = state.salvExp - t
-            if left > 0 then text = text .. "  " .. T.Clock(left) end
-        end
-        if state.salvFrom then text = text .. "  (from " .. state.salvFrom .. ")" end
-        lines[#lines + 1] = { state.salvID, text }
     end
     return lines
 end
@@ -207,17 +174,15 @@ local function build()
     end)
     f:Hide()
     GP.Theme.Window(f, { header = 0 })
-    f.rows = {}
-    for i = 1, 2 do
-        local r = {}
-        r.icon = f:CreateTexture(nil, "ARTWORK")
-        r.icon:SetSize(24, 24)
-        r.icon:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -8 - (i - 1) * 28)
-        r.text = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-        r.text:SetPoint("LEFT", r.icon, "RIGHT", 8, 0)
-        f.rows[i] = r
-    end
-    -- The clocks tick between reads.
+    -- One row: Fury is off, or ends soon.
+    local r = {}
+    r.icon = f:CreateTexture(nil, "ARTWORK")
+    r.icon:SetSize(24, 24)
+    r.icon:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -8)
+    r.text = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    r.text:SetPoint("LEFT", r.icon, "RIGHT", 8, 0)
+    f.rows = { r }
+    -- The clock ticks between reads.
     f:SetScript("OnUpdate", function() T.Render() end)
 end
 
@@ -228,8 +193,8 @@ function T.Render()
         return
     end
     if not f then build() end
-    for i = 1, 2 do
-        local r, l = f.rows[i], lines[i]
+    for i, r in ipairs(f.rows) do
+        local l = lines[i]
         if l then
             r.icon:SetTexture(icon(l[1]))
             r.text:SetText(l[2])
@@ -253,7 +218,7 @@ function T.Frame() return f end
 function T.Report()
     if not T.IsPaladin() then return API.Print("Paladin tank reminders are for paladins.") end
     API.Print("Paladin tank reminders: the last reads (by spell ID, any language).")
-    for _, id in ipairs({ T.FURY[1], T.FURY[2], T.SALVATION[1], T.SALVATION[2] }) do
+    for _, id in ipairs(T.FURY) do
         API.Print(("  %s (%d): %s"):format(spellName(id), id, state.lastRead[id] or "not read yet"))
     end
     API.Print("  In combat: Blizzard's Cooldown Manager (Edit Mode) can alert when Righteous Fury drops.")
@@ -269,7 +234,7 @@ function T.Test()
         if f then f:EnableMouse(false) end
         T.Render()
     end)
-    API.Print("Test reminders for " .. T.TEST_SECONDS .. " s: drag them where you want them.")
+    API.Print("A test reminder for " .. T.TEST_SECONDS .. " s: drag it where you want it.")
 end
 
 local function command(arg)
@@ -310,15 +275,15 @@ end
 GP.Pearls.Register({
     key = T.KEY,
     name = "Paladin tank reminders",
-    desc = "Out of combat: Righteous Fury is off, or Salvation is on you (with its time left).",
+    desc = "Out of combat: Righteous Fury is off, or about to end.",
     help = "For a paladin who knows Righteous Fury, with a shield: out of combat, a reminder when Righteous Fury "
-        .. "is off (and a heads-up a minute before it ends), and when Salvation is on you, with its time left and "
-        .. "who cast it. Hidden in combat, where the game hides auras: Blizzard's Cooldown Manager (Edit Mode) can "
-        .. "alert when Righteous Fury drops. No group needed. /gpearls paladintank test shows them to place them.",
+        .. "is off, and a heads-up a minute before it ends. Hidden in combat, where the game hides auras: "
+        .. "Blizzard's Cooldown Manager (Edit Mode) can alert when Righteous Fury drops. No group needed. "
+        .. "/gpearls paladintank test shows the reminder to place it.",
     default = true,
     category = "Combat",
     section = "Tanking",
-    defaults = { rf = true, rfSoon = true, salv = true, noShield = false },
+    defaults = { rf = true, rfSoon = true, noShield = false },
     Enable = enable,
     Disable = disable,
     configure = function(panel, refreshers)
@@ -334,20 +299,19 @@ GP.Pearls.Register({
         head:SetPoint("TOPLEFT", panel, "TOPLEFT", 0, 0)
         local a = check(head, "Righteous Fury is off", "rf", -4, -6)
         a = check(a, "Righteous Fury ends within a minute", "rfSoon")
-        a = check(a, "Salvation is on me", "salv")
         a = check(a, "Even without a shield", "noShield")
         local test = GP.UI.Button(panel, "Test", 90, function() T.Test() end)
         test:SetPoint("TOPLEFT", a, "BOTTOMLEFT", 4, -10)
         local note = GP.UI.Label(panel,
             "Hidden in combat, where the game hides auras. For an alert in combat, Blizzard's Cooldown Manager "
-                .. "(Edit Mode) tracks Righteous Fury and Salvation.", "GameFontDisableSmall")
+                .. "(Edit Mode) tracks Righteous Fury.", "GameFontDisableSmall")
         note:SetPoint("TOPLEFT", test, "BOTTOMLEFT", 0, -8)
         note:SetWidth(380)
         note:SetWordWrap(true)
         panel.test = test
     end,
     onSettingChanged = function() if T.enabled then T.Evaluate() end end,
-    commands = { paladintank = { help = "[test] - the paladin tank reminders' last reads, or show them to place them", run = command } },
+    commands = { paladintank = { help = "[test] - the paladin tank reminders' last reads, or show the reminder to place it", run = command } },
 })
 
 T._test = { events = events }

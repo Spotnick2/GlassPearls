@@ -36,8 +36,9 @@ LB.KEY = "lowbuffs"
 LB.MAX_LEVEL = 60
 LB.WHISPER_GAP = 10
 LB.REPORT_MAX = 10
--- The first rank of each watched single-target buff.
-LB.WATCH = { 1243, 1459, 1126, 467, 19740, 19742, 19977, 14752, 976 }
+-- The first rank of each watched single-target buff. Not Blessing of Light
+-- (19977): the client removed it in build 70862 (#98).
+LB.WATCH = { 1243, 1459, 1126, 467, 19740, 19742, 14752, 976 }
 
 local AA = GP.AuraAlert
 local events = CreateFrame("Frame")

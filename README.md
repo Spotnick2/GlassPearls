@@ -104,8 +104,7 @@ boss three levels above you can crush you; its tooltip shows miss, dodge, parry 
 it. Shown when you carry a shield.
 
 **Paladin tank reminders** (on by default, paladins only). Out of combat, with a shield: a reminder
-when Righteous Fury is off, a heads-up before it ends, and when Salvation is on you, with its time
-left and who cast it.
+when Righteous Fury is off, and a heads-up before it ends.
 
 **Low spell ranks** (on by default). When a spell on your action bars, or one you cast, is a lower
 rank than one you know, it lists it after combat and updates the buttons in one click: all of them,

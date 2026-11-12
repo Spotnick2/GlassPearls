@@ -210,10 +210,10 @@ order) and before the options window and bootstrap.
 - **`Pearls\PaladinTank.lua`**: paladin tank reminders (#22, pearl `paladintank`, Combat > Tanking, on
   by default). Only a paladin (classFile) who knows Righteous Fury (25780 or rune 407627); other
   classes register nothing. **Out of combat**, with a shield (option: without): "Righteous Fury is
-  off" (both IDs proven absent), "ends in 0:45" under 60 s (gone at 0 without claiming off), and
-  "Salvation is on you" (Forever renamed it: 1038 "Salvation", 25895 "Mass Salvation") with its
-  exact time left and who cast it. Unknown reads change nothing (last observed); a death forgets;
-  hidden in combat, where Blizzard's Cooldown Manager is the pointer. No client sounds.
+  off" (both IDs proven absent), or "ends in 0:45" under 60 s (gone at 0 without claiming off). No
+  Salvation reminder: the client removed Salvation (1038) and Mass Salvation (25895) in 70862 (#98).
+  Unknown reads change nothing (last observed); a death forgets; hidden in combat, where
+  Blizzard's Cooldown Manager is the pointer. No client sounds.
 - **`Data\Training.lua`**: **generated** by `Tools\gen_training.py` (never edit it): what each class
   trainer teaches, from WhatsTraining's curated Forever lists (`References\Addons\Class\WhatsTraining`,
   by Sveng, MIT: read as text, never run), checked against the client's SpellName, SpellLevels and
@@ -317,8 +317,9 @@ order) and before the options window and bootstrap.
   its two-control panel in the same file). When another player's **single-target** buff lands on
   you at a lower rank than they could cast, a chat line says so, once per caster (GUID) and buff a
   session. `LB.WATCH`: the first ranks of Fortitude, Arcane Intellect, Mark of the Wild, Thorns,
-  the Blessings of Might, Wisdom and Light, Divine Spirit and Shadow Protection (group buffs left
-  out: the downrank rule is established for single-target ones); `SpellRankData.ranks[id]` is a
+  the Blessings of Might and Wisdom (Light is gone from the client, #98), Divine Spirit and Shadow
+  Protection (group buffs left out: the downrank rule is established for single-target ones);
+  `SpellRankData.ranks[id]` is a
   positional `{ group, rank, level }`. **Expected rank**: the highest of the group the caster's
   class trainer lists (`TrainingData`: book ranks never), at most the caster's level minus a
   grace (0 below 10, 3 at 10-19, 2 to 49, 1 at 50-59, 0 at 60; a reference addon's, MIT) and at
