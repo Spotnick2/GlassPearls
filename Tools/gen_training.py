@@ -7,13 +7,20 @@ They are read as TEXT by the small parser below, never run. The client's own
 tables can't tell a trainer spell from a talent or a quest reward (Cat Form,
 Summon Voidwalker and the mage talents all sit in the class skill lines), so
 the curated list is the source and the client tables only check it:
-  SpellName    every ID exists
-  SpellLevels  its BaseLevel against the trainer level (differences reported)
+  SpellName        every ID exists
+  SpellLevels      its BaseLevel against the trainer level (differences reported)
+  TraitDefinition  every requiredTalentId is one of the client's talent spells
 
 Entry fields kept: id, level (the spellsByLevel key), cost (copper),
 requiredIds, requiredTalentId, race, faction, skills. Anything else stops the
 script: a new field needs a decision. overriddenGroups (a later member known
 means the earlier ones are learned) are resolved from the file's local lists.
+
+FIXES corrects an ID the list still uses after the client changed it,
+everywhere in that class (entries, requirements, talents, groups). Each one is
+checked on every run and a stale one stops the script: the old ID must still
+be in the list and gone from SpellName, the new one in SpellName (and, for a
+talent, in TraitDefinition). Drop a fix once the list has it.
 Writes Tools/training/report.txt.
 
 Usage (from the repo root):
@@ -35,6 +42,11 @@ REPORT = os.path.join(HERE, "training", "report.txt")
 CLASSES = ("Druid", "Hunter", "Mage", "Paladin", "Priest", "Rogue", "Shaman", "Warlock", "Warrior")
 FIELDS = {"id", "cost", "requiredIds", "requiredTalentId", "race", "faction", "skills"}
 FACTIONS = {"Alliance", "Horde"}
+# (class, old ID) -> (new ID, why). See the docstring.
+FIXES = {
+    ("ROGUE", 1310706): (399956, "Mutilate's talent: the client's TraitDefinition spell since 70862; "
+                                 "1310706 is no longer in SpellName"),
+}
 
 
 # ---------------------------------------------------------------------------
@@ -122,7 +134,7 @@ def parse_class(path):
         raise ValueError("%s: no wt.forClass" % path)
     token = m.group(1)
     names = {}
-    for lm in re.finditer(r"^local (\w+) = (\{[^\n]*\})\s*$", text, re.M):
+    for lm in re.finditer(r"^local (\w+) = (\{[^\n}]*\})\s*(?:--[^\n]*)?$", text, re.M):
         names[lm.group(1)] = Parser(tokens(lm.group(2)), {}).value()
     groups = []
     gm = re.search(r"^class\.overriddenGroups = ", text, re.M)
@@ -189,6 +201,40 @@ def lua_entry(e):
     return "{ " + ", ".join(parts) + " }"
 
 
+def apply_fixes(token, entries, groups, names, traits):
+    """Apply this class's FIXES in place; a report line per fix. Stops on a stale one."""
+    lines = []
+    for (cls, old), (new, why) in sorted(FIXES.items()):
+        if cls != token:
+            continue
+        if str(old) in names:
+            raise ValueError("FIXES %s %d: still in SpellName, the fix is stale" % (cls, old))
+        if str(new) not in names:
+            raise ValueError("FIXES %s %d: the new ID %d is not in SpellName" % (cls, old, new))
+        uses = {"id": 0, "req": 0, "talent": 0, "group": 0}
+        for e in entries:
+            if e["id"] == old:
+                e["id"] = new
+                uses["id"] += 1
+            if old in e.get("requiredIds", []):
+                e["requiredIds"] = [new if x == old else x for x in e["requiredIds"]]
+                uses["req"] += 1
+            if e.get("requiredTalentId") == old:
+                if new not in traits:
+                    raise ValueError("FIXES %s %d: the new talent %d is not in TraitDefinition" % (cls, old, new))
+                e["requiredTalentId"] = new
+                uses["talent"] += 1
+        for g in groups:
+            if old in g:
+                g[:] = [new if x == old else x for x in g]
+                uses["group"] += 1
+        if not any(uses.values()):
+            raise ValueError("FIXES %s %d: the list no longer uses it, drop the fix" % (cls, old))
+        lines.append("fixed %d -> %d %s (%s): %s" % (old, new, names[str(new)], why,
+                     ", ".join("%d %s" % (n, k) for k, n in uses.items() if n)))
+    return lines
+
+
 def main():
     if len(sys.argv) > 1:
         build = sys.argv[1]
@@ -202,6 +248,7 @@ def main():
     for r in rows("spelllevels", build):
         if r.get("DifficultyID", "0") == "0":
             levels[r["SpellID"]] = int(r["BaseLevel"] or 0)
+    traits = {int(r["SpellID"]) for r in rows("traitdefinition", build) if r["SpellID"] not in ("", "0")}
 
     version = toc_version()
     report = ["gen_training.py: WhatsTraining %s, checked against build %s" % (version, build), ""]
@@ -210,7 +257,8 @@ def main():
         "-- after a WhatsTraining update or a new build (Tools/training/report.txt).",
         "-- What each class trainer teaches on Forever. The list is WhatsTraining's",
         "-- (%s), curated by Sveng (MIT, thanks): Blizzard's facts, gathered" % version,
-        "-- by hand. Checked against the client's SpellName and SpellLevels (build %s)." % build,
+        "-- by hand. Checked against the client's SpellName, SpellLevels and",
+        "-- TraitDefinition (build %s); the report lists our corrections." % build,
         "-- classes[classFile] = { spells = { { id, level, cost (copper), req = IDs",
         "-- that must be known, talent = the talent spell it needs, race = raceID,",
         '-- faction = "Alliance"|"Horde", skill = { { skillLine, rank } } }, ... },',
@@ -225,7 +273,7 @@ def main():
     total = 0
     for cls in CLASSES:
         token, entries, groups = parse_class(os.path.join(SRC, "Classes", "Camelot", cls + ".lua"))
-        notes = []
+        notes = apply_fixes(token, entries, groups, names, traits)
         for e in entries:
             sid = str(e["id"])
             if sid not in names:
@@ -235,6 +283,8 @@ def main():
             t = e.get("requiredTalentId")
             if t and str(t) not in names:
                 notes.append("%d: talent %d not in SpellName" % (e["id"], t))
+            elif t and t not in traits:
+                notes.append("%d: talent %d %s not in TraitDefinition" % (e["id"], t, names[str(t)]))
         for g in groups:
             if not isinstance(g, list) or not all(isinstance(x, int) for x in g):
                 raise ValueError("%s: an override group is not a list of IDs" % cls)

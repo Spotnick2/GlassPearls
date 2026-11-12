@@ -229,7 +229,10 @@ Each line is a claim the code relies on that only the live client can settle.
 - [ ] Dual spec (Forever has it, owner 2026-10-29; the measurement at 70245 found one spec
       group): the other spec's waiting talent ranks, as last seen, and are ranks
       learned in one spec known in the other?
-- [ ] Righteous Fury: WhatsTraining says trainer level 10, the client's SpellLevels 16. Which?
+- [x] Righteous Fury's trainer level: 10 in both the trainer list and the client's SpellLevels since
+      70862 (16 at 70532; #97).
+- [ ] The refreshed lists (#97): a class trainer visit on a druid or a paladin shows what the toast
+      and Train all count (the new spells, the 70888 levels and costs).
 - [ ] Placement (screenshot), both looks.
 
 **Restock (#14)** (a mage and a hunter, a food and drink vendor, a reagent vendor, a bowyer)
