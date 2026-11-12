@@ -2,8 +2,9 @@
 -- classes register nothing), the shield gate and its option, hidden in combat
 -- and back after, the three answers ("off" needs both Fury IDs proven absent;
 -- unknown changes nothing), the death reset, the "ends in" heads-up (gone at 0
--- without claiming "off"), Salvation's exact time left and who cast it, no
--- client sound, the client's names (French), the commands, the panel, off.
+-- without claiming "off"), no Salvation reminder (#98: the client removed it;
+-- its IDs never read), no client sound, the client's names (French), the
+-- commands, the panel, off.
 -- tests/test_paladintank_glass.lua runs it again under Glass UI's glass.
 dofile("tests/wow_stubs.lua")
 dofile("tests/harness.lua")
@@ -80,64 +81,32 @@ aura()
 eq(texts(), "", "heads-up switched off: nothing")
 P.ResetSettings("paladintank")
 
--- Salvation on you: its exact time left, and who cast it.
+-- No Salvation reminder (#98): the client removed Salvation (1038) and Mass
+-- Salvation (25895) in 70862. Even with one on you, nothing reads or says it.
 WoW.now = 1000
 WoW.auras[25780] = { expirationTime = 2800, duration = 1800 }
 WoW.auras[1038] = { expirationTime = 4570, duration = 3600, sourceUnit = "party2" }
-WoW.unitNames.party2 = "Uther"
+WoW.auras[25895] = { expirationTime = 4600, duration = 3600, sourceUnit = "player" }
+WoW.auraReads[1038], WoW.auraReads[25895] = nil, nil
 aura()
-eq(texts(), "Salut is on you  59:30  (from Uther)", "Salvation: the client's name, its time left, its caster")
-WoW.now = 1030
-WoW.tick()
-eq(texts(), "Salut is on you  59:00  (from Uther)", "  ticking")
--- Unknown keeps it (last observed); the switch hides it.
-local salvRead = WoW.auras[1038]
-WoW.auras[1038] = WoW.Secret("aura")
+eq(texts(), "", "Fury on, a Salvation aura on you: nothing (no Salvation reminder)")
+eq((WoW.auraReads[1038] or 0) + (WoW.auraReads[25895] or 0), 0, "  Salvation's IDs are never read")
+WoW.auras[25780] = nil
 aura()
-check(texts():find("Salut is on you", 1, true), "Salvation then unknown: still shown (last observed)")
-WoW.auras[1038] = salvRead
-aura()
-P.SetSetting("paladintank", "salv", false)
-eq(texts(), "", "the Salvation switch off: hidden")
-P.ResetSettings("paladintank")
--- Its known expiration passing ends it, even if the next read is unknown (Codex review of #24).
-WoW.now = 4571
-WoW.auras[1038] = WoW.Secret("aura")
-aura()
-eq(texts(), "", "Salvation's expiration passed, the read unknown: not reported as on you")
-WoW.now = 4580
-aura()
-eq(texts(), "", "  and it stays ended until a fresh proven read")
-WoW.auras[1038] = { expirationTime = 8180, duration = 3600, sourceUnit = "party2" }
-aura()
-check(texts():find("Salut is on you", 1, true), "  a fresh read proves a new one: shown")
-WoW.now = 1030
-WoW.auras[1038] = salvRead
-aura()
+eq(texts(), "Fureur vertueuse is off", "Fury gone, Salvation still there: only Fury's reminder")
+WoW.auras[1038], WoW.auras[25895] = nil, nil
 -- The clock rounds to the nearest second.
 eq(T.Clock(49.6), "0:50", "the clock rounds (49.6 s: 0:50)")
 eq(T.Clock(3570.4), "59:30", "  and shows minutes")
 eq(T.Clock(-3), "0:00", "  never negative")
-WoW.auras[1038], WoW.auras[25895] = nil, { expirationTime = 4600, duration = 3600, sourceUnit = "player" }
-aura()
-eq(texts(), "Salut collectif is on you  59:30", "Mass Salvation, self-cast: no 'from'")
-WoW.auras[25895] = nil
-aura()
-eq(texts(), "", "gone: nothing")
--- Both at once.
-WoW.auras[25780] = nil
-WoW.auras[1038] = { expirationTime = 4600, duration = 3600 }
-aura()
-eq(texts(), "Fureur vertueuse is off | Salut is on you  59:30", "both reminders at once")
 
 -- Hidden in combat, back after (and read again then).
 WoW.combat = true
 fire("PLAYER_REGEN_DISABLED")
 eq(texts(), "", "in combat: hidden")
-WoW.auras[1038] = nil
 WoW.combat = false
 fire("PLAYER_REGEN_ENABLED")
-eq(texts(), "Fureur vertueuse is off", "after combat: back, read again (Salvation gone)")
+eq(texts(), "Fureur vertueuse is off", "after combat: back, read again")
 -- A death forgets: read again.
 WoW.auras[25780] = WoW.Secret("aura")
 fire("PLAYER_DEAD")
@@ -171,7 +140,7 @@ P.ResetSettings("paladintank")
 -- No client sound, no name compared.
 local sounds = 0
 for _, s in pairs(WoW.auraSounds) do
-    if s.info.spellID == 25780 or s.info.spellID == 1038 then sounds = sounds + 1 end
+    if s.info.spellID == 25780 or s.info.spellID == 407627 then sounds = sounds + 1 end
 end
 eq(sounds, 0, "no client sound registered (they can't follow these gates)")
 local src = io.open("Pearls/PaladinTank.lua"):read("*a"):gsub("%-%-[^\n]*", "")
@@ -185,9 +154,10 @@ newChat()
 SlashCmdList.GLASSPEARLS("paladintank")
 local chat = table.concat(newChat(), "\n")
 check(chat:find("Fureur vertueuse (25780): absent", 1, true), "/gpearls paladintank: the last reads")
+check(not chat:find("(1038)", 1, true) and not chat:find("(25895)", 1, true), "  no Salvation row")
 check(chat:find("Cooldown Manager", 1, true), "  and the pointer for combat")
 SlashCmdList.GLASSPEARLS("paladintank test")
-eq(texts(), "Fureur vertueuse is off | Salut is on you  0:10", "the test shows both")
+eq(texts(), "Fureur vertueuse is off", "the test shows the reminder")
 eq(T.Frame()._mouse, true, "  draggable")
 local pf = T.Frame()
 function pf:GetCenter() return 600, 300 end
@@ -202,11 +172,12 @@ row.gear:GetScript("OnClick")(row.gear)
 local content = GP.Options._test.pages["config:paladintank"].frame._children[1]
 local checks = {}
 for _, w in ipairs(content._children) do if w._template == "UICheckButtonTemplate" then checks[#checks + 1] = w end end
-eq(#checks, 4, "four switches")
-checks[3]:SetChecked(false)
+eq(#checks, 3, "three switches (no Salvation)")
+checks[3]:SetChecked(true)
 checks[3]:GetScript("OnClick")(checks[3])
-eq(P.Setting("paladintank", "salv"), false, "the third: Salvation")
+eq(P.Setting("paladintank", "noShield"), true, "the third: even without a shield")
 P.ResetSettings("paladintank")
+eq(P.Setting("paladintank", "salv"), nil, "the Salvation setting is gone")
 GP.Options._test.win():Hide()
 
 -- Off.

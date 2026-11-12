@@ -33,7 +33,6 @@ IDS = {
     "buffs: Blessing of Sacrifice": [6940, 20729],
     "buffs: Blessing of Freedom": [1044],
     "paladintank: Righteous Fury": [25780, 407627],
-    "paladintank: Salvation": [1038, 25895],
 }
 
 

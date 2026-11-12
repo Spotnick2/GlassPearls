@@ -66,9 +66,9 @@
   only estimated). Each buff has its own switch and sound (Clearcasting's sound off by default).
   `/gpearls buffs test` shows them to place them.
 - **Paladin tank reminders** (Combat, on by default, paladins only): out of combat, with a shield, a
-  reminder when Righteous Fury is off (and a heads-up a minute before it ends), and when Salvation
-  is on you, with its time left and who cast it. In any client language. In combat, Blizzard's
-  Cooldown Manager can alert when Righteous Fury drops.
+  reminder when Righteous Fury is off, and a heads-up a minute before it ends. In any client
+  language. In combat, Blizzard's Cooldown Manager can alert when Righteous Fury drops. (The
+  Salvation reminder of the earlier alphas is gone: WoW Forever removed Salvation.)
 - **Training reminder** (Combat, on by default): when you level, a toast lists the spells and ranks
   your class trainer now teaches you, what was already waiting, the talent points you have to
   spend (Talented's early ones included) and what it costs. Only what you can really learn. Spell

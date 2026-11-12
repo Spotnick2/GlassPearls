@@ -26,7 +26,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #17 | Fixate alert (pearl `fixate`), any client language | built; both paths wait for day one |
 | #19 | Uncrushable (pearl `uncrushable`): the character panel line and `/gpearls uncrushable` | built; the numbers and placement wait for day one |
 | #21 | Buff alerts (pearl `buffs`): Clearcasting, Innervate, Power Infusion, the Blessings, with time left | built; the overlay and combat paths wait for day one |
-| #22 | Paladin tank reminders (pearl `paladintank`): Righteous Fury off, Salvation on you | built; the IDs and the Cooldown Manager wait for day one |
+| #22 | Paladin tank reminders (pearl `paladintank`): Righteous Fury off or ending (Salvation retired, #98) | built; the IDs and the Cooldown Manager wait for day one |
 | #27 | Training reminder (pearl `training`): a level-up toast, next ranks in spell tooltips, talent points, the other spec | built; the trainer match, the tooltip and dual spec wait for day one |
 | #14 | Restock (pearl `restock`): food, water, ammunition and class reagents at a merchant, after the junk seller | built; the purchase API, the events and the refusal names wait for day one |
 | #34 | Raid mark wheel (pearl `markwheel`): the eight marks at the cursor, from a key; pings stay the client's own (its unit-menu entry removed, #82) | built; the secure click and the art wait for day one |
@@ -205,14 +205,18 @@ Each line is a claim the code relies on that only the live client can settle.
 - [ ] **Blizzard's Cooldown Manager** (Edit Mode): what it tracks of these for your class, and
       whether it makes some entries redundant (the owner hasn't used it before: adjust as we go).
 
-**Paladin tank reminders (#22)** (a paladin with a shield; another paladin to cast Salvation)
-- [ ] The IDs a paladin really has: Righteous Fury 25780 or the rune 407627; Salvation 1038, Mass
-      Salvation 25895 (`/gpearls paladintank` shows the last reads).
+**Paladin tank reminders (#22)** (a paladin with a shield)
+- [ ] The IDs a paladin really has: Righteous Fury 25780 or the rune 407627 (`/gpearls paladintank`
+      shows the last reads).
+- [x] Salvation: gone from the client since 70862 (1038 and 25895 left SpellName and the Cooldown
+      Manager's paladin set), so its reminder is retired (#98).
+- [ ] No Salvation at the trainer or in the spellbook; if another paladin buff now reduces threat,
+      #98 becomes a rework.
 - [ ] Out of combat: "is off" when Fury is off, gone when it's on; "ends in" under a minute (does
-      Fury have a duration here?); Salvation's time left and its caster.
+      Fury have a duration here?).
 - [ ] Hidden in combat, back after; after a death it waits for a proven read.
-- [ ] **The Cooldown Manager** (Edit Mode): Righteous Fury and Salvation tracked, an On Aura Removed
-      alert for Fury that fires in combat. Adjust the pearl's pointer to what it really offers.
+- [ ] **The Cooldown Manager** (Edit Mode): Righteous Fury tracked, an On Aura Removed alert for
+      Fury that fires in combat. Adjust the pearl's pointer to what it really offers.
 - [ ] Placement with the other alerts (screenshot), both looks.
 
 **Training reminder (#27)** (any class, a few levels from the next trainer spells)
