@@ -69,9 +69,13 @@ SlashCmdList.GLASSPEARLS("")
 -- take, a merchant, a bag, the world map, the trainer.
 WoW.items[1] = { name = "Grey Junk", price = 5, quality = 0, maxStack = 1 }
 WoW.items[10] = { name = "Ring", price = 620, quality = 2, maxStack = 1, classID = 4 }
-WoW.bags[0] = { size = 1, items = { [1] = { id = 1 } } }
+-- Bread: the bags-full helper's white alternative and its row (#101).
+WoW.items[20] = { name = "Bread", price = 1, quality = 1, maxStack = 20, classID = 0, subclassID = 5, spell = true }
+WoW.bags[0] = { size = 2, items = { [1] = { id = 1 }, [2] = { id = 20, count = 2 } } }
 WoW.openLoot({ { id = 10, qty = 1 } })
 WoW.flushTimers(0)
+poke(GP.BagsFullFrame._test.frame())
+GP.BagsFull.ToggleAlternative()
 poke(GP.BagsFullFrame._test.frame())
 WoW.closeLoot()
 WoW.openMerchant()

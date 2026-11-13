@@ -21,6 +21,14 @@
 -- switches to "by hand": the window points at the item, the player drags it
 -- out. The loot follows only once the slot is empty (a moved item doesn't
 -- count), in the same loot window, with the row still holding that item.
+--
+-- The white alternative (#101): beside the usual suggestion, the cheapest
+-- white stack, food and items with a use included (Bags.Eligible's
+-- opts.uses), only when it's cheaper than the usual first or there is none.
+-- The player picks it (with no usual suggestion it is the one shown). A click
+-- acts only on what the window shows now, in the role it shows it (usual or
+-- alternative), and only if a fresh decision still offers that exact stack in
+-- that role; a white arm is bound to that stack (link and value too) and role.
 
 local ADDON = ...
 GlassPearls = GlassPearls or {}
@@ -48,7 +56,7 @@ local state = {
     pending = nil,              -- { bag, slot, id, lootSlot, lootLink }, cleared by LOOT_CLOSED
     armed = nil,                -- { key, at }
     combatWait = false,
-    choice = { loot = nil, index = 1, anyway = false },
+    choice = { loot = nil, index = 1, anyway = false, alt = false },   -- alt: the player picked the alternative
 }
 BF.state = state
 local dirty = false
@@ -67,6 +75,21 @@ local function options()
 end
 
 function BF.Candidates() return Bags.Candidates(options()) end
+
+-- The cheapest white stack, consumables and items with a use included (#101),
+-- or nil: only when it's cheaper than `first` (the usual first suggestion) or
+-- there is none, and only with the whiteAlt setting on.
+function BF.Alternative(first)
+    if setting("whiteAlt") ~= true then return nil end
+    local o = options()
+    o.scope, o.greysFirst, o.uses = "white", false, true
+    for _, c in ipairs(Bags.Candidates(o)) do
+        if c.quality == 1 then
+            if first == nil or c.value < first.value then return c end
+            return nil
+        end
+    end
+end
 
 -- The loot window's item rows: { slot, link, id, qty, quality, icon, name,
 -- value (nil when unknown), mustTake, fits }.
@@ -105,7 +128,9 @@ end
 
 -- What the window shows now, or nil to hide it.
 --   { mode = "loot" | "room", rows = rows needing room, target, targetIndex,
---     candidates, notWorth (loot worth less than every candidate), byHand }
+--     candidates, alternative, candidate (the one shown), usingAlt (it is the
+--     alternative), back (while it is: the usual one a toggle returns to),
+--     notWorth (loot worth less than every offered stack), byHand }
 function BF.Decide()
     if not GP.Pearls.IsLive(BF.KEY) or not GP.Pearls.IsOn(BF.KEY) then return nil end
     if API.InCombat() then
@@ -150,11 +175,22 @@ function BF.Decide()
     end
     view.candidates = BF.Candidates()
     local first = view.candidates[1]
+    local alt = BF.Alternative(first)
+    view.alternative = alt
+    -- A choice of an alternative that's gone never selects a later one.
+    if not alt then state.choice.alt = false end
+    -- The cheapest offered: the alternative is only ever cheaper than the first.
+    local cheapest = alt or first
     local t = view.target
-    view.notWorth = t ~= nil and first ~= nil and not t.mustTake and t.value ~= nil
-        and t.value < first.value and not state.choice.anyway
+    view.notWorth = t ~= nil and cheapest ~= nil and not t.mustTake and t.value ~= nil
+        and t.value < cheapest.value and not state.choice.anyway
     if state.choice.index > #view.candidates then state.choice.index = 1 end
-    view.candidate = view.candidates[state.choice.index]
+    if alt and (first == nil or state.choice.alt) then
+        view.candidate, view.usingAlt = alt, true
+        view.back = view.candidates[state.choice.index]
+    else
+        view.candidate, view.usingAlt = view.candidates[state.choice.index], false
+    end
     return view
 end
 
@@ -185,7 +221,7 @@ function BF.NextCandidate(step)
     local n = BF.view and #BF.view.candidates or 0
     if n == 0 then return end
     state.choice.index = (state.choice.index - 1 + step) % n + 1
-    state.armed = nil
+    state.choice.alt, state.armed = false, nil
     BF.Evaluate()
 end
 
@@ -194,6 +230,15 @@ function BF.NextLoot()
     if not v or not v.rows or #v.rows < 2 then return end
     local i = v.targetIndex % #v.rows + 1
     state.choice.loot, state.choice.anyway = v.rows[i].slot, false
+    state.armed = nil
+    BF.Evaluate()
+end
+
+-- The row under the Destroy card: the alternative, or back to the usual one.
+function BF.ToggleAlternative()
+    local v = BF.view
+    if not v or not v.alternative or #v.candidates == 0 then return end
+    state.choice.alt = not v.usingAlt
     state.armed = nil
     BF.Evaluate()
 end
@@ -213,7 +258,7 @@ function BF.Never(cand)
         return false
     end
     say(cand.link .. " won't be suggested again.")
-    state.choice.index, state.armed = 1, nil
+    state.choice.index, state.choice.alt, state.armed = 1, false, nil
     BF.Evaluate()
     return true
 end
@@ -229,7 +274,17 @@ end
 
 local forbidden = false
 
-local function armKey(c) return c.bag .. ":" .. c.slot .. ":" .. c.id .. ":" .. c.count end
+-- The whole stack as the window showed it, and its role: a changed link or
+-- value, or the same stack in the other role, is a new first click (#101).
+local function armKey(c, usingAlt)
+    return table.concat({ c.bag, c.slot, c.id, c.count, c.link, c.value, usingAlt and "alt" or "list" }, "\031")
+end
+
+-- Is the shown candidate armed (the button says "Click again")?
+function BF.ArmedFor(view)
+    local a, c = state.armed, view and view.candidate
+    return a ~= nil and c ~= nil and a.key == armKey(c, view.usingAlt) and clock() - a.at <= BF.ARM_SECONDS
+end
 
 local function sameStack(a, b)
     return a.bag == b.bag and a.slot == b.slot and a.id == b.id and a.count == b.count
@@ -240,13 +295,21 @@ end
 -- appeared, a moved stack all queue a re-evaluation that hasn't run yet. So
 -- decide again now, and go on only if the fresh decision still has the same
 -- target row (slot, link, quantity, still not fitting) and the same stack
--- (Codex review of #9). Returns the fresh view and its candidate, or nil.
+-- (Codex review of #9), in the same role (#101). Returns the fresh view and its
+-- candidate, or nil.
 local function confirm(shown, cand)
     local ok, fresh = pcall(BF.Decide)
     if not ok or not fresh or fresh.mode ~= shown.mode or fresh.notWorth or fresh.byHand then return nil end
     local a, b = shown.target, fresh.target
     if (a == nil) ~= (b == nil) then return nil end
     if a and not (a.slot == b.slot and a.link == b.link and a.qty == b.qty) then return nil end
+    -- The same role: an alternative never stands in for a usual one, nor the reverse.
+    if (fresh.usingAlt == true) ~= (shown.usingAlt == true) then return nil end
+    if shown.usingAlt then
+        local c = fresh.alternative
+        if c and sameStack(c, cand) then return fresh, c end
+        return nil
+    end
     for _, c in ipairs(fresh.candidates) do
         if sameStack(c, cand) then return fresh, c end
     end
@@ -275,7 +338,7 @@ function BF.Destroy()
     BF.view = v
     -- White and better: a second click on the same stack, within 3 s.
     if cand.quality >= 1 then
-        local key = armKey(cand)
+        local key = armKey(cand, v.usingAlt)
         if not (state.armed and state.armed.key == key and clock() - state.armed.at <= BF.ARM_SECONDS) then
             state.armed = { key = key, at = clock() }
             GP.BagsFullFrame.Show(v)
@@ -315,7 +378,7 @@ function BF.Destroy()
     else
         say("Made room: loot it again.")
     end
-    state.choice.index = 1
+    state.choice.index, state.choice.alt = 1, false
     return "destroyed"
 end
 
@@ -359,7 +422,7 @@ events:SetScript("OnEvent", function(_, event, a1, a2)
             state.lootOpen = true
             state.session = state.session + 1
             state.makeRoom = nil
-            state.choice.loot, state.choice.index, state.choice.anyway = nil, 1, false
+            state.choice.loot, state.choice.index, state.choice.anyway, state.choice.alt = nil, 1, false, false
         end
         soon()
     elseif event == "LOOT_CLOSED" then
@@ -407,12 +470,19 @@ local function disable()
     GP.BagsFullFrame.Hide()
 end
 
--- /gpearls cheapest
+-- /gpearls cheapest: the usual first suggestion and the white alternative.
 function BF.Cheapest()
-    local c = BF.Candidates()[1]
-    if not c then return say("Nothing in your bags can be suggested (" .. setting("scope") .. " items only).") end
-    say("Cheapest: " .. (c.count > 1 and (c.count .. "x ") or "") .. c.link .. " ("
-        .. C_CurrencyInfo.GetCoinTextureString(c.value) .. ")")
+    local first = BF.Candidates()[1]
+    local alt = BF.Alternative(first)
+    if not first and not alt then
+        return say("Nothing in your bags can be suggested (" .. setting("scope") .. " items only).")
+    end
+    local function line(label, c)
+        say(label .. ": " .. (c.count > 1 and (c.count .. "x ") or "") .. c.link .. " ("
+            .. C_CurrencyInfo.GetCoinTextureString(c.value) .. ")")
+    end
+    if first then line("Cheapest", first) end
+    if alt then line(first and "Cheaper white" or "Cheapest white", alt) end
 end
 
 GP.SettingsSync.RegisterSet(BF.KEEP)
@@ -425,16 +495,23 @@ GP.Pearls.Register({
         .. "as room). It offers the cheapest item in your bags by vendor value times stack: grey items only, or grey "
         .. "and white. Quest items, tools, equipment-set items, consumables, containers, reagents, ammunition, "
         .. "recipes, keys and items with a use are never offered, nor anything on your never-suggest list (the X). "
-        .. "White items need a second click. /gpearls cheapest shows the first suggestion any time.",
+        .. "With \"Also offer the cheapest white item\" on, a cheaper white stack shows under the suggestion, food "
+        .. "and items with a use included (never quest items, tools, set items, companions or mounts, nor the list): "
+        .. "click it to pick it instead. White items need a second click. /gpearls cheapest shows both any time.",
     default = true,
     category = "Loot & Bags",
     section = "Bags",
-    defaults = { scope = "grey", greysFirst = true },
+    defaults = { scope = "grey", greysFirst = true, whiteAlt = true },
     choices = { scope = { "grey", "white" } },
     Enable = enable,
     Disable = disable,
     configure = function(panel, refreshers) GP.BagsFullFrame.Configure(panel, refreshers) end,
     onReset = function() if BF.view then BF.Evaluate() end end,
+    -- Any change, sync included: no picked alternative or arm outlives it (#101).
+    onSettingChanged = function()
+        state.choice.alt, state.armed = false, nil
+        if BF.view then BF.Evaluate() end
+    end,
     commands = { cheapest = { help = "the first item the bags full helper would suggest", run = BF.Cheapest } },
 })
 
@@ -443,7 +520,7 @@ BF._test = {
     reset = function()
         state.lootOpen, state.session, state.dismissed, state.makeRoom = false, 0, nil, nil
         state.byHand, state.pending, state.armed, state.combatWait = false, nil, nil, false
-        state.choice = { loot = nil, index = 1, anyway = false }
+        state.choice = { loot = nil, index = 1, anyway = false, alt = false }
         dirty, forbidden = false, false
         BF.view = nil
     end,

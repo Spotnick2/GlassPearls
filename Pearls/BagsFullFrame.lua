@@ -7,9 +7,14 @@
 -- else above the centre. "Bags full!", a line saying what's going on, the
 -- Destroy card (the item, its value, < n/N > through the candidates, an X to
 -- never suggest it), the You get card (click: the next row that doesn't fit),
--- a net line, and one button. Blizzard's art in both looks: the alert icon
--- (UI-Dialog-Icon-AlertNew), the pass icon for the X (UI-GroupLoot-Pass-Up),
--- the next-page arrow (UI-SpellbookIcon-NextPage-Up).
+-- under the cards the white alternative's row when there is one (#101: click
+-- to pick it, or to go back), a net line, and one button. Blizzard's art in
+-- both looks: the alert icon (UI-Dialog-Icon-AlertNew), the pass icon for the
+-- X (UI-GroupLoot-Pass-Up), the next-page arrow (UI-SpellbookIcon-NextPage-Up).
+--
+-- Layout from the top (#101): cards 56-142, the row 146-166 when shown, the
+-- net line 6 px under the row or the cards, the button 8 px under that, a
+-- 12 px margin. The height is set, never added to, on every show.
 
 GlassPearls = GlassPearls or {}
 local GP = GlassPearls
@@ -18,7 +23,18 @@ local Frame = {}
 GP.BagsFullFrame = Frame
 
 Frame.NAME = "GlassPearlsBagsFullFrame"
-local W, H, CARD_W, CARD_H = 380, 186, 170, 86
+local W, CARD_W, CARD_H = 380, 170, 86
+local CARD_TOP, ROW_TOP, ROW_H, NET_H, BUTTON_H, MARGIN = 56, 146, 20, 14, 22, 12
+-- Where the net line and the button start, and the height, without and with the row.
+local LAYOUT = {
+    [false] = { net = CARD_TOP + CARD_H + 6 },
+    [true] = { net = ROW_TOP + ROW_H + 6 },
+}
+for _, l in pairs(LAYOUT) do
+    l.button = l.net + NET_H + 8
+    l.height = l.button + BUTTON_H + MARGIN
+end
+Frame.LAYOUT = LAYOUT
 local ALERT = "Interface\\DialogFrame\\UI-Dialog-Icon-AlertNew"
 local PASS = "Interface\\Buttons\\UI-GroupLoot-Pass-Up"
 local ARROW = "Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up"
@@ -103,7 +119,7 @@ end
 
 local function build()
     f = CreateFrame("Frame", Frame.NAME, UIParent)
-    f:SetSize(W, H)
+    f:SetSize(W, LAYOUT[false].height)
     f:SetFrameStrata("DIALOG")
     f:SetClampedToScreen(true)
     f:EnableMouse(true)
@@ -179,16 +195,72 @@ local function build()
         GameTooltip:Show()
     end)
 
+    -- Under the cards: the white alternative, or the way back to the usual one (#101).
+    f.alt = CreateFrame("Button", nil, f)
+    f.alt:SetSize(W - 20, ROW_H)
+    f.alt:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -ROW_TOP)
+    GP.Theme.Control(f.alt)
+    f.alt.caption = GP.UI.Label(f.alt, "", "GameFontHighlightSmall")
+    f.alt.caption:SetPoint("LEFT", f.alt, "LEFT", 6, 0)
+    f.alt.icon = f.alt:CreateTexture(nil, "ARTWORK")
+    f.alt.icon:SetSize(16, 16)
+    f.alt.icon:SetPoint("LEFT", f.alt.caption, "RIGHT", 5, 0)
+    f.alt.value = GP.UI.Label(f.alt, "", "GameFontHighlightSmall")
+    f.alt.value:SetPoint("RIGHT", f.alt, "RIGHT", -6, 0)
+    f.alt.name = GP.UI.Label(f.alt, "", "GameFontHighlightSmall")
+    f.alt.name:SetPoint("LEFT", f.alt.icon, "RIGHT", 4, 0)
+    f.alt.name:SetPoint("RIGHT", f.alt.value, "LEFT", -6, 0)
+    f.alt.name:SetWordWrap(false)
+    f.alt:SetScript("OnClick", function() BF().ToggleAlternative() end)
+    f.alt:SetScript("OnEnter", function(self)
+        local c = self.entry
+        if not c then return end
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        if not pcall(GameTooltip.SetBagItem, GameTooltip, c.bag, c.slot) then pcall(GameTooltip.SetHyperlink, GameTooltip, c.link) end
+        GameTooltip:AddLine(self.tip, 0.6, 0.8, 1, true)
+        GameTooltip:Show()
+    end)
+    f.alt:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    f.alt:Hide()
+
     f.net = GP.UI.Label(f, "", "GameFontHighlightSmall")
-    f.net:SetPoint("BOTTOM", f, "BOTTOM", 0, 40)
     f.button = GP.UI.Button(f, "Destroy & loot", 170, function()
         -- The destroy runs inside this click, a hardware event (BagsFull.lua).
         BF().Destroy()
     end)
-    f.button:SetPoint("BOTTOM", f, "BOTTOM", 0, 12)
     f.anyway = GP.UI.Button(f, "Choose anyway", 170, function() BF().ChooseAnyway() end)
-    f.anyway:SetPoint("BOTTOM", f, "BOTTOM", 0, 12)
     f.anyway:Hide()
+end
+
+-- The net line, the buttons and the height, with or without the row.
+local function layout(row)
+    local l = LAYOUT[row == true]
+    f.net:ClearAllPoints()
+    f.net:SetPoint("TOP", f, "TOP", 0, -l.net)
+    for _, b in ipairs({ f.button, f.anyway }) do
+        b:ClearAllPoints()
+        b:SetPoint("TOP", f, "TOP", 0, -l.button)
+    end
+    f:SetHeight(l.height)
+end
+
+local function showRow(view)
+    local alt, entry = view.alternative, nil
+    if view.usingAlt then
+        entry = view.back
+        f.alt.caption:SetText("Back to:")
+        f.alt.tip = "Click to go back to the usual suggestion."
+    else
+        entry = alt
+        f.alt.caption:SetText("|cffffd27fCheaper (white):|r")
+        f.alt.tip = "Click to destroy this instead (food and items with a use included)."
+    end
+    f.alt.entry = entry
+    f.alt.icon:SetTexture(entry.icon or QUESTION)
+    local n = entry.count or 1
+    f.alt.name:SetText((n > 1 and (n .. "x ") or "") .. shortName(entry.link, entry.name))
+    f.alt.name:SetTextColor(qualityColor(entry.quality))
+    f.alt.value:SetText(money(entry.value))
 end
 
 function Frame.Show(view)
@@ -208,12 +280,14 @@ function Frame.Show(view)
     -- The Destroy card.
     f.out.entry = (not view.notWorth) and c or nil
     local browse = c ~= nil and not view.notWorth
-    for _, w in ipairs({ f.prev, f.next, f.counter, f.never }) do w:SetShown(browse) end
+    for _, w in ipairs({ f.counter, f.never }) do w:SetShown(browse) end
+    -- The arrows browse the usual list: the alternative's row goes back instead.
+    for _, w in ipairs({ f.prev, f.next }) do w:SetShown(browse and not view.usingAlt) end
     if view.notWorth then
         showMessage(f.out, "|cffffd27fNot worth picking up.|r Everything in your bags is worth more.")
     elseif c then
         showItem(f.out, c)
-        f.counter:SetText(bf.state.choice.index .. "/" .. #view.candidates)
+        f.counter:SetText(view.usingAlt and "white" or (bf.state.choice.index .. "/" .. #view.candidates))
         local many = #view.candidates > 1
         f.prev:SetEnabled(many)
         f.next:SetEnabled(many)
@@ -238,8 +312,15 @@ function Frame.Show(view)
     else
         f.net:SetText("")
     end
+    -- The alternative's row: with a usual list to go back to, and not while
+    -- the loot isn't worth it (it's worth less than the alternative too).
+    local row = view.alternative ~= nil and #view.candidates > 0 and not view.notWorth
+        and (view.usingAlt and view.back or view.alternative) ~= nil
+    if row then showRow(view) else f.alt.entry = nil end
+    f.alt:SetShown(row)
+    layout(row)
     -- The button.
-    local armed = bf.state.armed ~= nil
+    local armed = bf.ArmedFor(view)
     f.anyway:SetShown(view.notWorth and not view.byHand)
     f.button:SetShown(browse and not view.byHand)
     if armed then
@@ -276,9 +357,17 @@ function Frame.Configure(panel, refreshers)
         { tip = "With white items allowed: offer every grey item before any white one, whatever the values." })
     greys:SetPoint("TOPLEFT", last, "BOTTOMLEFT", -4, -10)
     refreshers[#refreshers + 1] = refreshGreys
+    local whiteAlt, refreshWhiteAlt = GP.UI.Check(panel, "Also offer the cheapest white item",
+        function() return P.Setting(KEY, "whiteAlt") end, function(on) P.SetSetting(KEY, "whiteAlt", on) end,
+        { tip = "When a white stack is cheaper than the suggestion, show it under it so you can pick it instead: "
+            .. "food and items with a use included, never quest items, tools, set items, companions or mounts, "
+            .. "nor anything never suggested. It needs a second click." })
+    whiteAlt:SetPoint("TOPLEFT", greys, "BOTTOMLEFT", 0, -4)
+    refreshers[#refreshers + 1] = refreshWhiteAlt
+    panel.whiteAlt = whiteAlt
 
     local listHead = GP.UI.Header(panel, "Never suggested")
-    listHead:SetPoint("TOPLEFT", greys, "BOTTOMLEFT", 4, -18)
+    listHead:SetPoint("TOPLEFT", whiteAlt, "BOTTOMLEFT", 4, -18)
     local count = GP.UI.Label(panel, "", "GameFontDisableSmall")
     count:SetPoint("LEFT", listHead, "RIGHT", 10, 0)
     local rows, page = {}, 1
