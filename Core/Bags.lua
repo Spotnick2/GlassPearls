@@ -26,6 +26,11 @@ Bags.NEVER_CLASSES = { [1] = "a container", [5] = "a reagent", [6] = "ammunition
 Bags.CONSUMABLE = 0
 Bags.WEAPON, Bags.FISHING_POLE = 2, 20   -- ItemWeaponSubclass.Fishingpole
 Bags.MAX_QUALITY = { grey = 0, white = 1 }   -- green and better are never offered
+-- With opts.uses (the bags-full helper's white alternative, #101) a white
+-- consumable or item with a use may be offered, but never these
+-- (ItemMiscellaneousSubclass: CompanionPet 2, Mount 5).
+Bags.MISC = 15
+Bags.NEVER_USES = { [2] = "a companion", [5] = "a mount" }
 
 local function plain(v)
     if API.IsSecret(v) then return nil end
@@ -222,7 +227,9 @@ end
 
 -- One stack as a destroy candidate, or nil and why not.
 -- opts: scope ("grey" | "white"), keep(itemID) -> bool, tools ({ [id] = true }),
---       setItems ({ [id] = true } or nil when unreadable).
+--       setItems ({ [id] = true } or nil when unreadable), uses (true: a white
+--       consumable or item with a use may be offered; its subclass must then
+--       read plainly, and companions and mounts never are, #101).
 function Bags.Eligible(s, opts)
     if not s then return nil, "empty" end
     if s.locked then return nil, "locked" end
@@ -244,7 +251,12 @@ function Bags.Eligible(s, opts)
     local never = Bags.NEVER_CLASSES[f.classID]
     if never then return nil, never end
     if f.classID == Bags.WEAPON and f.subclassID == Bags.FISHING_POLE then return nil, "a fishing pole" end
-    if s.quality > 0 then
+    if s.quality > 0 and opts.uses then
+        -- The fishing-pole and companion checks need the subclass: unread, refused.
+        if type(f.subclassID) ~= "number" then return nil, "unknown subclass" end
+        local no = f.classID == Bags.MISC and Bags.NEVER_USES[f.subclassID]
+        if no then return nil, no end
+    elseif s.quality > 0 then
         if f.classID == Bags.CONSUMABLE then return nil, "a consumable" end
         local use = hasUse(s.id)
         if use == nil then return nil, "unknown use" end

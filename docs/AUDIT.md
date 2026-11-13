@@ -127,7 +127,9 @@ What a pearl knowingly does, and where the player is told:
 9. A confirmed Ask line is bought as confirmed, even when the character's eligibility changed
    meanwhile.
 10. The bags-full helper's second click (white) destroys the stack at that bag and slot with that
-    item, count, link and value: another stack of the same item moved there within 3 s is the same
+    item, count, link and value, in the role it was armed in (the usual list or the white
+    alternative; the arm itself carries link and value since #101, which found it compared only bag,
+    slot, ID and count against a window already redrawn): another stack of the same item moved there within 3 s is the same
     thing asked; the loot session isn't compared (the same row, link and quantity are); a loot that
     needs more room than one deletion frees prompts again; the loot takes the row as it stands at
     the bag update, the same slot and link, whatever its quantity reads then.

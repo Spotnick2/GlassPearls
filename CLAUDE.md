@@ -115,7 +115,8 @@ order) and before the options window and bootstrap.
   room, a matching specialty bag takes its family, bags 0-4), `FreeGeneral`, `SetItems`,
   `ItemFacts`, `Eligible(slot, opts)` and `Candidates(opts)`: what may be destroyed, on **known data
   only** (anything uncached, unread or secret makes a stack ineligible), cheapest first by
-  `sellPrice × stackCount`, greys first when asked. `Snapshot(true)` is **strict** for an automatic
+  `sellPrice × stackCount`, greys first when asked; `opts.uses` (#101) lets a white consumable or
+  item with a use through, never a companion or mount (`NEVER_USES`) or an unread subclass. `Snapshot(true)` is **strict** for an automatic
   action: a bag whose family can't be read, or a stack whose lock can't (`Slot`'s `lockKnown`),
   offers no room. `Take(itemID, qty, snap)` is `Fits` that also reserves the room it found
   (partial stacks, then a matching specialty bag, then general), leaving `snap` as it was on
@@ -589,7 +590,14 @@ order) and before the options window and bootstrap.
   still holds it, or `ADDON_ACTION_FORBIDDEN`) puts the item back and switches to **by hand** for
   the session; the loot (`LootSlot`) only once the slot is confirmed empty (`Bags.Slot` says
   "empty", never "unreadable"), with the row still holding that
-  item (`LOOT_CLOSED` cancels it). Unmeasured until day one: the delete and the loot path (probe).
+  item (`LOOT_CLOSED` cancels it). **The white alternative** (#101, setting `whiteAlt`, on):
+  `BF.Alternative(first)`, the cheapest white stack with `opts.uses`, only when strictly cheaper than
+  the usual first or there is none (then it is the one shown). A row under the Destroy card picks it
+  or goes back (`ToggleAlternative`, `choice.alt`: reset by a new loot window, the arrows, the X, a
+  destroy, the alternative gone, any setting change). A click acts only on what's shown, in its role
+  (`usingAlt`): the fresh decision must offer that exact stack in that role; the white arm is the
+  whole stack (link and value included) and its role (`BF.ArmedFor`). Unmeasured until day one: the
+  delete and the loot path (probe).
 - **`Data\Landmarks.lua`**: **generated** by `Tools\gen_landmarks.py` (never edit it): dungeon and
   raid entrances (doors shared by several are one entry), boat, zeppelin and tram stops, zone level
   ranges, and every zone map ID. Sources: the client's tables (`References\Forever\db`: AreaTrigger,

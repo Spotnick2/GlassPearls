@@ -24,8 +24,13 @@
   - Browse the suggestions with < >, or never suggest an item again with the X (on all your
     characters and accounts); quest loot is picked first. When the loot is worth less than
     anything in your bags it says so, and "Choose anyway" is there if you want it.
-  - The gear: grey only or grey and white, greys first, and the never-suggest list.
-    `/gpearls cheapest` shows the first suggestion any time.
+  - When a white stack is cheaper than the suggestion (a few pieces of bread against a grey worth
+    more), it shows under it too, so you can pick it instead: food and items with a use included,
+    never quest items, tools, equipment-set items, companions or mounts. It needs a second click.
+    The gear's "Also offer the cheapest white item" turns it off.
+  - The gear: grey only or grey and white, greys first, the cheaper white item, and the
+    never-suggest list. `/gpearls cheapest` shows the first suggestion, and the cheaper white
+    item, any time.
 - **Map landmarks** (Interface, on by default): dungeon and raid entrances, boats, zeppelins and
   the Deeprun Tram on the world map (zone and continent) and the minimap, and flight points where
   the game's map shows none.
