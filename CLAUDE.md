@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64), library books (#72), invite from whispers (#77), untrained gear (#86); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64), library books (#72), invite from whispers (#77), untrained gear (#86), the world buff announcer (#104); the day-one
 probe (#5) follows. The pearls that sell, buy, pick or destroy were audited offline (#61,
 [docs/AUDIT.md](docs/AUDIT.md): the property, the trace matrix, 15 findings with witness tests, the
 declared exceptions). Nothing
@@ -169,6 +169,23 @@ order) and before the options window and bootstrap.
   tooltip, `<name>TextRight<lineIndex>`) turned yellow, and a yellow note "Not trained yet: a weapon master teaches X"
   (armor: your class trainer) with "from level n" while below it. Any other red side, a secret or an unreadable read:
   left alone. Unmeasured until day one.
+- **`Pearls\WorldBuffs.lua`**: world buff announcer (#104, pearl `worldbuffs`, Combat > Alerts, on by default; its panel
+  inside; `dragonslayer`, `rend`, `zandalar`, `stormwind`, `sound`). Only what this client hears and sees; nothing sent.
+  **Hearing**: `CHAT_MSG_MONSTER_YELL` / `_SAY`, only the 12th value (the sender GUID) read, its NPC ID
+  (`WB.NpcID`: `Creature` or `Vehicle`, plain), never the text, name or language; a listed **(event, NPC) pair**
+  (`WB.BUFFS`, game facts from a reference addon and Wowhead) opens its buff's **window** when none is open: a fixed
+  bound (latest delay + grace) **checked against `GetTime()` on every use**, inside which later lines are ignored,
+  even after receipt. The warning is a candidate ("may drop in about N s", from the first line heard): another line
+  by the same NPC can warn for nothing; close turn-ins merge. **Receiving**: `UNIT_AURA` (payload untouched) queues
+  one check a frame later, never in combat; per spell ID uninitialized / absent / present with its expiration and
+  a `gap` flag after an unknown read; baselines at Enable, a switch turned on, PEW, regen end. Received = absent ->
+  present, or a positive expiration `REFRESH` (60) s later than the last positive one with no unknown between.
+  "<buff> is on you" only inside its window, once; **Might of Stormwind** (no speaker mapped: its turn-in is 466,
+  the speaker unmeasured) also without one, once per `QUIET` (600) s. Never attributed to a turn-in. Expiry is
+  silent (log `unconfirmed`). Sounds `Media\WorldBuffYell.ogg` / `WorldBuffDrop.ogg` (`PlaySoundFile`, Master; the
+  deploy and the package check take `Media\*.ogg`). The day-one record: `GlassPearlsDB.worldbuffs.log` (10, IDs
+  and numbers) and a ring of the last 8 lines heard (any NPC, 90 s), copied into the log on a window-less receipt
+  to find Might of Stormwind's speaker. `/gpearls worldbuffs [test]`. Unmeasured until checked in game.
 - **`Pearls\JunkSpot.lua`**: junk spotlight (#41, pearl `junkspot`, Loot & Bags > Merchant, **off** by default;
   its panel inside; `show` = `both` | `bags` | `tooltip`). Shows what the junk seller **may** sell: only while
   it sells (`junk` on and its `autoSell`), only bags 0-4, by `Junk.Judge` alone (the equipment-set snapshot

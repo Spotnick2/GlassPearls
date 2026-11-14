@@ -77,5 +77,6 @@ Pearls\BooksFrame.lua
 Pearls\BooksCompass.lua
 Pearls\Books.lua
 Pearls\Untrained.lua
+Pearls\WorldBuffs.lua
 Options.lua
 GlassPearls.lua

@@ -39,6 +39,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #40 | Easy delete (pearl `easydelete`, off by default): DELETE filled in for good items up to a chosen quality | built; the fill from addon code and taint wait for day one |
 | #44 | Quest loot sparkle (pearl `sparkle`, off by default): the outline mode kept off so quest loot sparkles | built; the CVars, their effect and the restore wait for day one |
 | #86 | Untrained gear (pearl `untrained`): gear red only for a skill your class and race can still learn, in yellow with a note | built; the tooltip's red slot-line side and its data colour wait for day one |
+| #104 | World buff announcer (pearl `worldbuffs`): "may drop in about N s" when a turn-in NPC speaks, "is on you" when it lands; Might of Stormwind on landing only | built; the GUIDs, delays, spell IDs and Might of Stormwind's speaker wait for a check in game |
 | #79 | Quest loot sparkle's stars (experimental option `stars`): NodeRadar's twinkling stars on the soft-interact quest object | built; the stars measured 2026-11-06 (with NodeRadar's values); the quest test waits |
 | #90 | The stars' three interact CVars claimed like NodeRadar's marker (two are secure: temps never reached them) | built; the claim at the defaults, the put-back and a full exit wait for a check in game |
 | #45 | Trade summary (pearl `trades`, off by default): the money and items of each completed trade, in chat and a local log | built; the completion message and the event order wait for day one |
@@ -405,6 +406,19 @@ story NPC, a multi-page NPC)
 - [ ] A level requirement or a class restriction shows as its own red line (so it vetoes).
 - [ ] SkillRaceClassInfo's conventions: rows flagged 0x100 really can't be trained (shaman two-handed maces and
       axes); a race's starting skill is known from level 1; plate and mail at 40, polearms at 20.
+
+**World buff announcer (#104)** (in Orgrimmar or Stormwind when a head is turned in; the Crossroads; Booty Bay or
+Yojamba Isle for Zandalar; `/gpearls worldbuffs` right after each)
+- [ ] `CHAT_MSG_MONSTER_YELL` / `_SAY` from a turn-in NPC: the 12th value is a plain `Creature-...` GUID with the
+      NPC ID in its 6th field (the log shows the NPC and event; "unreadable" counts would mean it isn't).
+- [ ] The speakers: Runthak 14392 / Mattingly 14394 (Onyxia), Saurfang 14720 / Stonebridge 14721 (Nefarian),
+      Thrall 4949 and the herald 10719 (Rend), the emissary 15076 (yell) and Molthor 14875 (say) for Zandalar.
+- [ ] The delays from the first line to receipt (the log's "s after the line"): about 14, 12, 6, 30-50.
+- [ ] Which spell ID lands: the classic ID, the 3553xx one or Forever's 1304xxx copy (the log's spell).
+- [ ] **Might of Stormwind's speaker**: the log's "heard before" lines when it lands; then map its (event, NPC)
+      and delay in `WB.BUFFS`.
+- [ ] Do the sounds play (`Media\WorldBuffYell.ogg`, `WorldBuffDrop.ogg`; a client restart after the first install)?
+- [ ] Thrall's other lines: a false warning seen?
 
 **Quest loot sparkle's stars (#79)** (a quest with objects to click; an ordinary herb or chest nearby)
 - [x] Our temps alone make the plate appear: **no, measured 2026-11-06**: `SoftTargetInteract` and

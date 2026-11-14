@@ -885,6 +885,9 @@ WoW.auras, WoW.spellAuraSecret, WoW.auraSounds, WoW.soundsPlayed = {}, {}, {}, {
 Enum.UnitAuraSoundTrigger = { Added = 0, ApplicationsIncreased = 1, Removed = 2 }
 SOUNDKIT = { RAID_WARNING = 8959 }
 function PlaySound(kit, channel) table.insert(WoW.soundsPlayed, { kit, channel }) return true end
+-- PlaySoundFile (70532 dump), for the world buff sounds (#104): recorded in
+-- WoW.soundsPlayed as { path, channel }, like PlaySound.
+function PlaySoundFile(path, channel) table.insert(WoW.soundsPlayed, { path, channel }) return true end
 local auraSoundID = 0
 C_UnitAuras = {
     GetPlayerAuraBySpellID = function(id) return WoW.auras[id] end,
