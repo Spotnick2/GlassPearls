@@ -92,6 +92,17 @@ for _, name in ipairs({ "MarkerStar", "MarkerVapor", "SonarGlow" }) do
     check(f ~= nil, "Media/" .. name .. ".tga is there (the stars' art)")
     if f then f:close() end
 end
+-- Media\*.ogg (the world buff sounds, #104), the same way.
+check(deploy:find('$_.Extension -in ".tga", ".ogg"', 1, true), "deploy.ps1 copies and keeps Media\\*.ogg too")
+check(workflow:find("ls Media/*.ogg | sed 's|^|GlassPearls/|'", 1, true), "the package check expects Media/*.ogg")
+local wbSource = io.open("Pearls/WorldBuffs.lua"):read("*a")
+for _, name in ipairs({ "WorldBuffYell", "WorldBuffDrop" }) do
+    local f = io.open("Media/" .. name .. ".ogg", "rb")
+    check(f ~= nil and f:read(4) == "OggS", "Media/" .. name .. ".ogg is there, an Ogg file (the world buff sounds)")
+    if f then f:close() end
+    check(wbSource:find('"Interface\\\\AddOns\\\\GlassPearls\\\\Media\\\\' .. name .. '.ogg"', 1, true),
+        "  and the pearl plays it by that path")
+end
 
 -- Every .pkgmeta external is a library the TOC loads, and the other way round.
 local pkgmeta = io.open(".pkgmeta"):read("*a")
