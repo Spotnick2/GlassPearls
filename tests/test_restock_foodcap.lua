@@ -131,7 +131,7 @@ GP.Options.Open("cat:Loot & Bags")
 local row
 for _, pl in ipairs(GP.Options._test.pages["cat:Loot & Bags"].placed) do if pl.key == "restock" then row = pl.row end end
 row.gear:GetScript("OnClick")(row.gear)
-local content = GP.Options._test.pages["config:restock"].frame._children[1]
+local content = GP.Options._test.pages["config:restock"].content
 local radios = {}   -- the mode's own "ask" comes first; the food group's three are the last ones
 for _, w in ipairs(content._children) do
     if w.value == "ask" or w.value == "off" or w.value == "buy" then radios[w.value] = w end

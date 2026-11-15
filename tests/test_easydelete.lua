@@ -144,7 +144,7 @@ local row
 for _, pl in ipairs(page.placed) do if pl.key == "easydelete" then row = pl.row end end
 check(row ~= nil, "on the Loot & Bags page")
 row.gear:GetScript("OnClick")(row.gear)
-local content = GP.Options._test.pages["config:easydelete"].frame._children[1]
+local content = GP.Options._test.pages["config:easydelete"].content
 local radios = {}
 for _, w in ipairs(content._children) do
     if w._template and w._template:find("Radio", 1, true) then radios[#radios + 1] = w end

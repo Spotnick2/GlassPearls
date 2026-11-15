@@ -148,12 +148,15 @@ function Frame.IsShown() return f ~= nil and f:IsShown() end
 function Frame.Unlock() if f then f:EnableMouse(true) end end
 
 --------------------------------------------------------------------------------
--- The Configuration Panel: each buff and its sound, the alert, pulse, size, Test.
+-- The Configuration Panel: each buff and its sound on the left, then the note;
+-- the alert, pulse, size and Test on the right.
 
 local LABELS = {
     clearcasting = 12536, innervate = 29166, powerinfusion = 10060,
     protection = 1022, sacrifice = 6940, freedom = 1044,
 }
+
+Frame.PANEL_COLUMN = 320      -- the right column's x: the buffs and their sounds fit left of it
 
 function Frame.Configure(panel, refreshers)
     local KEY, P = "buffs", GP.Pearls
@@ -176,25 +179,26 @@ function Frame.Configure(panel, refreshers)
         panel.entryChecks[i], panel.soundChecks[i] = cb, snd
         last = cb
     end
+    -- The note under the buffs; the alert's look in a column of its own (#107).
+    local note = GP.UI.Label(panel,
+        "The game hides most aura details in combat: the alert shows when the game says the buff is there "
+            .. "(\"~\" marks an estimated time). /gpearls buffs tells what the game allowed.",
+        "GameFontDisableSmall")
+    note:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 4, -10)
+    note:SetWidth(Frame.PANEL_COLUMN - 20)
+    note:SetWordWrap(true)
     local look = GP.UI.Header(panel, "The alert")
-    look:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 4, -14)
+    look:SetPoint("TOPLEFT", panel, "TOPLEFT", Frame.PANEL_COLUMN, 0)
     local alert = check("Show the alerts", "alert")
     alert:SetPoint("TOPLEFT", look, "BOTTOMLEFT", -4, -6)
     local pulse = check("Pulse", "pulse")
-    pulse:SetPoint("LEFT", alert, "LEFT", 220, 0)
-    local sizeLast, _, refreshSize = GP.UI.Radios(panel, alert,
+    pulse:SetPoint("TOPLEFT", alert, "BOTTOMLEFT", 0, -2)
+    local sizeLast, _, refreshSize = GP.UI.Radios(panel, pulse,
         { { "small", "Small" }, { "normal", "Normal" }, { "large", "Large" } },
         function() return P.Setting(KEY, "size") end, function(v) P.SetSetting(KEY, "size", v) end)
     refreshers[#refreshers + 1] = refreshSize
     local test = GP.UI.Button(panel, "Test", 90, function() GP.Buffs.Test() end)
     test:SetPoint("TOPLEFT", sizeLast, "BOTTOMLEFT", 0, -10)
-    local note = GP.UI.Label(panel,
-        "The game hides most aura details in combat: the alert shows when the game says the buff is there "
-            .. "(\"~\" marks an estimated time). /gpearls buffs tells what the game allowed.",
-        "GameFontDisableSmall")
-    note:SetPoint("TOPLEFT", test, "BOTTOMLEFT", 0, -8)
-    note:SetWidth(380)
-    note:SetWordWrap(true)
     panel.test = test
 end
 

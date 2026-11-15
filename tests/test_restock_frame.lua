@@ -109,13 +109,23 @@ GP.Options.Open("cat:Loot & Bags")
 local row
 for _, pl in ipairs(GP.Options._test.pages["cat:Loot & Bags"].placed) do if pl.key == "restock" then row = pl.row end end
 row.gear:GetScript("OnClick")(row.gear)
-local content = GP.Options._test.pages["config:restock"].frame._children[1]
+local content = GP.Options._test.pages["config:restock"].content
 local checks, boxes = {}, {}
 for _, w in ipairs(content._children) do
     if w._template == "UICheckButtonTemplate" then checks[#checks + 1] = w end
     if w._template == "InputBoxTemplate" then boxes[#boxes + 1] = w end
 end
 eq(#checks, 4, "four switches: food, water, ammo, reagents")
+-- The layout (#107): each kind's target on its switch's row, the reagents' switch heading the right column.
+for i = 1, 3 do
+    local p
+    for _, w in ipairs(content._children) do
+        if w._template == "InputBoxTemplate" and w._points[1][2] == checks[i] then p = w._points[1] end
+    end
+    check(p ~= nil and p[1] == "LEFT" and p[3] == "RIGHT", "  target " .. i .. " on its switch's row")
+end
+eq(checks[4]._points[1][2], content, "the reagents' switch anchored to the panel")
+eq(checks[4]._points[1][4], GP.RestockFrame.PANEL_COLUMN - 4, "  at the right column")
 checks[1]:SetChecked(false)
 checks[1]:GetScript("OnClick")(checks[1])
 eq(P.Setting("restock", "food"), false, "  the first: food")

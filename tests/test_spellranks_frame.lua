@@ -182,7 +182,7 @@ for _, pl in ipairs(page.placed) do if pl.key == "spellranks" then prow = pl.row
 check(prow ~= nil, "on the Combat page")
 eq(prow.label:GetText(), "Low spell ranks", "  switches live (no *)")
 prow.gear:GetScript("OnClick")(prow.gear)
-local content = GP.Options._test.pages["config:spellranks"].frame._children[1]
+local content = GP.Options._test.pages["config:spellranks"].content
 local checks, buttons = {}, {}
 for _, w in ipairs(content._children) do
     if w._template == "UICheckButtonTemplate" then checks[#checks + 1] = w end

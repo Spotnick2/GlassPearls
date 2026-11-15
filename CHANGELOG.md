@@ -6,7 +6,9 @@
   Settings), the features in two columns with one checkbox each, a gear beside a feature with
   options that opens its own panel (Reset, Help, Back to Main Menu), a `*` on a feature that needs
   a reload to switch off and a Reload button while one waits, and a search box over every feature.
-  Esc closes it; Esc > Options > AddOns > Glass Pearls has a button to it.
+  Esc closes it; Esc > Options > AddOns > Glass Pearls has a button to it. A feature's panel
+  that is taller than the window scrolls; Buff alerts and Restock are laid out in two columns
+  so they fit.
 - **WoW Forever's own look** by default. With Glass UI installed, Glass Pearls follows its glass
   (Settings > "Use Glass UI appearance" turns that off).
 - Each feature is switched on or off on its own, and only your choices are saved.

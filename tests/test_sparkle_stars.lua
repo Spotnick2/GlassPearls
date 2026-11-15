@@ -178,7 +178,7 @@ local row
 for _, pl in ipairs(page.placed) do if pl.key == "sparkle" then row = pl.row end end
 check(row ~= nil and row.gear ~= nil, "the quest loot sparkle has a gear now")
 row.gear:GetScript("OnClick")(row.gear)
-local content = GP.Options._test.pages["config:sparkle"].frame._children[1]
+local content = GP.Options._test.pages["config:sparkle"].content
 local radios = {}
 for _, w in ipairs(content._children) do if w.value then radios[#radios + 1] = w end end
 eq(#radios, 3, "three choices")

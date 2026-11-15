@@ -54,7 +54,8 @@ order) and before the options window and bootstrap.
 - **`Compat.lua`**: `GlassPearls.API`, the only route to client APIs that moved or may be absent:
   `IsSecret`, `RegisterEvents` (reports failures), `NoteCombat` / `InCombat`, `Fail(key, err)` (the
   **one** failure recorder, read by `/gpearls failures`), `AddOnVersion`, `ClientBuild`,
-  `SafeFrame` (a template and whether it applied, read raw); `MEASURED_ON_BUILD`. A subset of
+  `SafeFrame` (a template and whether it applied, read raw), `AutoHideScrollBar` (GlassChat's);
+  `MEASURED_ON_BUILD`. A subset of
   GlassMail's; lift more from there when a pearl needs it.
 - **`Theme.lua`**: the look, fixed once at `ADDON_LOADED`. **WoW Forever by default**
   (`DialogBorderDarkTemplate`, Blizzard's fonts and widgets); **glass only from Glass UI**: with
@@ -65,7 +66,7 @@ order) and before the options window and bootstrap.
   `Window`, `Reading`, `Control`, `Accent` (`AccentRGB` for a texture's tint), `NewGlass`; `Active`,
   `Following`, `Glass`.
 - **`UI.lua`**: the shared widgets (`Label`, `Header`, `Tooltip`, `Button`, `Check`, `Gear`,
-  `Radios`, `Number`, `Search`, `SetList`: a paged list of one sync set), Blizzard templates in both looks; a
+  `Radios` (stacked, or `{ across = true }` on one row), `Number`, `Search`, `SetList`: a paged list of one sync set), Blizzard templates in both looks; a
   value control returns a `refresh`.
 - **`Pearls.lua`**: the registry. `Pearls.Register{ key, name, desc, default, category, section,
   Enable, Disable, defaults, configure, help, onReset, onSettingChanged, Start }` (`onSettingChanged` after any
@@ -705,6 +706,14 @@ order) and before the options window and bootstrap.
   while a change waits, a search box. Built on first open, re-read on every show; Esc through
   `table.insert(UISpecialFrames, ...)` (never reassign it). Reload calls `ReloadUI()` from its own
   click (unmeasured: if `ADDON_ACTION_FORBIDDEN` names it, "Type /reload" replaces the button).
+  **A Configuration Panel scrolls only when taller than its space** (#107): `page.content` (what
+  `configure` gets, and what tests read) sits in a holder, the child of a clipping
+  `UIPanelScrollFrameTemplate` that starts `PANEL_INSET` (8) above and left of it (for a checkbox
+  placed 4 left of its header) and ends `PANEL_BAR` (22) from the right and `PANEL_BOTTOM` (70) above
+  Reset and Help; `FitPanel` sizes the holder to the lowest shown part (nested frames included,
+  never shorter than the view, left alone while the layout reads nil), as the last refresher and a
+  frame later; the bar shows only with a range. Lay a panel out to fit (about 310 tall, two columns
+  of about 300 and 210 wide): the scroll is the safety net (a rogue's nine reagents, a font).
   Plus a small Esc > Options > AddOns page with an "Open Glass Pearls" button.
 - **`GlassPearls.lua`**: bootstrap (saved settings, the look at `ADDON_LOADED`, login build
   warning), `GP.Settings`, and `/gpearls` (`/glasspearls`): no argument toggles the window. A pearl's

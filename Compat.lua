@@ -79,6 +79,20 @@ function API.SafeFrame(ftype, parent, template, proof, name)
     return CreateFrame(ftype, name, parent), false
 end
 
+-- UIPanelScrollFrameTemplate shows its bar even with nothing to scroll
+-- (GlassChat's API.AutoHideScrollBar, seen in GlassPanel #36): show it only
+-- while the content is taller than the view, the range floored like the
+-- template's own handler (SecureScrollTemplates.lua).
+function API.AutoHideScrollBar(scroll)
+    local bar = scroll.ScrollBar
+    if not bar then return end
+    local function sync(self, _, yrange)
+        bar:SetShown(math.floor(yrange or self:GetVerticalScrollRange() or 0) > 0)
+    end
+    scroll:HookScript("OnScrollRangeChanged", sync)
+    sync(scroll)
+end
+
 -- An addon's TOC Version, or nil (absent API, error, secret, not a string).
 function API.AddOnVersion(addon)
     local get = C_AddOns and C_AddOns.GetAddOnMetadata

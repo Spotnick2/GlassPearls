@@ -27,7 +27,7 @@ check(row ~= nil, "on the Loot & Bags page")
 eq(row.label:GetText(), "Sell junk & repair", "  switches live (no *)")
 row.gear:GetScript("OnClick")(row.gear)
 local cfg = GP.Options._test.pages["config:junk"]
-local content = cfg.frame._children[1]
+local content = cfg.content
 local checks, radios = {}, {}
 for _, w in ipairs(content._children) do
     if w._template == "UICheckButtonTemplate" then checks[#checks + 1] = w end

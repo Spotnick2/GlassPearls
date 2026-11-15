@@ -199,7 +199,7 @@ GP.Options.Open("cat:Interface")
 local row
 for _, pl in ipairs(GP.Options._test.pages["cat:Interface"].placed) do if pl.key == "landmarks" then row = pl.row end end
 row.gear:GetScript("OnClick")(row.gear)
-local content = GP.Options._test.pages["config:landmarks"].frame._children[1]
+local content = GP.Options._test.pages["config:landmarks"].content
 local checks, radios = {}, {}
 for _, w in ipairs(content._children) do
     if w._template == "UICheckButtonTemplate" then checks[#checks + 1] = w end

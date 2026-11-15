@@ -126,70 +126,80 @@ function Frame.Get() return f end
 --------------------------------------------------------------------------------
 -- The Configuration Panel
 
+Frame.PANEL_COLUMN = 300      -- the right column's x (#107): a reagent's box and name fit right of it
+
 function Frame.Configure(panel, refreshers)
     local P, key = GP.Pearls, "restock"
     local function get(name) return function() return P.Setting(key, name) end end
     local function put(name) return function(v) P.SetSetting(key, name, v) end end
-    local function check(anchor, text, name, x, y)
-        local cb, refresh = GP.UI.Check(panel, text, get(name), put(name))
+    local function check(anchor, text, name, x, y, tip)
+        local cb, refresh = GP.UI.Check(panel, text, get(name), put(name), tip)
         cb:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", x or 0, y or -4)
         refreshers[#refreshers + 1] = refresh
         return cb
     end
-    local function number(anchor, text, name, lo, hi, x, y)
-        local box, refresh = GP.UI.Number(panel, text, get(name), put(name), lo, hi)
-        box:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", x or 0, y or -6)
+    local function number(text, name, lo, hi, width)
+        local box, refresh = GP.UI.Number(panel, text, get(name), put(name), lo, hi, width)
         refreshers[#refreshers + 1] = refresh
         return box
     end
+    -- A kind's switch and its target on one row (#107): the box's label says what it keeps.
+    local function kind(anchor, name, title, text, hi, x, y)
+        local cb = check(anchor, "", name, x, y, { title = title, tip = "Off: never bought." })
+        local box = number(text, name .. "Target", 0, hi)
+        box:SetPoint("LEFT", cb, "RIGHT", 8, 0)
+        return cb
+    end
 
-    -- Left: what, how much, how.
+    -- Left: what, how, how much.
     local head = GP.UI.Header(panel, "What to buy")
     head:SetPoint("TOPLEFT", panel, "TOPLEFT", 0, 0)
-    local a = check(head, "Food", "food", -4, -6)
-    a = number(a, "food to keep", "foodTarget", 0, 200, 30, -2)
-    a = check(a, "Water (if you use mana)", "water", -30)
-    a = number(a, "water to keep", "waterTarget", 0, 200, 30, -2)
-    a = check(a, "Ammunition (hunters)", "ammo", -30)
-    a = number(a, "arrows or bullets to keep", "ammoTarget", 0, 5000, 30, -2)
-    a = check(a, "Class reagents (set each on the right)", "reagents", -30)
+    local a = kind(head, "food", "Food", "food to keep", 200, -4, -6)
+    a = kind(a, "water", "Water (if you use mana)", "water to keep (mana users)", 200, 0, -2)
+    a = kind(a, "ammo", "Ammunition (hunters)", "ammunition to keep (hunters)", 5000, 0, -2)
 
     local how = GP.UI.Header(panel, "How")
     how:SetPoint("TOPLEFT", a, "BOTTOMLEFT", 4, -12)
     local last, _, refreshMode = GP.UI.Radios(panel, how,
-        { { "auto", "Buy when the merchant opens" }, { "ask", "Ask first" } }, get("mode"), put("mode"))
+        { { "auto", "When the merchant opens" }, { "ask", "Ask first" } }, get("mode"), put("mode"), { across = true })
     refreshers[#refreshers + 1] = refreshMode
 
     -- Below the level cap (#84): food asks first by default.
     local cap = GP.UI.Header(panel, "Food below the level cap")
     cap:SetPoint("TOPLEFT", last, "BOTTOMLEFT", -4, -12)
     local capLast, _, refreshCap = GP.UI.Radios(panel, cap,
-        { { "ask", "Ask first" }, { "off", "Don't buy food" }, { "buy", "Buy as above" } },
-        get("foodUnderCap"), put("foodUnderCap"))
+        { { "ask", "Ask first" }, { "off", "Don't buy" }, { "buy", "As usual" } },
+        get("foodUnderCap"), put("foodUnderCap"), { across = true })
     refreshers[#refreshers + 1] = refreshCap
 
     local limits = GP.UI.Header(panel, "Each visit, at most")
     limits:SetPoint("TOPLEFT", capLast, "BOTTOMLEFT", -4, -12)
-    a = number(limits, "% of your money", "budget", 10, 100, 6, -8)
-    number(a, "gold", "maxSpend", 1, 100)
+    local budget = number("% of your money", "budget", 10, 100, 40)
+    budget:SetPoint("TOPLEFT", limits, "BOTTOMLEFT", 6, -8)
+    number("gold", "maxSpend", 1, 100, 40):SetPoint("LEFT", budget.label, "RIGHT", 16, 0)
 
     -- Right: this class's reagents.
     local class = R().Class()
     local mine = class and GP.RestockData and GP.RestockData.reagents[class]
-    local rhead = GP.UI.Header(panel, "Reagents to keep")
-    rhead:SetPoint("TOPLEFT", panel, "TOPLEFT", 300, 0)
+    -- The reagents' switch heads the column (#107).
+    local rhead, refreshReagents = GP.UI.Check(panel, "Class reagents to keep", get("reagents"), put("reagents"))
+    rhead:SetPoint("TOPLEFT", panel, "TOPLEFT", Frame.PANEL_COLUMN - 4, 2)
+    rhead.label:SetFontObject("GameFontNormal")
+    GP.Theme.Accent(rhead.label)
+    refreshers[#refreshers + 1] = refreshReagents
     local ids = {}
     for item in pairs(mine or {}) do ids[#ids + 1] = item end
     table.sort(ids)
     local ra = rhead
     for i, item in ipairs(ids) do
-        ra = number(ra, R().Name(item) .. (R().BuffyHas(item) and " (Buffy)" or ""), "r" .. item, 0, 200,
-            i == 1 and 6 or 0, i == 1 and -8 or -6)
+        local box = number(R().Name(item) .. (R().BuffyHas(item) and " (Buffy)" or ""), "r" .. item, 0, 200, 40)
+        box:SetPoint("TOPLEFT", ra, "BOTTOMLEFT", i == 1 and 10 or 0, i == 1 and -4 or -6)
+        ra = box
     end
     local note = GP.UI.Label(panel, #ids == 0 and "Your class has no reagents to restock."
         or "Only for the spells you know, at your highest rank. 0: never. \"(Buffy)\": Buffy restocks it.",
         "GameFontDisableSmall")
-    note:SetPoint("TOPLEFT", ra, "BOTTOMLEFT", ra == rhead and 0 or -6, -10)
-    note:SetWidth(270)
+    note:SetPoint("TOPLEFT", ra, "BOTTOMLEFT", ra == rhead and 4 or -6, -10)
+    note:SetWidth(200)
     note:SetWordWrap(true)
 end
