@@ -73,7 +73,7 @@ local row
 for _, pl in ipairs(page.placed) do if pl.key == "buffs" then row = pl.row end end
 check(row ~= nil, "on the Combat page")
 row.gear:GetScript("OnClick")(row.gear)
-local content = GP.Options._test.pages["config:buffs"].frame._children[1]
+local content = GP.Options._test.pages["config:buffs"].content
 eq(#content.entryChecks, #B.ENTRIES, "a switch per buff")
 eq(#content.soundChecks, #B.ENTRIES, "  and its sound")
 eq(content.entryChecks[2].label:GetText(), "Innervate", "  named by the client")
@@ -86,6 +86,12 @@ eq(P.Setting("buffs", "clearcastingSound"), true, "Clearcasting's sound switch")
 local radios = 0
 for _, w in ipairs(content._children) do if w._template == "UIRadioButtonTemplate" then radios = radios + 1 end end
 eq(radios, 3, "three sizes")
+-- The layout (#107): the buffs on the left, the alert's look in a column of its own.
+local function x(w) local p = w._points[1]; return p and p[4] end
+local look
+for _, r in ipairs(content._regions) do if r._text == "The alert" then look = r end end
+check(look ~= nil and look._points[1][2] == content and x(look) == BF.PANEL_COLUMN, "the alert's header heads the right column")
+eq(x(content.soundChecks[1]) + 26 + 60 < BF.PANEL_COLUMN, true, "  right of the sounds")
 P.ResetSettings("buffs")
 content.test:GetScript("OnClick")(content.test)
 check(BF.IsShown() and B.state.test, "Test shows the alerts")

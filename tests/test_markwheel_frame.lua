@@ -190,7 +190,7 @@ local row
 for _, pl in ipairs(page.placed) do if pl.key == "markwheel" then row = pl.row end end
 check(row ~= nil, "on the Social page")
 row.gear:GetScript("OnClick")(row.gear)
-local content = GP.Options._test.pages["config:markwheel"].frame._children[1]
+local content = GP.Options._test.pages["config:markwheel"].content
 local checks = {}
 for _, w in ipairs(content._children) do
     if w._template == "UICheckButtonTemplate" then checks[#checks + 1] = w end

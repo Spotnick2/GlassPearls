@@ -93,7 +93,7 @@ row.gear:GetScript("OnClick")(row.gear)
 local cfg = GP.Options._test.pages["config:bagsfull"]
 check(cfg and cfg.frame:IsShown(), "the gear opens its Configuration Panel")
 -- Find the panel's controls (the content frame the configure callback built).
-local content = cfg.frame._children[1]
+local content = cfg.content
 local radios, checks = {}, {}
 for _, w in ipairs(content._children) do
     if w._template == "UIRadioButtonTemplate" then radios[#radios + 1] = w end

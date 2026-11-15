@@ -233,6 +233,69 @@ end
 
 --------------------------------------------------------------------------------
 -- A pearl's Configuration Panel.
+--
+-- The panel (`content`) sits in a scroll frame that scrolls only when the
+-- panel is taller than its space (#107): the scroll child's height is
+-- measured from what is shown in the panel, on every show and a frame later
+-- (text has its size then), so a panel that fits looks as before and the bar
+-- stays hidden. The scroll frame clips, so it starts PANEL_INSET above and
+-- left of the panel, for what a panel places past its own edge (a checkbox 4
+-- left of its header); the bar takes PANEL_BAR on the right.
+
+Options.PANEL_BOTTOM, Options.PANEL_INSET, Options.PANEL_BAR = 70, 8, 22
+
+-- The lowest bottom of anything shown in `f`, its own children's included.
+local function lowest(f, low)
+    for _, r in ipairs({ f:GetRegions() }) do
+        if r:IsShown() then
+            local b = r:GetBottom()
+            if type(b) == "number" and b < low then low = b end
+        end
+    end
+    for _, c in ipairs({ f:GetChildren() }) do
+        if c:IsShown() then
+            local b = c:GetBottom()
+            if type(b) == "number" and b < low then low = b end
+            low = lowest(c, low)
+        end
+    end
+    return low
+end
+
+-- The scroll child's height: the panel's own, measured, or the view's when
+-- shorter or unreadable (a layout not resolved yet).
+function Options.FitPanel(page)
+    local scroll, holder = page.scroll, page.holder
+    if not scroll then return end
+    local view, top = scroll:GetHeight(), holder:GetTop()
+    if type(view) ~= "number" or view <= 0 then return end
+    local need = 0
+    if type(top) == "number" then need = top - lowest(page.content, top) + Options.PANEL_INSET * 2 end
+    holder:SetHeight(math.max(view, need))
+end
+
+local function panelArea(page)
+    local inset = Options.PANEL_INSET
+    local scroll = CreateFrame("ScrollFrame", nil, page.frame, "UIPanelScrollFrameTemplate")
+    scroll:SetPoint("TOPLEFT", page.frame, "TOPLEFT", -inset, inset)
+    scroll:SetPoint("BOTTOMRIGHT", page.frame, "BOTTOMRIGHT", -Options.PANEL_BAR, Options.PANEL_BOTTOM)
+    local holder = CreateFrame("Frame", nil, scroll)
+    holder:SetSize(1, 1)
+    scroll:SetScrollChild(holder)
+    local content = CreateFrame("Frame", nil, holder)
+    content:SetPoint("TOPLEFT", holder, "TOPLEFT", inset, -inset)
+    content:SetPoint("TOPRIGHT", holder, "TOPRIGHT", 0, -inset)
+    local function size()
+        local w, h = scroll:GetWidth(), scroll:GetHeight()
+        if type(w) == "number" and w > 0 then holder:SetWidth(w) end
+        if type(h) == "number" and h > inset then content:SetHeight(h - inset) end
+    end
+    scroll:HookScript("OnSizeChanged", function() size(); Options.FitPanel(page) end)
+    size()
+    API.AutoHideScrollBar(scroll)
+    page.scroll, page.holder, page.content = scroll, holder, content
+    return content
+end
 
 function Options.ShowConfig(key)
     local def = GP.Pearls.Get(key)
@@ -240,13 +303,16 @@ function Options.ShowConfig(key)
     local name = "config:" .. key
     if not pages[name] then
         local page = newPage(name, def.name, function(page)
-            local content = CreateFrame("Frame", nil, page.frame)
-            content:SetPoint("TOPLEFT", page.frame, "TOPLEFT", 0, 0)
-            content:SetPoint("BOTTOMRIGHT", page.frame, "BOTTOMRIGHT", 0, 70)
+            local content = panelArea(page)
             local ok, err = pcall(def.configure, content, page.refreshers)
             if not ok then
                 API.Fail("pearl " .. key .. " configure", err)
                 GP.UI.Label(content, "This panel failed to build: /gpearls failures"):SetPoint("TOPLEFT", content, "TOPLEFT")
+            end
+            -- Last of the refreshers, so it measures what they showed; again a frame later.
+            page.refreshers[#page.refreshers + 1] = function()
+                Options.FitPanel(page)
+                C_Timer.After(0, function() Options.FitPanel(page) end)
             end
             page.help = GP.UI.Label(page.frame, def.help or def.desc or "", "GameFontHighlight")
             page.help:SetPoint("BOTTOMLEFT", page.frame, "BOTTOMLEFT", 0, 36)
@@ -255,7 +321,7 @@ function Options.ShowConfig(key)
             page.help:Hide()
             page.reset = GP.UI.Button(page.frame, "Reset", 90, function()
                 GP.Pearls.ResetSettings(key)
-                for _, refresh in ipairs(page.refreshers) do refresh() end
+                for _, refresh in ipairs(page.refreshers) do refresh() end   -- the fit included
             end)
             page.reset:SetPoint("BOTTOMLEFT", page.frame, "BOTTOMLEFT", 0, 0)
             page.helpButton = GP.UI.Button(page.frame, "Help", 90, function() page.help:SetShown(not page.help:IsShown()) end)

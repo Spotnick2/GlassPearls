@@ -358,7 +358,7 @@ GP.Options.Open("cat:Combat")
 local row
 for _, pl in ipairs(GP.Options._test.pages["cat:Combat"].placed) do if pl.key == "training" then row = pl.row end end
 row.gear:GetScript("OnClick")(row.gear)
-local content = GP.Options._test.pages["config:training"].frame._children[1]
+local content = GP.Options._test.pages["config:training"].content
 local checks = {}
 for _, w in ipairs(content._children) do if w._template == "UICheckButtonTemplate" then checks[#checks + 1] = w end end
 eq(#checks, 6, "six switches")

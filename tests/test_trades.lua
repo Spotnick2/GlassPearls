@@ -228,7 +228,7 @@ local row
 for _, pl in ipairs(page.placed) do if pl.key == "trades" then row = pl.row end end
 check(row ~= nil, "on the Social page")
 row.gear:GetScript("OnClick")(row.gear)
-local content = GP.Options._test.pages["config:trades"].frame._children[1]
+local content = GP.Options._test.pages["config:trades"].content
 local clear, body
 for _, w in ipairs(content._children) do
     if w.GetText and w:GetText() == "Clear" then clear = w end
@@ -237,6 +237,14 @@ for _, r in ipairs(content._regions or {}) do
     if r.GetText and type(r:GetText()) == "string" and r:GetText():find("Buyer 12", 1, true) then body = r end
 end
 check(body ~= nil, "the panel lists them")
+-- #107: the log wraps inside the scroll view, which scrolls only vertically.
+check(body:GetWidth() == T.LOG_WIDTH and T.LOG_WIDTH <= 504, "  the layout unread: wraps inside the view's 504 px")
+content._width = 470
+GP.Options.ShowConfig("trades")
+eq(body:GetWidth(), 462, "  the panel's width read: 4 px inside each side")
+content._width = 0
+content:GetScript("OnSizeChanged")(content, 0, 0)
+eq(body:GetWidth(), T.LOG_WIDTH, "  a resize unread: the fallback")
 clear:GetScript("OnClick")(clear)
 eq(#GP.charDB.trades, 0, "  Clear empties the log")
 

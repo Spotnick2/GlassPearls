@@ -58,7 +58,7 @@ local row
 for _, pl in ipairs(page.placed) do if pl.key == "fixate" then row = pl.row end end
 check(row ~= nil, "on the Combat page")
 row.gear:GetScript("OnClick")(row.gear)
-local content = GP.Options._test.pages["config:fixate"].frame._children[1]
+local content = GP.Options._test.pages["config:fixate"].content
 local checks, radios = {}, {}
 for _, w in ipairs(content._children) do
     if w._template == "UICheckButtonTemplate" then checks[#checks + 1] = w end

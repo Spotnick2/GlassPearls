@@ -106,10 +106,13 @@ local function radioButton(parent, text)
     return rb
 end
 
--- Mutually exclusive choices stacked under `anchor`: { {value, text}, ... }.
--- Returns the last button (to anchor what follows), the group and its refresh.
--- The whole group re-syncs after a click, so a refused choice snaps back.
-function UI.Radios(parent, anchor, choices, get, set)
+-- Mutually exclusive choices stacked under `anchor`: { {value, text}, ... };
+-- with opts.across, on one row under it instead, each after the previous
+-- one's label (#107). Returns the button to anchor what follows (the last;
+-- across, the first, the row's left), the group and its refresh. The whole
+-- group re-syncs after a click, so a refused choice snaps back.
+function UI.Radios(parent, anchor, choices, get, set, opts)
+    local across = opts and opts.across
     local group = {}
     local function refresh()
         local current = get()
@@ -119,12 +122,18 @@ function UI.Radios(parent, anchor, choices, get, set)
     for _, c in ipairs(choices) do
         local rb = radioButton(parent, c[2])
         rb.value = c[1]
-        rb:SetPoint("TOPLEFT", prev, "BOTTOMLEFT", prev == anchor and 4 or 0, prev == anchor and -8 or -6)
+        if prev == anchor then
+            rb:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 4, -8)
+        elseif across then
+            rb:SetPoint("LEFT", prev.text or prev.label, "RIGHT", 14, 0)
+        else
+            rb:SetPoint("TOPLEFT", prev, "BOTTOMLEFT", 0, -6)
+        end
         rb:SetScript("OnClick", function() set(c[1]); refresh() end)
         group[#group + 1] = rb
         prev = rb
     end
-    return prev, group, refresh
+    return across and group[1] or prev, group, refresh
 end
 
 -- A whole number with its label after the box (InputBoxTemplate). Enter or
