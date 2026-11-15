@@ -369,12 +369,13 @@ local function settingsPage()
         local look = GP.UI.Header(f, "Appearance")
         look:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
         local last = look
+        local refreshLook   -- below: the radios follow the box at once
         if GP.Theme.SuiteAvailable() then
             local cb, refresh = GP.UI.Check(f, "Use Glass UI appearance",
                 function() return GP.db.useGlassUI ~= false end,
                 function(on) GP.Settings.SetUseGlassUI(on) end,
                 { tip = "Glass UI's glass, tint and accent instead of the look chosen below. Takes effect after a reload.",
-                  onChange = refreshReload })
+                  onChange = function() refreshReload(); refreshLook() end })
             cb:SetPoint("TOPLEFT", look, "BOTTOMLEFT", -4, -6)
             page.refreshers[#page.refreshers + 1] = refresh
             page.useGlass = cb
@@ -387,13 +388,19 @@ local function settingsPage()
         if last ~= look then first:ClearAllPoints(); first:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 4, -4) end
         local note = GP.UI.Label(f, "", "GameFontDisable")
         note:SetPoint("TOPLEFT", first, "BOTTOMLEFT", 0, -6)
-        page.refreshers[#page.refreshers + 1] = function()
+        -- Greyed out, labels too, while the Glass UI box is ticked (the owner).
+        refreshLook = function()
             refreshRadios()
-            local driven = GP.Theme.Following()
-            for _, rb in ipairs(radios) do rb:SetEnabled(not driven) end
+            local driven = GP.Theme.SuiteAvailable() and GP.db.useGlassUI ~= false
+            for _, rb in ipairs(radios) do
+                rb:SetEnabled(not driven)
+                local label = rb.text or rb.label
+                if label then label:SetFontObject(driven and "GameFontDisable" or "GameFontHighlight") end
+            end
             note:SetText(driven and "Set in Glass UI while Glass Pearls follows it."
                 or "The look of Glass Pearls' windows without Glass UI. Takes effect after a reload.")
         end
+        page.refreshers[#page.refreshers + 1] = refreshLook
         page.lookRadios, page.lookNote = radios, note
         last = note
         local share = GP.UI.Header(f, "Your other accounts")

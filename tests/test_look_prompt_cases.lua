@@ -98,11 +98,27 @@ WoW.advance(10.5)
 check(not shown(), "following Glass UI: not asked")
 GP.Settings.SetLook("pearl")
 check(not GP.Options.LookPending(), "  an own look chosen while following: no reload waiting")
+GP.Theme.Following = following
+
+-- The radios follow the "Use Glass UI appearance" box at once, labels greyed too (the owner).
+WoW.installGlassUI({})
+GP.db.useGlassUI = true
 O.Open("settings")
 local page = O._test.pages["settings"]
-check(not page.lookRadios[1]:IsEnabled() and not page.lookRadios[2]:IsEnabled(), "  the radios disabled")
+local radios, box = page.lookRadios, page.useGlass
+local function label(rb) return rb.text or rb.label end
+check(box and box:GetChecked(), "the Glass UI box, ticked")
+check(not radios[1]:IsEnabled() and not radios[2]:IsEnabled(), "  the radios disabled")
+eq(label(radios[1])._fontObject, "GameFontDisable", "  their labels greyed")
 check(page.lookNote:GetText():find("Set in Glass UI", 1, true), "  'Set in Glass UI'")
+box:SetChecked(false)
+box:GetScript("OnClick")(box)
+check(radios[1]:IsEnabled() and radios[2]:IsEnabled(), "unticked: the radios enabled at once")
+eq(label(radios[2])._fontObject, "GameFontHighlight", "  their labels bright")
+check(page.lookNote:GetText():find("without Glass UI", 1, true), "  the note says so")
+box:SetChecked(true)
+box:GetScript("OnClick")(box)
+check(not radios[2]:IsEnabled(), "ticked again: disabled again")
 O._test.win():Hide()
-GP.Theme.Following = following
 
 done("test_look_prompt_cases")

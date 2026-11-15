@@ -766,7 +766,8 @@ order) and before the options window and bootstrap.
   frame later; the bar shows only with a range. Lay a panel out to fit (about 310 tall, two columns
   of about 300 and 210 wide): the scroll is the safety net (a rogue's nine reagents, a font).
   Plus a small Esc > Options > AddOns page with an "Open Glass Pearls" button. **The look (#119):**
-  Settings > Appearance has radios WoW Forever / Pearl (disabled with "Set in Glass UI" while following);
+  Settings > Appearance has radios WoW Forever / Pearl (greyed out, labels too, with "Set in Glass UI" while
+  the "Use Glass UI appearance" box is ticked, at once when it changes);
   `LookPending` is the Glass UI switch changed since load, or, while not following, the own look (nil
   read as Forever) differing from the one at load. **The look question** (`GlassPearlsLookPrompt`): asked
   while no look is chosen and Glass UI isn't driving it (existing installs once too), 10 s after the
