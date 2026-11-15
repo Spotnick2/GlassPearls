@@ -95,7 +95,12 @@ rejects("GPS1\nV\tnodot\t1\tP-1\t1\ti3", "an id without a section")
 rejects("GPS1\nV\t" .. string.rep("a", 30) .. ".bc\t1\tP-1\t1\ti3", "an id over 32 bytes")
 rejects("GPS1\nV\tbf.size\t1x\tP-1\t1\ti3", "a time that isn't digits")
 rejects("GPS1\nV\tbf.size\t1\tP 1\t1\ti3", "an origin with a space")
-rejects("GPS1\nV\tbf.size\t1\t" .. string.rep("P", 33) .. "\t1\ti3", "an origin over 32 bytes")
+-- #112: origins are at most 24 bytes (a Forever player GUID is 20).
+eq(SS.ORIGIN_MAX, 24, "an origin is at most 24 bytes")
+local O24 = "Player-6796-" .. string.rep("A", 12)
+check(C.Decode("GPS1\nV\tbf.size\t1\t" .. O24 .. "\t1\ti3") ~= nil, "a 24-byte origin is accepted")
+rejects("GPS1\nV\tbf.size\t1\t" .. O24 .. "A\t1\ti3", "an origin over 24 bytes")
+rejects("GPS1\nS\tbf.keep\nM\t5\t1\t1\t" .. O24 .. "A\t1", "a member's origin over 24 bytes")
 rejects("GPS1\nV\tbf.size\t1\tP-1\t1\tq3", "an unknown value tag")
 rejects("GPS1\nV\tbf.mode\t1\tP-1\t1\tea|cffff", "a value with |")
 rejects("GPS1\nV\tbf.mode\t1\tP-1\t1\te" .. string.rep("x", 65), "a value over 64 bytes")
@@ -113,6 +118,9 @@ rejects(table.concat(lines, "\n"), "more set entries than the cap")
 lines = { "GPS1" }
 for i = 1, SS.KNOWN_MAX + SS.FOREIGN_MAX + 1 do lines[#lines + 1] = "V\tk.k" .. i .. "\t1\tP-1\t1\tb1" end
 rejects(table.concat(lines, "\n"), "more values than the caps")
+eq(SS.KNOWN_MAX + SS.FOREIGN_MAX, 232, "  the caps: 200 known and 32 unknown keys (#112)")
+table.remove(lines)
+check(C.Decode(table.concat(lines, "\n")) ~= nil, "  exactly at the caps: accepted")
 rejects(string.rep("x", SS.WIRE_MAX + 1), "over the wire ceiling")
 rejects(WoW.Secret("payload"), "a secret")
 
@@ -183,5 +191,16 @@ check(junk.stamps["on.flag"] and not junk.stamps["bad id"] and not junk.stamps["
 check(junk.sets["bf.keep"][5] and not junk.sets["bf.keep"][6] and not junk.sets["bad set"], "Clean: sets")
 check(junk.foreign["n.k"] and not junk.foreign["n.j"], "Clean: unknown keys")
 eq(junk.seq, 0, "Clean: the counter")
+-- #112's documented break: a saved origin over 24 bytes is dropped at load,
+-- a stamp, a tombstone and an unknown key alike; 24 bytes stay.
+local long = "Player-6796-" .. string.rep("A", 13)
+local old = C.Clean({
+    stamps = { ["on.flag"] = { t = 5, o = long, s = 1 }, ["bf.size"] = { t = 5, o = O24, s = 1 } },
+    sets = { ["bf.keep"] = { [5] = { a = 0, t = 5, o = long, s = 1 }, [6] = { a = 0, t = 5, o = O24, s = 1 } } },
+    foreign = { ["n.k"] = { v = "b1", t = 5, o = long, s = 1 }, ["n.j"] = { v = "b1", t = 5, o = O24, s = 1 } },
+})
+check(not old.stamps["on.flag"] and old.stamps["bf.size"], "Clean: a 25-byte origin's stamp dropped, 24 kept")
+check(not old.sets["bf.keep"][5] and old.sets["bf.keep"][6], "Clean: a 25-byte origin's tombstone dropped, 24 kept")
+check(not old.foreign["n.k"] and old.foreign["n.j"], "Clean: a 25-byte origin's unknown key dropped, 24 kept")
 
 done("test_sync_core")
