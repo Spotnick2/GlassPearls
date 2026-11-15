@@ -412,6 +412,9 @@ story NPC, a multi-page NPC)
 Yojamba Isle for Zandalar; `/gpearls worldbuffs` right after each)
 - [ ] `CHAT_MSG_MONSTER_YELL` / `_SAY` from a turn-in NPC: the 12th value is a plain `Creature-...` GUID with the
       NPC ID in its 6th field (the log shows the NPC and event; "unreadable" counts would mean it isn't).
+      2026-11-14 (#106): Warchief's Blessing landed in Orgrimmar with **no line heard** in the 90 s before it (an
+      empty ring, from a build that kept only readable lines). The ring now keeps unreadable lines with why: the
+      next window-less receipt tells an unreadable sender from no line at all.
 - [ ] The speakers: Runthak 14392 / Mattingly 14394 (Onyxia), Saurfang 14720 / Stonebridge 14721 (Nefarian),
       Thrall 4949 and the herald 10719 (Rend), the emissary 15076 (yell) and Molthor 14875 (say) for Zandalar.
 - [ ] The delays from the first line to receipt (the log's "s after the line"): about 14, 12, 6, 30-50.

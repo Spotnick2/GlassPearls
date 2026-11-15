@@ -39,6 +39,7 @@ local function lastLog() local log = GP.db.worldbuffs.log; return log[#log] end
 local function clean()
     for id in pairs(WoW.auras) do WoW.auras[id] = nil end
     WoW.spellAuraSecret = {}
+    for k in pairs(S.quiet) do S.quiet[k] = nil end
     WoW.fire("PLAYER_LEAVING_WORLD")
     WoW.fire("PLAYER_ENTERING_WORLD", false, false)
     step()
@@ -143,11 +144,45 @@ aura(22888, WoW.now + 7200)
 eq(said(), 0, "an expiration of 0 then a real one: not a refresh")
 step(40)
 
--- Outside a window: a buff with speakers says nothing (a restore, someone else's), but it's logged.
+-- Outside a window (#106: its line unheard): "is on you" all the same, once per QUIET s, and logged.
 clean()
+line("yell", 0, WoW.Secret("guid"))     -- Thrall's yell, its sender unreadable
+step(3)
 aura(16609, WoW.now + 3600)
-eq(said(), 0, "Warchief's Blessing with no window: nothing said")
-eq(lastLog().outcome, "nowindow", "  logged without a window")
+chat = newChat()
+eq(#chat, 1, "Warchief's Blessing with no window: said once")
+check(chat[1] and chat[1]:find("Warchief's Blessing is on you.", 1, true), "  is on you")
+eq(sounds(), 1, "  with its sound")
+e = lastLog()
+eq(e.outcome, "nowindow", "  logged without a window")
+eq(e.lines and e.lines[1] and e.lines[1].why, "secret", "  with the unreadable line before it, and why")
+eq(e.lines[1].npc, nil, "  no NPC for it")
+eq(e.lines[1].before, 3, "  and how long before")
+aura(16609, nil)
+aura(355366, WoW.now + 3600)
+eq(said(), 0, "again within 10 minutes: quiet")
+step(WB.QUIET)
+aura(355366, nil)
+aura(16609, WoW.now + 3600)
+eq(said(), 1, "after 10 minutes: said again")
+-- A window's announcement starts the quiet gap too: a late copy isn't said twice.
+clean()
+line("yell", 4949)
+newChat()
+aura(16609, WoW.now + 3600)
+eq(said(), 1, "inside the window: said")
+step(30)                                -- the window has closed
+aura(16609, nil)
+aura(1304594, WoW.now + 3600)
+eq(said(), 0, "  another copy after the window, within 10 minutes: quiet")
+eq(lastLog().outcome, "nowindow", "  but logged")
+-- Switched off: logged, not said.
+clean()
+P.SetSetting(KEY, "rend", false)
+aura(16609, WoW.now + 3600)
+eq(said(), 0, "a buff switched off, no window: nothing said")
+eq(lastLog().outcome, "nowindow", "  but logged")
+P.SetSetting(KEY, "rend", true)
 
 -- Rend: about 6 s; the bound is 6 + 20.
 clean()
@@ -257,6 +292,13 @@ eq(S.counts.unreadable, before + 1, "a secret GUID: counted as unreadable")
 eq(said(), 0, "  nothing said")
 line("yell", 0, "Player-5250-0A1B2C3D")
 eq(S.counts.unreadable, before + 2, "a player's GUID: unreadable too")
+eq(S.ring[#S.ring - 1].why, "secret", "  the ring keeps the secret one's why")
+eq(S.ring[#S.ring].why, "Player", "  and the player's kind, never the GUID")
+eq(WB.Unreadable(nil), "missing", "why: missing")
+eq(WB.Unreadable(7), "not a string", "why: not a string")
+eq(WB.Unreadable(""), "empty", "why: empty")
+eq(WB.Unreadable("Creature-0-1-2-3-x-ABC"), "malformed", "why: a creature's malformed GUID")
+eq(WB.Unreadable("Pet-0-1-2-3-4-5"), "Pet", "why: a pet")
 
 -- Leaving the world closes the windows.
 clean()
@@ -267,7 +309,7 @@ check(WB.Window("dragonslayer") == nil, "leaving the world closes the window")
 WoW.fire("PLAYER_ENTERING_WORLD", false, false)
 step()
 aura(22888, WoW.now + 7200)
-eq(said(), 0, "  so a later buff isn't announced")
+eq(lastLog().outcome, "nowindow", "  so a later buff is window-less")
 
 -- A buff switched off: its lines ignored; switching it off mid-window cancels it.
 clean()

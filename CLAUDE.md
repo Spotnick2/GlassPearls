@@ -180,12 +180,16 @@ order) and before the options window and bootstrap.
   one check a frame later, never in combat; per spell ID uninitialized / absent / present with its expiration and
   a `gap` flag after an unknown read; baselines at Enable, a switch turned on, PEW, regen end. Received = absent ->
   present, or a positive expiration `REFRESH` (60) s later than the last positive one with no unknown between.
-  "<buff> is on you" only inside its window, once; **Might of Stormwind** (no speaker mapped: its turn-in is 466,
-  the speaker unmeasured) also without one, once per `QUIET` (600) s. Never attributed to a turn-in. Expiry is
+  "<buff> is on you" inside its window, once, **and without one** (#106: the line unheard; measured, Warchief's
+  Blessing in Orgrimmar with nothing heard), at most once per `QUIET` (600) s per buff, a window's announcement
+  starting the gap too; **Might of Stormwind** has no speaker mapped (its turn-in is 466, the speaker unmeasured).
+  Never attributed to a turn-in. Expiry is
   silent (log `unconfirmed`). Sounds `Media\WorldBuffYell.ogg` / `WorldBuffDrop.ogg` (`PlaySoundFile`, Master; the
   deploy and the package check take `Media\*.ogg`). The day-one record: `GlassPearlsDB.worldbuffs.log` (10, IDs
-  and numbers) and a ring of the last 8 lines heard (any NPC, 90 s), copied into the log on a window-less receipt
-  to find Might of Stormwind's speaker. `/gpearls worldbuffs [test]`. Unmeasured until checked in game.
+  and numbers) and a ring of the last 8 lines heard (any NPC, 90 s; a line whose sender can't be read too, with
+  `why` from `WB.Unreadable`: `secret`, `missing`, a GUID's kind, never the value), copied into the log on a
+  window-less receipt to find Might of Stormwind's speaker and whether a buff's line came unreadable.
+  `/gpearls worldbuffs [test]`. Unmeasured until checked in game.
 - **`Pearls\GatherTrack.lua`**: gathering tracking (#110, pearl `gathertrack`, Professions > Gathering, on by
   default; **no settings**: a per-kind choice would be a synced key, and the sync registry is at 155 of its 160).
   Turns Find Herbs (2383, 8387) and Find Minerals (2580, 8388) back on through `C_Minimap.SetTracking(i, true)`, which
