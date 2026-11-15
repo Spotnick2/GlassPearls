@@ -11,14 +11,14 @@ enable-nolib-creation: no
 # No comment on a value line: the packager's YAML reader keeps it as part of
 # the value (measured in GlassUnitFrames #64).
 externals:
-  # r11: the Pearl preset (Glass.lua asks for it).
+  # r12: the Pearl preset (Theme.lua asks for it, r11+); fonts follow the client's locale.
   Libs/LibGlass-1.0:
     url: https://github.com/Spotnick2/LibGlass
-    tag: r11
-  # r5: one instance per snapshot kind, and the messages mode (unused yet).
+    tag: r12
+  # r6: the shared caps reserve room for verified senders (r5: one instance per kind).
   Libs/LibAccountSync-1.0:
     url: https://github.com/Spotnick2/LibAccountSync
-    tag: r5
+    tag: r6
 
 manual-changelog:
   filename: CHANGELOG.md

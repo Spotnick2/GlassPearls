@@ -386,7 +386,8 @@ local function configure(panel, refreshers)
     test:SetPoint("TOPLEFT", sound, "BOTTOMLEFT", 4, -10)
     local note = GP.UI.Label(panel,
         "Only what you hear: the turn-in NPC's line in its city, then the buff landing on you. The NPC is recognized by "
-            .. "its ID, never its words, so another line of theirs can warn for nothing. Unverified until checked in game.",
+            .. "its ID, never its words, so another line of theirs can warn for nothing. On WoW Forever, Warchief's "
+            .. "Blessing's herald often comes without one: that buff is then told only when it lands.",
         "GameFontDisableSmall")
     note:SetPoint("TOPLEFT", test, "BOTTOMLEFT", 0, -12)
     note:SetWidth(380)
@@ -430,8 +431,8 @@ GP.Pearls.Register({
         .. "warn for nothing, and two turn-ins close together are one warning. A buff that lands without its line "
         .. "heard (out of range, a drop on another layer) still says \"is on you\", once per drop; one that lands "
         .. "during a fight says it after the fight. Might of Stormwind only says \"is on you\" for now (who announces it "
-        .. "isn't known yet). /gpearls worldbuffs "
-        .. "shows what it heard. Unverified until checked in game.",
+        .. "isn't known yet). On WoW Forever, Warchief's Blessing's announcer often can't be recognized: that buff "
+        .. "is then told only when it lands. /gpearls worldbuffs shows what it heard.",
     default = true,
     category = "Combat",
     section = "Alerts",
