@@ -140,6 +140,8 @@ end
 -- Glass UI's suite (GlassUI\docs\SUITE.md), scriptable per test:
 -- WoW.installGlassUI({ theme = answer or function, look = {...}, body = {...} })
 -- puts a GlassUI global with Suite API 1; WoW.suiteReports records Report calls.
+-- look, body and accent may be functions (Body(name) and Accent(name) answer
+-- per name, #117).
 WoW.suiteReports = {}
 function WoW.installGlassUI(opts)
     opts = opts or {}
@@ -151,12 +153,29 @@ function WoW.installGlassUI(opts)
         return opts.theme
     end
     S.Report = function(addon, state) table.insert(WoW.suiteReports, { addon = addon, state = state }) end
-    if opts.look then S.Look = function() return opts.look end end
-    if opts.body then S.Body = function() return opts.body end end
-    if opts.accent then S.Accent = function() return opts.accent end end
+    local function answer(v) return type(v) == "function" and v or function() return v end end
+    if opts.look then S.Look = answer(opts.look) end
+    if opts.body then S.Body = answer(opts.body) end
+    if opts.accent then S.Accent = answer(opts.accent) end
     rawset(_G, "GlassUI", { Suite = S })
     return S
 end
+
+-- EventRegistry (Blizzard_SharedXMLBase\CallbackRegistry.lua): one callback per
+-- owner and event (registering again replaces it), each called with its owner
+-- first. WoW.eventCallbacks[event][owner] = fn; WoW.resetEventRegistry().
+WoW.eventCallbacks = {}
+function WoW.resetEventRegistry() WoW.eventCallbacks = {} end
+rawset(_G, "EventRegistry", {
+    RegisterCallback = function(self, event, fn, owner)
+        assert(type(event) == "string" and type(fn) == "function", "RegisterCallback(event, fn, owner)")
+        WoW.eventCallbacks[event] = WoW.eventCallbacks[event] or {}
+        WoW.eventCallbacks[event][owner or fn] = fn
+    end,
+    TriggerEvent = function(self, event, ...)
+        for owner, fn in pairs(WoW.eventCallbacks[event] or {}) do fn(owner, ...) end
+    end,
+})
 
 --------------------------------------------------------------------------------
 -- Battle.net, for the embedded LibAccountSync-1.0 (GlassChat's stubs, ported

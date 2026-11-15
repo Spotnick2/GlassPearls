@@ -11,8 +11,20 @@
 -- follows it by default: the suite's material, body (tint, backing, wash) and
 -- accent. "Use Glass UI appearance" (Settings) turns it off; the Forever look
 -- applies then and is reported as declined, never as a failure. Asked once, at
--- ADDON_LOADED (`## OptionalDeps: GlassUI` has Glass UI ready by then). Not
--- live: a change waits for a /reload, and the report says so (`live = false`).
+-- ADDON_LOADED (`## OptionalDeps: GlassUI` has Glass UI ready by then): the
+-- material and following itself are fixed for the session.
+--
+-- Live (#117): the tint and accent follow EventRegistry
+-- "GlassUI.Suite.LookChanged", registered before the one pull of Look() (the
+-- event isn't replayed). The payload is shared and read-only: only its tint
+-- and accent strings are copied. Each change repaints every shell (tint,
+-- backing, wash), every accent title and each OnLook consumer at once, in
+-- combat too (colours and textures on our own regions only), then reports
+-- live = true with the effective look; a repaint that throws is recorded and
+-- not reported. A key Glass UI can't answer falls back to ours, named in the
+-- report and flagged own: tint "glasspearls" (the recipe), accent "font"
+-- (the title's first colour). Without the event (no Look, no EventRegistry)
+-- the look is built once and reported live = false.
 --
 -- Every helper dresses the frame in the session's look and returns the look
 -- it used. Glass from the window recipe in
@@ -27,11 +39,18 @@ GP.Theme = Theme
 Theme.LOOKS = { "forever", "glass" }
 Theme.LABELS = { forever = "WoW Forever", glass = "Glass" }
 Theme.SUITE_ADDON = "GlassPearls"
+Theme.EVENT = "GlassUI.Suite.LookChanged"
+Theme.OWN_TINT, Theme.OWN_ACCENT = "glasspearls", "font"   -- our fallbacks' names in the report
 
 local active      -- the session's look, fixed by Init
 local Glass       -- this session's LibGlass instance, under the glass look
 local following   -- what the session built from Glass UI's suite, or nil
-local shells = {} -- every window shell, for a class tint painted late
+local suite       -- Glass UI's suite while following
+local live = false
+local optionsFn   -- our window's opener, for Glass UI's page
+local shells = {} -- every window shell, repainted on a change
+local titles = setmetatable({}, { __mode = "k" })   -- accent title -> its first colour, or false
+local onLook = {} -- texture consumers of the accent (the mark wheel)
 local classPending
 local retryFrame
 
@@ -81,12 +100,15 @@ local function SuiteAPI()
     return S
 end
 
--- One of the suite's optional functions, feature-detected on its own.
-local function SuiteCall(suite, name, ...)
-    local fn = rawget(suite, name)
+-- One of the suite's optional functions, feature-detected on its own. A
+-- missing function or a nil answer is an ordinary fallback; a throw is
+-- recorded as "theme <name>" (#117).
+local function SuiteCall(s, name, ...)
+    local fn = rawget(s, name)
     if type(fn) ~= "function" then return nil end
     local ok, r = pcall(fn, ...)
     if ok then return r end
+    API.Fail("theme " .. name, r)
 end
 
 local function IsColor(c, n)
@@ -126,25 +148,45 @@ local function ClassColor()
     return r, g, b
 end
 
--- The suite's answer: a fresh `following` with its own LibGlass instance, or
--- nil, with the report's reason when the suite's material couldn't be built.
-local function Follow(suite)
-    local ok, answer = pcall(suite.Theme, Theme.SUITE_ADDON)
+-- The suite's answer: a fresh `following` with its own LibGlass instance (the
+-- material, fixed for the session), or nil, with the report's reason when the
+-- suite's material couldn't be built. The look comes after (Derive).
+local function Follow(s)
+    local ok, answer = pcall(s.Theme, Theme.SUITE_ADDON)
     if not (ok and type(answer) == "table" and type(answer.preset) == "string") then return nil end
     local inst, minor, code = Theme.NewGlass(answer.preset)
     if not inst then return nil, code end
-    local f = { preset = answer.preset, inst = inst, minor = minor, own = {} }
-    local look = SuiteCall(suite, "Look")
-    look = type(look) == "table" and look or {}
-    if type(look.tint) == "string" then f.body = SuiteBody(suite, look.tint) end
-    if f.body then f.tint = look.tint else f.own.tint = true end
-    local rgb = type(look.accent) == "string" and SuiteCall(suite, "Accent", look.accent)
+    return { preset = answer.preset, inst = inst, minor = minor, own = {} }
+end
+
+-- The effective look from the suite's (`look` is its shared payload: only its
+-- tint and accent strings are read). A key the suite can't answer is ours.
+local function Derive(look)
+    local f = following
+    local tint = type(look) == "table" and look.tint or nil
+    local accent = type(look) == "table" and look.accent or nil
+    f.own, f.body, f.accentRGB = {}, nil, nil
+    if type(tint) == "string" and not API.IsSecret(tint) then f.body = SuiteBody(suite, tint) end
+    if f.body then f.tint = tint else f.tint, f.own.tint = Theme.OWN_TINT, true end
+    local rgb = type(accent) == "string" and not API.IsSecret(accent) and SuiteCall(suite, "Accent", accent)
     if IsColor(rgb, 3) then
-        f.accent, f.accentRGB = look.accent, { rgb[1], rgb[2], rgb[3] }
+        f.accent, f.accentRGB = accent, { rgb[1], rgb[2], rgb[3] }
     else
-        f.own.accent = true
+        f.accent, f.own.accent = Theme.OWN_ACCENT, true
     end
-    return f
+end
+
+local function SuiteReport(s, state)
+    local ok, err = pcall(s.Report, Theme.SUITE_ADDON, state)
+    if not ok then API.Fail("theme report", err) end
+end
+
+-- What we show now, for Glass UI's page (plain values, fresh tables).
+local function FollowingReport()
+    local own = {}
+    for k in pairs(following.own) do own[k] = true end
+    return { api = 1, live = live, built = following.preset, minor = following.minor, options = optionsFn,
+             look = { tint = following.tint, accent = following.accent }, own = next(own) and own or nil }
 end
 
 -- Is Glass UI here, speaking the suite's API? (The Settings switch shows only then.)
@@ -152,30 +194,53 @@ function Theme.SuiteAvailable()
     return SuiteAPI() ~= nil
 end
 
+local Repaint   -- below, with the surfaces it paints
+
+-- A LookChanged: derive, repaint, report; a repaint that throws is recorded
+-- and nothing is reported (the surfaces may be half painted).
+function Theme.OnLookChanged(_, look)
+    if not (following and live) then return end
+    local ok, err = pcall(function()
+        Derive(look)
+        Repaint()
+        SuiteReport(suite, FollowingReport())
+    end)
+    if not ok then API.Fail("theme look", err) end
+end
+
+-- Register for the suite's changes; true when registered (then we're live).
+local function Listen()
+    if type(rawget(suite, "Look")) ~= "function" then return false end
+    local reg = rawget(_G, "EventRegistry")
+    if type(reg) ~= "table" or type(reg.RegisterCallback) ~= "function" then return false end
+    local ok, err = pcall(reg.RegisterCallback, reg, Theme.EVENT, Theme.OnLookChanged, Theme)
+    if not ok then API.Fail("theme listen", err) end
+    return ok
+end
+
 -- Fix the session's look and tell Glass UI what was built. `follow` is the
 -- player's "Use Glass UI appearance"; `options` opens our window (Glass UI's
 -- link to it). Returns the look in use.
 function Theme.Init(follow, options)
     if active then return active end
-    local suite = SuiteAPI()
-    local report = { api = 1, live = false, options = options }
+    optionsFn = options
+    local s = SuiteAPI()
     local reason
-    if suite and follow ~= false then following, reason = Follow(suite) end
+    if s and follow ~= false then following, reason = Follow(s) end
     if following then
-        Glass, active = following.inst, "glass"
+        Glass, active, suite = following.inst, "glass", s
         following.inst = nil
         following.wash = Glass.STYLE.wash   -- the preset's own: the body's is a factor of it
-        report.built, report.minor = following.preset, following.minor
-        report.look = { tint = following.tint, accent = following.accent }
-        report.own = next(following.own) and following.own or nil
+        live = Listen()                     -- before the pull: a change isn't replayed
+        Derive(SuiteCall(s, "Look"))
+        SuiteReport(s, FollowingReport())
+    elseif s then
+        local report = { api = 1, live = false, options = options, reason = reason }
+        if follow == false then report.declined = Theme.LABELS.forever end
+        SuiteReport(s, report)
+        active = "forever"
     else
         active = "forever"
-        report.reason = reason
-        if suite and follow == false then report.declined = Theme.LABELS.forever end
-    end
-    if suite then
-        local ok, err = pcall(suite.Report, Theme.SUITE_ADDON, report)
-        if not ok then API.Fail("theme report", err) end
     end
     return active
 end
@@ -194,10 +259,12 @@ local function Paint(g, role)
     Glass.SetSurfaceAlpha(g, "grain", 0)
 end
 
--- A shell's body: the suite's while following, else the recipe's.
+-- A shell's body: the suite's while following, else the recipe's, backing
+-- included (a tint that becomes unknown goes back to all three, #117).
 local function PaintShell(g)
-    Paint(g, SHELL)
     local body = following and following.body
+    g.backing:SetColorTexture(unpack(body and body.backing or SHELL.backing))
+    Paint(g, SHELL)
     if not body then return end
     if body.classShade then
         local r, gg, b = ClassColor()
@@ -228,10 +295,51 @@ local function WaitForClass()
     retryFrame:SetScript("OnEvent", Theme.Retry)
 end
 
--- A title in the suite's accent while following; its font's own colour otherwise.
-function Theme.Accent(fs)
+-- A title's first colour (its font's), when every component reads plain.
+local function FirstColor(fs)
+    local ok, r, g, b, a = pcall(fs.GetTextColor, fs)
+    if not ok then return false end
+    local c = { r, g, b, a }
+    for i = 1, 4 do
+        if API.IsSecret(c[i]) or type(c[i]) ~= "number" then return false end
+    end
+    return c
+end
+
+local function PaintTitle(fs, first)
     local c = following and following.accentRGB
-    if c then fs:SetTextColor(c[1], c[2], c[3]) end
+    if c then
+        fs:SetTextColor(c[1], c[2], c[3])
+    elseif first then
+        fs:SetTextColor(first[1], first[2], first[3], first[4])
+    end
+end
+
+-- A title in the suite's accent while following, kept in it through every
+-- change; its font's own colour otherwise (and back to it when the suite's
+-- accent can't be read).
+function Theme.Accent(fs)
+    if not following then return end
+    if titles[fs] == nil then titles[fs] = FirstColor(fs) end
+    PaintTitle(fs, titles[fs])
+end
+
+-- A texture consumer of the accent (AccentRGB), called after every change.
+function Theme.OnLook(fn)
+    if type(fn) == "function" then onLook[#onLook + 1] = fn end
+end
+
+-- Every surface again, in the current look: shells (backing, tint, wash),
+-- titles, then each consumer on its own (one failing doesn't stop the rest).
+Repaint = function()
+    classPending = false
+    for _, g in ipairs(shells) do PaintShell(g) end
+    WaitForClass()
+    for fs, first in pairs(titles) do PaintTitle(fs, first) end
+    for _, fn in ipairs(onLook) do
+        local ok, err = pcall(fn)
+        if not ok then API.Fail("theme onlook", err) end
+    end
 end
 
 -- The suite's accent as r, g, b while following (a texture's tint), else nil.
@@ -263,17 +371,16 @@ function Theme.Window(frame, opts)
     end
     opts = opts or {}
     local g = Glass.Apply(frame, "large")
+    -- BACKGROUND -7: over the library's shadow (-8), under its tint (-6).
+    -- Made before the first paint, which colours it.
+    local backing = frame:CreateTexture(nil, "BACKGROUND", nil, -7)
+    backing:SetAllPoints(frame)
+    backing:AddMaskTexture(g.mask)
+    g.backing = backing
     PaintShell(g)
     shells[#shells + 1] = g
     WaitForClass()
     Glass.SetEdge(g, 0, 0, 0)   -- the reflection's top highlight takes its place
-    -- BACKGROUND -7: over the library's shadow (-8), under its tint (-6).
-    local backing = frame:CreateTexture(nil, "BACKGROUND", nil, -7)
-    backing:SetAllPoints(frame)
-    backing:AddMaskTexture(g.mask)
-    local body = following and following.body
-    backing:SetColorTexture(unpack(body and body.backing or SHELL.backing))
-    g.backing = backing
     local header = opts.header
     Glass.Reflect(g, frame, (header and header > 0) and { header = header } or nil)
     frame.glass = g
@@ -325,7 +432,13 @@ end
 
 -- Test seam (tests/). Harmless in game.
 Theme._test = {
-    reset = function() active, Glass, following, classPending = nil, nil, nil, nil; shells = {} end,
+    reset = function()
+        active, Glass, following, suite, classPending, retryFrame, optionsFn = nil, nil, nil, nil, nil, nil, nil
+        live, shells, onLook = false, {}, {}
+        for fs in pairs(titles) do titles[fs] = nil end
+    end,
     following = function() return following end,
+    live = function() return live end,
+    titles = titles,
     SHELL = SHELL, READING = READING, CONTROL = CONTROL,
 }

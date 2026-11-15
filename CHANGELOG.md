@@ -10,7 +10,8 @@
   that is taller than the window scrolls; Buff alerts and Restock are laid out in two columns
   so they fit.
 - **WoW Forever's own look** by default. With Glass UI installed, Glass Pearls follows its glass
-  (Settings > "Use Glass UI appearance" turns that off).
+  (Settings > "Use Glass UI appearance" turns that off). Glass UI's tint and accent apply at once
+  when you change them there, no reload needed.
 - Each feature is switched on or off on its own, and only your choices are saved.
 - **Your settings follow you across your own WoW accounts** on the same Battle.net account,
   automatically: change something on one and the others pick it up, including an account that was

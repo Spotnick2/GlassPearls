@@ -57,14 +57,23 @@ order) and before the options window and bootstrap.
   `SafeFrame` (a template and whether it applied, read raw), `AutoHideScrollBar` (GlassChat's);
   `MEASURED_ON_BUILD`. A subset of
   GlassMail's; lift more from there when a pearl needs it.
-- **`Theme.lua`**: the look, fixed once at `ADDON_LOADED`. **WoW Forever by default**
+- **`Theme.lua`**: the look, its material fixed once at `ADDON_LOADED`. **WoW Forever by default**
   (`DialogBorderDarkTemplate`, Blizzard's fonts and widgets); **glass only from Glass UI**: with
-  `## OptionalDeps: GlassUI`, when its suite speaks API 1 and "Use Glass UI appearance" is on, it
-  builds the answered preset and the suite's body and accent, and reports (`live = false`,
-  `declined` when turned off, `reason` on a failed build). The model is `..\Stakeout\Theme.lua`;
-  the contract is `..\GlassUI\docs\SUITE.md`. No glass of our own choosing (owner). Helpers:
-  `Window`, `Reading`, `Control`, `Accent` (`AccentRGB` for a texture's tint), `NewGlass`; `Active`,
-  `Following`, `Glass`.
+  `## OptionalDeps: GlassUI`, when its suite speaks API 1 (Glass Pearls is a dynamic member of its
+  roster, GlassUI#163) and "Use Glass UI appearance" is on, it builds the answered preset and
+  reports (`declined` when turned off, `reason` on a failed build). The model is
+  `..\Stakeout\Theme.lua`; the contract is `..\GlassUI\docs\SUITE.md` and `SUITE-LOOK.md`. No glass
+  of our own choosing (owner; #119 changes that). **Live tint and accent** (#117, Codex two rounds,
+  GlassChat's `Suite.lua` the model): registered for EventRegistry `GlassUI.Suite.LookChanged`
+  **before** the one `Look()` pull; each change (payload read-only: only its tint and accent strings
+  copied) repaints every shell (backing, tint, wash; class shade with the PEW retry), every `Accent`
+  title and each `OnLook` consumer (the mark wheel's highlight), at once and in combat (our own
+  regions' colours only), then reports `live = true` and the effective `look`; a key the suite
+  can't answer is ours, named (`glasspearls`, `font`: a title's first colour) and flagged `own`; a
+  throwing suite call is recorded (`theme Body`...), a repaint that throws is recorded (`theme
+  look`) and not reported. No `Look` or EventRegistry: built once, `live = false`. Helpers:
+  `Window`, `Reading`, `Control`, `Accent` (`AccentRGB` for a texture's tint, `OnLook` to follow it),
+  `NewGlass`; `Active`, `Following`, `Glass`.
 - **`UI.lua`**: the shared widgets (`Label`, `Header`, `Tooltip`, `Button`, `Check`, `Gear`,
   `Radios` (stacked, or `{ across = true }` on one row), `Number`, `Search`, `SetList`: a paged list of one sync set), Blizzard templates in both looks; a
   value control returns a `refresh`.

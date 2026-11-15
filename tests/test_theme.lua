@@ -20,7 +20,7 @@ local r = WoW.suiteReports[1].state
 eq(WoW.suiteReports[1].addon, "GlassPearls", "  for GlassPearls")
 eq(r.api, 1, "  api 1")
 eq(r.built, "pearl", "  built: pearl")
-eq(r.live, false, "  live = false: a suite change waits for a /reload")
+eq(r.live, true, "  live = true: the tint and accent follow the suite (#117)")
 eq(type(r.options), "function", "  with a link to our options")
 eq(r.look and r.look.tint, "smoked", "  the suite tint it took")
 eq(r.look and r.look.accent, "gold", "  and accent")
