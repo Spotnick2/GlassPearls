@@ -1,6 +1,9 @@
 # Changelog
 
-## v0.1.0
+## v1.0.0 - 2026-11-15
+
+The first release: 28 pearls, two looks of its own (WoW Forever and Pearl) or Glass UI's glass, a
+pearl on the minimap, and your settings on all your own accounts.
 
 - **The options window** (`/gpearls`): pages on the left (Home, each category of features,
   Settings), the features in two columns with one checkbox each, a gear beside a feature with
@@ -197,7 +200,8 @@
   the screen and a sound for each (the sound can be turned off). A buff that lands without its line heard (you
   were out of range, or it dropped on another layer) still says "is on you", for every drop, and one that lands
   during a fight says it after the fight; Might of
-  Stormwind, whose announcer isn't known yet, only says that. Only what your own game hears, so you must be where it's announced; nothing is sent to anyone. The NPC
+  Stormwind, whose announcer isn't known yet, only says that. On WoW Forever, Warchief's Blessing's announcer
+  often can't be recognized, so that buff is usually told only when it lands. Only what your own game hears, so you must be where it's announced; nothing is sent to anyone. The NPC
   is recognized by its ID, never its words, in every client language. New sounds: restart the game once after
   installing.
-- LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.
+- LibGlass r12 and LibAccountSync r6 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.

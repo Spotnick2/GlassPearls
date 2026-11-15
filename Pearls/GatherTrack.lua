@@ -399,7 +399,7 @@ GP.Pearls.Register({
         .. "turned back on if your character knows them and they're off. It casts the tracking as the minimap's menu "
         .. "does, which costs a global cooldown, so it never acts in combat and waits while you cast, are stealthed, "
         .. "on a taxi or feigning death. If you turn one off afterwards, it stays off until your next login or death. "
-        .. "/gpearls gathertrack shows what it sees and did. Unverified until checked in game.",
+        .. "/gpearls gathertrack shows what it sees and did.",
     default = true,
     category = "Professions",
     section = "Gathering",
