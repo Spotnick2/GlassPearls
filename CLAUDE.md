@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: M1 in progress** (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64), library books (#72), invite from whispers (#77), untrained gear (#86), the world buff announcer (#104); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64), library books (#72), invite from whispers (#77), untrained gear (#86), the world buff announcer (#104), gathering tracking (#110); the day-one
 probe (#5) follows. The pearls that sell, buy, pick or destroy were audited offline (#61,
 [docs/AUDIT.md](docs/AUDIT.md): the property, the trace matrix, 15 findings with witness tests, the
 declared exceptions). Nothing
@@ -191,6 +191,25 @@ order) and before the options window and bootstrap.
   `why` from `WB.Unreadable`: `secret`, `missing`, a GUID's kind, never the value), copied into the log on a
   window-less receipt to find Might of Stormwind's speaker and whether a buff's line came unreadable.
   `/gpearls worldbuffs [test]`. Unmeasured until checked in game.
+- **`Pearls\GatherTrack.lua`**: gathering tracking (#110, pearl `gathertrack`, Professions > Gathering, on by
+  default; **no settings**: a per-kind choice would be a synced key, and the sync registry is at 155 of its 160).
+  Turns Find Herbs (2383, 8387) and Find Minerals (2580, 8388) back on through `C_Minimap.SetTracking(i, true)`, which
+  casts the tracking spell from addon code and costs a GCD (NodeRadar's probe, 70450). **An arm** (one at most):
+  the session's first `PLAYER_ENTERING_WORLD` with `isInitialLogin` plainly true (logged in dead: `died` instead),
+  a revival (`PLAYER_DEAD` sets `died`, kept through release and loading screens; `PLAYER_ALIVE` / `PLAYER_UNGHOST` /
+  PEW with `UnitIsDeadOrGhost` plainly false arms and clears it), or the pearl switched on after the registry's
+  `Start` (a reload's `Enable` comes before it and arms nothing). Per kind pending / satisfied / gaveup; **satisfied
+  is permanent for the arm** (seen active by any scan or `MINIMAP_UPDATE_TRACKING`, even before `nextAt`), so a
+  player's off is never fought; a kind is dropped only when `IsPlayerSpell` of all its IDs is plainly false (an
+  unreadable or late-filled list keeps it pending). Ended when nothing is pending, at 10 min ("dropped after
+  waiting"), by `PLAYER_DEAD` or Disable. **A loading screen keeps the arm and gates everything** (`loading`: no
+  step, mark or call; PEW resumes). **One scheduler**: `nextAt` (first wakeup 3 s after a login arm, 1 s otherwise;
+  1.6 s after a call) and one tokened wakeup. A step scans again (indexes shift), waits without spending an attempt
+  while `GT.Blocked` says no (combat, dead, feign death, taxi, no full control, vehicle, stealth, a cast or channel
+  read plainly nil only, `NodeRadar.Learn.Busy()` not plainly false, the tracking spell's own
+  `GetSpellCooldown().isActive`), then one call recorded in flight before it, judged 1.5 s later, 3 per kind.
+  `/gpearls gathertrack`; the outcomes in `GlassPearlsCharDB.gathertrack` (10). Codex: three rounds to consensus.
+  Unmeasured until checked in game.
 - **`Pearls\JunkSpot.lua`**: junk spotlight (#41, pearl `junkspot`, Loot & Bags > Merchant, **off** by default;
   its panel inside; `show` = `both` | `bags` | `tooltip`). Shows what the junk seller **may** sell: only while
   it sells (`junk` on and its `autoSell`), only bags 0-4, by `Junk.Judge` alone (the equipment-set snapshot

@@ -78,5 +78,6 @@ Pearls\BooksCompass.lua
 Pearls\Books.lua
 Pearls\Untrained.lua
 Pearls\WorldBuffs.lua
+Pearls\GatherTrack.lua
 Options.lua
 GlassPearls.lua

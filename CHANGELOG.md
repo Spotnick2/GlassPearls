@@ -179,6 +179,10 @@
   learned its skill yet (a warrior's plate before 40, a mage's first sword) shows its type in yellow instead
   of red in its tooltip, with a note: who teaches it (a weapon master, or your class trainer for armor) and
   from which level. Gear your class or race can never use, and anything else red, is left as it is.
+- **Gathering tracking** (Professions, on by default): Find Herbs and Find Minerals come back on by themselves
+  at login and when you come back to life, on characters that know them. Never in combat (it costs a global
+  cooldown), and it waits while you cast, are stealthed or on a taxi. Turn one off yourself and it stays off until
+  your next login or death.
 - **World buff announcer** (Combat, on by default): when the NPC who takes Onyxia's or Nefarian's head, Rend's
   head or Hakkar's heart speaks, "Rallying Cry of the Dragonslayer may drop in about 14 s" (Warchief's Blessing
   6 s, Spirit of Zandalar 30-50 s), then "is on you" once it lands on you: a chat line, a text in the middle of
