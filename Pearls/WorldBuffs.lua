@@ -8,7 +8,8 @@
 -- the language. A listed (event, NPC) pair opens its buff's window when none
 -- is open: a fixed bound (the longest delay plus a grace) inside which later
 -- lines are ignored and one receipt may be announced. The bound is checked
--- against GetTime() on every use, whatever its timer did.
+-- against GetTime() on every use, whatever its timer did. A line whose sender
+-- can't be read goes into the ring with why (never the value), for day one.
 --
 -- Receiving: UNIT_AURA (payload untouched) queues one check a frame later,
 -- never in combat. Per watched spell ID: uninitialized, absent, or present
@@ -17,9 +18,11 @@
 -- every ID uninitialized; the first readable answer sets it silently. A buff
 -- is received when one of its IDs goes absent -> present, or stays present
 -- with a positive expiration at least REFRESH s later than the last positive
--- one with no unknown read between. Announced inside its window, once; a buff
--- with no mapped speaker (Might of Stormwind) also without one, at most once
--- per QUIET s. Receipt is observed, never attributed to a turn-in.
+-- one with no unknown read between. Announced inside its window, once, and
+-- also without one (the line unheard: out of range, an unreadable sender, a
+-- delay longer than listed), at most once per QUIET s per buff, a window's
+-- announcement included (#106). Receipt is observed, never attributed to a
+-- turn-in.
 --
 -- The NPC IDs and delays are game facts from a reference addon and Wowhead
 -- Forever (database evidence); the 1304xxx spell IDs are Forever's copies.
@@ -132,6 +135,18 @@ function WB.NpcID(guid)
     return id
 end
 
+-- Why a sender can't be read, for the ring: a short fixed word or the GUID's
+-- leading letters (its kind, "Player"), never the value itself.
+function WB.Unreadable(guid)
+    if API.IsSecret(guid) then return "secret" end
+    if guid == nil then return "missing" end
+    if type(guid) ~= "string" then return "not a string" end
+    if guid == "" then return "empty" end
+    local kind = guid:match("^(%a+)%-")
+    if kind and kind ~= "Creature" and kind ~= "Vehicle" then return kind:sub(1, 16) end
+    return "malformed"
+end
+
 -- The open window of a buff, or nil (a bound passed is closed, timer or not).
 local function window(key)
     local w = state.windows[key]
@@ -154,12 +169,17 @@ end
 -------------------------------------------------------------------------------
 -- Hearing
 
+-- The ring: any line, for day one (which NPC spoke before Might of Stormwind
+-- landed; whether a buff's line came with a sender we couldn't read).
+local function remember(entry)
+    local ring = state.ring
+    ring[#ring + 1] = entry
+    while #ring > WB.RING_MAX do table.remove(ring, 1) end
+end
+
 local function heard(event, npc)
     local now = GetTime()
-    -- The ring: any NPC, for day one (which NPC spoke before Might of Stormwind landed).
-    local ring = state.ring
-    ring[#ring + 1] = { event = event, npc = npc, at = now }
-    while #ring > WB.RING_MAX do table.remove(ring, 1) end
+    remember({ event = event, npc = npc, at = now })
     local sp = bySpeaker[event .. ":" .. npc]
     if not sp then return end
     state.counts.heard = state.counts.heard + 1
@@ -185,6 +205,7 @@ function WB.OnLine(event, ...)
     local npc = WB.NpcID(guid)
     if not npc then
         state.counts.unreadable = state.counts.unreadable + 1
+        remember({ event = kind, why = WB.Unreadable(guid), at = GetTime() })
         return
     end
     heard(kind, npc)
@@ -197,7 +218,7 @@ local function ringCopy(now)
     local lines = {}
     for _, r in ipairs(state.ring) do
         if now - r.at <= WB.RING_AGE then
-            lines[#lines + 1] = { event = r.event, npc = r.npc, before = math.floor(now - r.at + 0.5) }
+            lines[#lines + 1] = { event = r.event, npc = r.npc, why = r.why, before = math.floor(now - r.at + 0.5) }
         end
     end
     return lines
@@ -211,11 +232,14 @@ function WB.Received(b, id)
         w.received = true
         record({ buff = b.key, event = w.event, npc = w.npc, spell = id, after = math.floor(now - w.heardAt + 0.5),
             outcome = "received" })
-        if setting(b.key) then announce(("%s is on you."):format(WB.Name(b)), WB.SOUND_DROP) end
+        if setting(b.key) then
+            state.quiet[b.key] = now
+            announce(("%s is on you."):format(WB.Name(b)), WB.SOUND_DROP)
+        end
         return
     end
     record({ buff = b.key, spell = id, outcome = "nowindow", lines = ringCopy(now) })
-    if #b.speakers > 0 or not setting(b.key) then return end
+    if not setting(b.key) then return end
     local last = state.quiet[b.key]
     if last and now - last < WB.QUIET then return end
     state.quiet[b.key] = now
@@ -306,7 +330,8 @@ local function report(arg)
         if type(e.lines) == "table" and #e.lines > 0 then
             local heardBefore = {}
             for _, l in ipairs(e.lines) do
-                heardBefore[#heardBefore + 1] = ("%s %s %ds"):format(tostring(l.event), tostring(l.npc), l.before or 0)
+                local who = l.npc and tostring(l.npc) or ("unreadable (%s)"):format(tostring(l.why))
+                heardBefore[#heardBefore + 1] = ("%s %s %ds"):format(tostring(l.event), who, l.before or 0)
             end
             s = s .. "; heard before: " .. table.concat(heardBefore, ", ")
         end
@@ -386,8 +411,10 @@ GP.Pearls.Register({
         .. "you\" once it lands on you. A line in your chat, a short text in the middle of the screen and a sound. "
         .. "Only what your client hears: you must be in the city (or Booty Bay, Yojamba Isle, the Crossroads); "
         .. "nothing is sent to anyone. The NPC is recognized by its ID, never its words: another line of theirs can "
-        .. "warn for nothing, and two turn-ins close together are one warning. Might of Stormwind only says \"is on "
-        .. "you\" for now (who announces it isn't known yet), so a restored buff can say it too. /gpearls worldbuffs "
+        .. "warn for nothing, and two turn-ins close together are one warning. A buff that lands without its line "
+        .. "heard (out of range, a delay longer than expected) still says \"is on you\", at most once in 10 minutes, "
+        .. "so a restored buff can say it too. Might of Stormwind only says \"is on you\" for now (who announces it "
+        .. "isn't known yet). /gpearls worldbuffs "
         .. "shows what it heard. Unverified until checked in game.",
     default = true,
     category = "Combat",

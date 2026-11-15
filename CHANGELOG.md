@@ -180,8 +180,9 @@
 - **World buff announcer** (Combat, on by default): when the NPC who takes Onyxia's or Nefarian's head, Rend's
   head or Hakkar's heart speaks, "Rallying Cry of the Dragonslayer may drop in about 14 s" (Warchief's Blessing
   6 s, Spirit of Zandalar 30-50 s), then "is on you" once it lands on you: a chat line, a text in the middle of
-  the screen and a sound for each (the sound can be turned off). Might of Stormwind says "is on you" when it
-  lands. Only what your own game hears, so you must be where it's announced; nothing is sent to anyone. The NPC
+  the screen and a sound for each (the sound can be turned off). A buff that lands without its line heard (you
+  were out of range, or it came later than expected) still says "is on you", at most once in 10 minutes; Might of
+  Stormwind, whose announcer isn't known yet, only says that. Only what your own game hears, so you must be where it's announced; nothing is sent to anyone. The NPC
   is recognized by its ID, never its words, in every client language. New sounds: restart the game once after
   installing.
 - LibGlass r11 and LibAccountSync r5 embedded; HereBeDragons 2.18 and CallbackHandler-1.0 included.
