@@ -33,15 +33,22 @@ local win, body, pageTitle, pageSub, reloadButton, reloadText, search
 local pages, navItems = {}, {}
 local current, lastMain = nil, "home"
 local reloadForbidden = false
-local lookChoiceAtLoad
+local lookChoiceAtLoad, ownLookAtLoad
 
 --------------------------------------------------------------------------------
 -- Pending reload: a pearl switched off that can't stop live, or the look
 -- choice changed since this session's look was built.
 
+-- The own look as it applies (#119): unanswered reads as WoW Forever.
+local function ownLook() return GP.db and rawget(GP.db, "look") or "forever" end
+
+-- The Glass UI switch changed since load, or, while Glass UI isn't driving
+-- this session's look, the own look did (#119: an own look received while
+-- following stays inactive, so nothing waits for a reload).
 function Options.LookPending()
     if lookChoiceAtLoad == nil or not GP.db then return false end
-    return (GP.db.useGlassUI ~= false) ~= lookChoiceAtLoad
+    if (GP.db.useGlassUI ~= false) ~= lookChoiceAtLoad then return true end
+    return not GP.Theme.Following() and ownLook() ~= ownLookAtLoad
 end
 
 function Options.PendingReload()
@@ -366,20 +373,31 @@ local function settingsPage()
             local cb, refresh = GP.UI.Check(f, "Use Glass UI appearance",
                 function() return GP.db.useGlassUI ~= false end,
                 function(on) GP.Settings.SetUseGlassUI(on) end,
-                { tip = "Glass UI's glass instead of the WoW Forever look. Takes effect after a reload.",
+                { tip = "Glass UI's glass, tint and accent instead of the look chosen below. Takes effect after a reload.",
                   onChange = refreshReload })
             cb:SetPoint("TOPLEFT", look, "BOTTOMLEFT", -4, -6)
             page.refreshers[#page.refreshers + 1] = refresh
             page.useGlass = cb
             last = cb
-        else
-            local note = GP.UI.Label(f, "The WoW Forever look. With Glass UI installed, GlassPearls can follow its glass.",
-                "GameFontDisable")
-            note:SetPoint("TOPLEFT", look, "BOTTOMLEFT", 0, -8)
-            last = note
         end
+        -- The own look (#119), used whenever Glass UI isn't driving it.
+        local first, radios, refreshRadios = GP.UI.Radios(f, last,
+            { { "forever", "WoW Forever" }, { "pearl", "Pearl" } }, ownLook,
+            function(v) GP.Settings.SetLook(v); refreshReload() end, { across = true })
+        if last ~= look then first:ClearAllPoints(); first:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 4, -4) end
+        local note = GP.UI.Label(f, "", "GameFontDisable")
+        note:SetPoint("TOPLEFT", first, "BOTTOMLEFT", 0, -6)
+        page.refreshers[#page.refreshers + 1] = function()
+            refreshRadios()
+            local driven = GP.Theme.Following()
+            for _, rb in ipairs(radios) do rb:SetEnabled(not driven) end
+            note:SetText(driven and "Set in Glass UI while Glass Pearls follows it."
+                or "The look of Glass Pearls' windows without Glass UI. Takes effect after a reload.")
+        end
+        page.lookRadios, page.lookNote = radios, note
+        last = note
         local share = GP.UI.Header(f, "Your other accounts")
-        share:SetPoint("TOPLEFT", last, "BOTTOMLEFT", last == look and 0 or 4, -18)
+        share:SetPoint("TOPLEFT", last, "BOTTOMLEFT", -4, -18)
         local cb, refresh = GP.UI.Check(f, "Share settings with my other WoW accounts",
             GP.AccountSync.IsEnabled, GP.AccountSync.SetEnabled,
             { tip = "Your own accounts on this Battle.net account only, proven before anything is sent or accepted." })
@@ -498,9 +516,85 @@ end
 
 function Options.IsOpen() return win ~= nil and win:IsShown() end
 
+--------------------------------------------------------------------------------
+-- The look question (#119, Codex three rounds): asked while no look is chosen
+-- and Glass UI isn't driving the look, 10 s after a first login (settings
+-- sync's login exchange may bring another account's answer first), after
+-- combat if need be, once a session. One state, choosing: a button saves the
+-- answer and closes; Pearl also says to /reload (never ReloadUI: protected).
+-- Closed unanswered: asked again at the next login. Any chosen look (a
+-- button, Settings, sync) closes it or cancels it.
+
+Options.PROMPT_DELAY = 10
+local prompt, promptPending, promptAsked = nil, false, false
+
+local function promptEligible()
+    return GP.db ~= nil and rawget(GP.db, "look") == nil and not GP.Theme.Following()
+end
+
+local function refreshPrompt()
+    if promptEligible() then return end
+    promptPending = false
+    if prompt and prompt:IsShown() then prompt:Hide() end
+end
+
+local function choose(v)
+    if not promptEligible() then
+        if prompt then prompt:Hide() end
+        return
+    end
+    GP.Settings.SetLook(v)            -- its refresh closes the window
+    if prompt then prompt:Hide() end
+    if v == "pearl" then API.Print("Pearl is saved; type /reload to apply.") end
+end
+
+local function buildPrompt()
+    prompt = CreateFrame("Frame", "GlassPearlsLookPrompt", UIParent)
+    prompt:SetSize(380, 150)
+    prompt:SetPoint("CENTER", UIParent, "CENTER", 0, 120)
+    prompt:SetFrameStrata("DIALOG")
+    prompt:EnableMouse(true)
+    prompt:Hide()
+    GP.Theme.Window(prompt, { header = 36 })
+    if type(UISpecialFrames) == "table" then table.insert(UISpecialFrames, "GlassPearlsLookPrompt") end
+    local title = GP.UI.Header(prompt, "Glass Pearls")
+    title:SetPoint("TOPLEFT", prompt, "TOPLEFT", 18, -16)
+    local text = GP.UI.Label(prompt, "Choose a look for Glass Pearls' windows. Settings can change it later.")
+    text:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -10)
+    text:SetWidth(344)
+    text:SetWordWrap(true)
+    prompt.forever = GP.UI.Button(prompt, "WoW Forever", 150, function() choose("forever") end)
+    prompt.forever:SetPoint("BOTTOMLEFT", prompt, "BOTTOMLEFT", 22, 18)
+    prompt.pearl = GP.UI.Button(prompt, "Pearl", 150, function() choose("pearl") end)
+    prompt.pearl:SetPoint("BOTTOMRIGHT", prompt, "BOTTOMRIGHT", -22, 18)
+    local close = CreateFrame("Button", nil, prompt, "UIPanelCloseButton")
+    close:SetPoint("TOPRIGHT", prompt, "TOPRIGHT", -4, -4)
+end
+
+local function showPrompt()
+    if not promptEligible() then promptPending = false return end
+    if API.InCombat() then promptPending = true return end
+    promptPending = false
+    if not prompt then buildPrompt() end
+    prompt:Show()
+end
+
+local promptEvents = CreateFrame("Frame")
+promptEvents:SetScript("OnEvent", function(_, event, isInitialLogin)
+    API.NoteCombat(event)
+    if event == "PLAYER_ENTERING_WORLD" then
+        if isInitialLogin ~= true or promptAsked then return end
+        promptAsked = true
+        C_Timer.After(Options.PROMPT_DELAY, showPrompt)
+    elseif event == "PLAYER_REGEN_ENABLED" and promptPending then
+        showPrompt()
+    end
+end)
+
 -- Refresh what's on screen (a slash command or a synced setting changed something).
 function Options.Refresh()
     if win and win:IsShown() and current then showPage(current) end
+    refreshPrompt()
 end
 
 -- The Reload button refused by the client: say "/reload" instead for the session.
@@ -543,6 +637,8 @@ end)
 -- Called once at PLAYER_LOGIN by GlassPearls.lua, after the look was fixed.
 function Options.Register()
     lookChoiceAtLoad = GP.db and GP.db.useGlassUI ~= false
+    ownLookAtLoad = ownLook()
+    API.RegisterEvents(promptEvents, { "PLAYER_ENTERING_WORLD", "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED" })
     if category or not (Settings and Settings.RegisterCanvasLayoutCategory) then return end
     category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
     Settings.RegisterAddOnCategory(category)
@@ -559,6 +655,11 @@ Options._test = {
     win = function() return win end, body = function() return body end, search = function() return search end,
     reloadButton = function() return reloadButton end, reloadText = function() return reloadText end,
     current = function() return current end, forbidden = function() return reloadForbidden end,
+    prompt = function() return prompt end, promptPending = function() return promptPending end,
+    resetPrompt = function()
+        if prompt then prompt:Hide() end
+        promptPending, promptAsked = false, false
+    end,
     reset = function()
         win, body, current, lastMain, reloadForbidden = nil, nil, nil, "home", false
         for k in pairs(pages) do pages[k] = nil end

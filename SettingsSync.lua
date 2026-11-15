@@ -652,6 +652,10 @@ local function registerAll()
     SS.Register("core.glassui", { kind = "bool", default = true,
         get = function() return GP.db.useGlassUI ~= false end,
         set = function(v) GP.Settings.SetUseGlassUI(v) end })
+    -- The own look (#119): nil reads as its default, so an unanswered one is never seeded.
+    SS.Register("core.look", { kind = "enum", values = { "forever", "pearl" }, default = "forever",
+        get = function() return rawget(GP.db, "look") or "forever" end,
+        set = function(v) GP.Settings.SetLook(v) end })
     for _, def in ipairs(P.List()) do
         local key = def.key
         local onId = SS.PearlOnId(key)

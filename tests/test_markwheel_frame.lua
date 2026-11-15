@@ -21,9 +21,10 @@ if mode == "glass" then
         body = { tint = { 0.1, 0.1, 0.12, 0.8 }, backing = { 0, 0, 0, 0.5 }, wash = 0.5 },
         accent = { 0.9, 0.7, 0.2 } })
 end
-local GP = loadAddon()
+-- "pearl": the own Pearl look without Glass UI (#119).
+local GP = loadAddon(mode == "pearl" and { db = { look = "pearl" } } or nil)
 local M, FR, P = GP.MarkWheel, GP.MarkWheelFrame, GP.Pearls
-eq(GP.Theme.Active(), mode == "glass" and "glass" or "forever", "the look: " .. mode)
+eq(GP.Theme.Active(), (mode == "glass" or mode == "pearl") and "glass" or "forever", "the look: " .. mode)
 local function near(a, b) return math.abs(a - b) < 1e-6 end
 
 -- Choices, clockwise from the top: skull, star, circle, diamond, triangle,
@@ -147,6 +148,12 @@ elseif mode == "glass" then
     EventRegistry:TriggerEvent(GP.Theme.EVENT, { tint = "smoked", accent = "pink" })
     c = f.highlight._vertex
     check(c and near(c[1], 1) and near(c[2], 1) and near(c[4], 0.6), "  an unknown accent: neutral white")
+elseif mode == "pearl" then
+    eq(f.art, "glass", "own Pearl: a LibGlass disc")
+    check(not GP.Theme.Following(), "  not following Glass UI")
+    eq(f.label.art, "glass", "  the label on a glass shell")
+    local c = f.highlight and f.highlight._vertex
+    check(c and near(c[1], 1) and near(c[2], 1) and near(c[3], 1) and near(c[4], 0.6), "  the highlight neutral white (no accent)")
 else
     eq(f.art, "plain", "no atlas: a plain disc")
     eq(f.bg._atlas, nil, "  no atlas set")
