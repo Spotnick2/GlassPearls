@@ -2,9 +2,10 @@
 --
 -- Two looks. "forever", the default: WoW Forever's own dialog art
 -- (DialogBorderDarkTemplate, Blizzard's fonts and widgets). "glass": the
--- embedded LibGlass-1.0's reflective shell, only when Glass UI is here and
--- GlassPearls follows it (the owner: Forever by default; Glass comes from
--- Glass UI). There is no glass of our own choosing.
+-- embedded LibGlass-1.0's reflective shell, from Glass UI when GlassPearls
+-- follows it, or, when Glass UI isn't driving the look, the player's own
+-- choice of Pearl (#119, GlassPearlsDB.look; the owner: "we should be able
+-- to select theme between Forever and Pearl though if GlassUI is not there").
 --
 -- Following Glass UI (..\GlassUI\docs\SUITE.md, SUITE-LOOK.md; the model is
 -- ..\Stakeout\Theme.lua, GlassUI#152). With Glass UI loaded, GlassPearls
@@ -37,7 +38,7 @@ local Theme = {}
 GP.Theme = Theme
 
 Theme.LOOKS = { "forever", "glass" }
-Theme.LABELS = { forever = "WoW Forever", glass = "Glass" }
+Theme.LABELS = { forever = "WoW Forever", glass = "Glass", pearl = "Pearl" }
 Theme.SUITE_ADDON = "GlassPearls"
 Theme.EVENT = "GlassUI.Suite.LookChanged"
 Theme.OWN_TINT, Theme.OWN_ACCENT = "glasspearls", "font"   -- our fallbacks' names in the report
@@ -221,7 +222,23 @@ end
 -- Fix the session's look and tell Glass UI what was built. `follow` is the
 -- player's "Use Glass UI appearance"; `options` opens our window (Glass UI's
 -- link to it). Returns the look in use.
-function Theme.Init(follow, options)
+-- The own look, when Glass UI isn't driving it (#119): WoW Forever, or Pearl
+-- from our LibGlass with our recipe (no suite body or accent: not following,
+-- titles keep their font's colour, nothing live). A Pearl that can't be
+-- built is recorded and said, and WoW Forever stands in.
+local function OwnLook(look)
+    if look ~= "pearl" then return "forever" end
+    local inst, why = Theme.NewGlass("pearl")
+    if not inst then
+        API.Fail("theme pearl", why)
+        API.Print("the Pearl look couldn't be built (" .. tostring(why) .. "): WoW Forever instead.")
+        return "forever"
+    end
+    Glass = inst
+    return "glass"
+end
+
+function Theme.Init(follow, options, look)
     if active then return active end
     optionsFn = options
     local s = SuiteAPI()
@@ -235,12 +252,16 @@ function Theme.Init(follow, options)
         Derive(SuiteCall(s, "Look"))
         SuiteReport(s, FollowingReport())
     elseif s then
+        -- Glass UI isn't driving the look: the own one. Reported as declined
+        -- only when our switch is off (by what was built); a failed suite
+        -- build keeps its reason; anything else reports nothing more, so
+        -- Glass UI keeps its own record of what it answered.
+        active = OwnLook(look)
         local report = { api = 1, live = false, options = options, reason = reason }
-        if follow == false then report.declined = Theme.LABELS.forever end
+        if follow == false then report.declined = Theme.LABELS[active == "glass" and "pearl" or "forever"] end
         SuiteReport(s, report)
-        active = "forever"
     else
-        active = "forever"
+        active = OwnLook(look)
     end
     return active
 end

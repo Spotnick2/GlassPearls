@@ -58,12 +58,19 @@ order) and before the options window and bootstrap.
   `MEASURED_ON_BUILD`. A subset of
   GlassMail's; lift more from there when a pearl needs it.
 - **`Theme.lua`**: the look, its material fixed once at `ADDON_LOADED`. **WoW Forever by default**
-  (`DialogBorderDarkTemplate`, Blizzard's fonts and widgets); **glass only from Glass UI**: with
+  (`DialogBorderDarkTemplate`, Blizzard's fonts and widgets). **Glass UI's glass** with
   `## OptionalDeps: GlassUI`, when its suite speaks API 1 (Glass Pearls is a dynamic member of its
-  roster, GlassUI#163) and "Use Glass UI appearance" is on, it builds the answered preset and
-  reports (`declined` when turned off, `reason` on a failed build). The model is
-  `..\Stakeout\Theme.lua`; the contract is `..\GlassUI\docs\SUITE.md` and `SUITE-LOOK.md`. No glass
-  of our own choosing (owner; #119 changes that). **Live tint and accent** (#117, Codex two rounds,
+  roster, GlassUI#163) and "Use Glass UI appearance" is on: it builds the answered preset and
+  reports `built`. The model is `..\Stakeout\Theme.lua`; the contract is `..\GlassUI\docs\SUITE.md`
+  and `SUITE-LOOK.md`. **Otherwise the own look** (#119, the owner: "select theme between Forever and
+  Pearl though if GlassUI is not there"; Codex three rounds): `GlassPearlsDB.look` = `forever` |
+  `pearl` | nil (unanswered, reads as Forever; not in DEFAULTS, so an explicit "forever" is kept as
+  chosen); Pearl = `NewGlass("pearl")` with our recipe (no suite body or accent, `Following()` false,
+  not live), a build that fails recorded (`theme pearl`), said, Forever instead. Reports to Glass UI:
+  `declined` = the label of what was built only when our switch is off; a failed suite build keeps its
+  `reason`; any other unusable answer adds nothing; a local Pearl reports `built = nil` (Glass UI reads
+  `built` as following). `Settings.SetLook` stamps `core.look` whenever the raw value changes (so the
+  first "forever" travels); synced, registered after `core.glassui`. **Live tint and accent** (#117, Codex two rounds,
   GlassChat's `Suite.lua` the model): registered for EventRegistry `GlassUI.Suite.LookChanged`
   **before** the one `Look()` pull; each change (payload read-only: only its tint and accent strings
   copied) repaints every shell (backing, tint, wash; class shade with the PEW retry), every `Accent`
@@ -758,7 +765,16 @@ order) and before the options window and bootstrap.
   never shorter than the view, left alone while the layout reads nil), as the last refresher and a
   frame later; the bar shows only with a range. Lay a panel out to fit (about 310 tall, two columns
   of about 300 and 210 wide): the scroll is the safety net (a rogue's nine reagents, a font).
-  Plus a small Esc > Options > AddOns page with an "Open Glass Pearls" button.
+  Plus a small Esc > Options > AddOns page with an "Open Glass Pearls" button. **The look (#119):**
+  Settings > Appearance has radios WoW Forever / Pearl (greyed out, labels too, with "Set in Glass UI" while
+  the "Use Glass UI appearance" box is ticked, at once when it changes);
+  `LookPending` is the Glass UI switch changed since load, or, while not following, the own look (nil
+  read as Forever) differing from the one at load. **The look question** (`GlassPearlsLookPrompt`): asked
+  while no look is chosen and Glass UI isn't driving it (existing installs once too), 10 s after the
+  session's first initial-login PEW, deferred past combat, once a session; one state: a button rechecks,
+  saves through `SetLook` and closes; Pearl prints "type /reload to apply" (`ReloadUI` is protected, never
+  called); closed unanswered asks again next login. Any chosen look (sync, Settings) closes it or cancels a
+  deferred one through `Options.Refresh`.
 - **`Minimap.lua`**: the glass pearl on the minimap (#121; `Media\Pearl.tga`, also the TOC's
   `## IconTexture`). **Hand-made, no library**: LibDBIcon needs LibDataBroker-1.1, which has no published
   licence (GlassMiniMapBar's LICENSE says so too), and its copy at hand drew wrong on Forever (Codex, three

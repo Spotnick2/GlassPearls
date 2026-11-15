@@ -29,6 +29,8 @@ local function ensureDefaults()
         if db[k] == v then db[k] = nil end
     end
     if db.useGlassUI ~= nil and type(db.useGlassUI) ~= "boolean" then db.useGlassUI = nil end
+    -- The own look (#119): nil until the player answers; "forever" kept (it means chosen).
+    if db.look ~= nil and db.look ~= "forever" and db.look ~= "pearl" then db.look = nil end
     if type(db.pearls) ~= "table" then db.pearls = {} end
     Pearls.Clean(db.pearls)
     if type(db.settings) ~= "table" then db.settings = {} end
@@ -90,6 +92,19 @@ function Settings.SetUseGlassUI(on)
     local was = GP.db.useGlassUI ~= false
     GP.db.useGlassUI = on == true
     if GP.db.useGlassUI ~= was then GP.SettingsSync.Touch("core.glassui") end
+    return true
+end
+
+-- The own look, when Glass UI isn't driving it (#119): "forever" or "pearl",
+-- after a /reload. Stamped whenever the saved value changes, nil -> "forever"
+-- included (the answer travels). Refreshes the options, which closes the
+-- first-run question once a look is chosen.
+function Settings.SetLook(v)
+    if v ~= "forever" and v ~= "pearl" then return false end
+    local was = rawget(GP.db, "look")
+    GP.db.look = v
+    if v ~= was then GP.SettingsSync.Touch("core.look") end
+    GP.Options.Refresh()
     return true
 end
 
@@ -172,7 +187,7 @@ end
 local function load()
     GP.db, GP.charDB = ensureDefaults()
     start("theme", function()
-        GP.Theme.Init(GP.db.useGlassUI ~= false, function() return GP.Options.Open() end)
+        GP.Theme.Init(GP.db.useGlassUI ~= false, function() return GP.Options.Open() end, rawget(GP.db, "look"))
     end)
 end
 

@@ -9,9 +9,10 @@
   Esc closes it; Esc > Options > AddOns > Glass Pearls has a button to it. A feature's panel
   that is taller than the window scrolls; Buff alerts and Restock are laid out in two columns
   so they fit.
-- **WoW Forever's own look** by default. With Glass UI installed, Glass Pearls follows its glass
-  (Settings > "Use Glass UI appearance" turns that off). Glass UI's tint and accent apply at once
-  when you change them there, no reload needed.
+- **Two looks of its own: WoW Forever or Pearl**, the glass material, picked in Settings >
+  Appearance (after a /reload) and asked once when none is chosen yet. With Glass UI installed,
+  Glass Pearls follows its glass instead (Settings > "Use Glass UI appearance" turns that off), and
+  Glass UI's tint and accent apply at once when you change them there, no reload needed.
 - **A glass pearl on the minimap**: left-click opens the options window, right-click Settings; drag it
   around the minimap. Settings > "Show the minimap button" (or `/gpearls minimap`) hides it. Minimap
   button collectors pick it up like any other. The pearl is also Glass Pearls' icon in the AddOns
