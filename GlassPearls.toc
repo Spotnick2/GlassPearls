@@ -8,6 +8,7 @@
 ## X-Curse-Project-ID: 1764704
 ## X-Wago-ID: kGr9LxKy
 ## OptionalDeps: GlassUI
+## IconTexture: Interface\AddOns\GlassPearls\Media\Pearl
 ## SavedVariables: GlassPearlsDB, GlassPearlsSyncDB
 ## SavedVariablesPerCharacter: GlassPearlsCharDB
 
@@ -80,4 +81,5 @@ Pearls\Untrained.lua
 Pearls\WorldBuffs.lua
 Pearls\GatherTrack.lua
 Options.lua
+Minimap.lua
 GlassPearls.lua

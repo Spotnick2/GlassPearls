@@ -12,6 +12,10 @@
 - **WoW Forever's own look** by default. With Glass UI installed, Glass Pearls follows its glass
   (Settings > "Use Glass UI appearance" turns that off). Glass UI's tint and accent apply at once
   when you change them there, no reload needed.
+- **A glass pearl on the minimap**: left-click opens the options window, right-click Settings; drag it
+  around the minimap. Settings > "Show the minimap button" (or `/gpearls minimap`) hides it. Minimap
+  button collectors pick it up like any other. The pearl is also Glass Pearls' icon in the AddOns
+  list.
 - Each feature is switched on or off on its own, and only your choices are saved.
 - **Your settings follow you across your own WoW accounts** on the same Battle.net account,
   automatically: change something on one and the others pick it up, including an account that was

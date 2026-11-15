@@ -101,6 +101,7 @@ local function helpLines()
         "/gpearls <pearl> on/off - switch one pearl",
         "/gpearls sync - your other accounts: the link's state (sync on/off to switch it)",
         "/gpearls failures - what failed to build or register",
+        "/gpearls minimap - show or hide the minimap button",
         "/gpearls version - client build vs the measured one",
     }
     -- The pearls' own commands (def.commands).
@@ -130,6 +131,10 @@ local function slash(msg)
         for _, line in ipairs(GP.SettingsSync.Lines()) do say(line) end
     elseif cmd == "failures" then
         failures()
+    elseif cmd == "minimap" then
+        GP.Minimap.SetShown(not GP.Minimap.Shown())
+        say("minimap button " .. (GP.Minimap.Shown() and "shown" or "hidden"))
+        GP.Options.Refresh()
     elseif cmd == "version" then
         say("version " .. GP.VersionText() .. ", client " .. API.ClientBuild()
             .. ", measured on " .. GP.MEASURED_ON_BUILD .. ", look " .. GP.Theme.Active())
@@ -181,6 +186,7 @@ boot:SetScript("OnEvent", function(_, event, arg1)
         start("options", GP.Options.Register)
         start("pearls", Pearls.StartAll)
         start("settings sync", GP.SettingsSync.Start)
+        start("minimap", GP.Minimap.Start)
     elseif event == "PLAYER_ENTERING_WORLD" then
         -- arg1 = isInitialLogin. The build warning asks the developer to
         -- re-measure; a player can't act on it, and /reload never repeats it.
