@@ -145,6 +145,8 @@ eq(said(), 0, "an expiration of 0 then a real one: not a refresh")
 step(40)
 
 -- Outside a window (#106: its line unheard): "is on you" all the same, once per QUIET s, and logged.
+-- #113: every drop is said; QUIET only keeps one drop's copies from being said twice.
+check(WB.QUIET <= 60, "the gap is a minute at most: Forever's drops come minutes apart")
 clean()
 line("yell", 0, WoW.Secret("guid"))     -- Thrall's yell, its sender unreadable
 step(3)
@@ -160,11 +162,11 @@ eq(e.lines[1].npc, nil, "  no NPC for it")
 eq(e.lines[1].before, 3, "  and how long before")
 aura(16609, nil)
 aura(355366, WoW.now + 3600)
-eq(said(), 0, "again within 10 minutes: quiet")
+eq(said(), 0, "another copy within a minute: quiet")
 step(WB.QUIET)
 aura(355366, nil)
 aura(16609, WoW.now + 3600)
-eq(said(), 1, "after 10 minutes: said again")
+eq(said(), 1, "the next drop, a minute later: said again")
 -- A window's announcement starts the quiet gap too: a late copy isn't said twice.
 clean()
 line("yell", 4949)
@@ -174,7 +176,7 @@ eq(said(), 1, "inside the window: said")
 step(30)                                -- the window has closed
 aura(16609, nil)
 aura(1304594, WoW.now + 3600)
-eq(said(), 0, "  another copy after the window, within 10 minutes: quiet")
+eq(said(), 0, "  another copy after the window, within a minute: quiet")
 eq(lastLog().outcome, "nowindow", "  but logged")
 -- Switched off: logged, not said.
 clean()
@@ -219,7 +221,7 @@ line("say", 14875)
 check(newChat()[1]:find("Spirit of Zandalar may drop in about 50 s.", 1, true), "Molthor's say alone: about 50 s")
 step(80)
 
--- Might of Stormwind: no speaker mapped, announced without a window, once per 10 minutes.
+-- Might of Stormwind: no speaker mapped, announced without a window, once per drop.
 clean()
 line("say", 466)                        -- an unlisted NPC: only the ring keeps it
 step(4)
@@ -233,11 +235,11 @@ eq(e.lines and e.lines[1] and e.lines[1].before, 4, "  and how long before")
 eq(e.lines[1].event, "say", "  and its event")
 aura(460939, nil)
 aura(1304678, WoW.now + 3600)
-eq(said(), 0, "again within 10 minutes: quiet")
+eq(said(), 0, "another copy within a minute: quiet")
 aura(1304678, nil)
 step(WB.QUIET)
 aura(460940, WoW.now + 3600)
-eq(said(), 1, "after 10 minutes: said again")
+eq(said(), 1, "the next drop, a minute later: said again")
 -- The ring: at most 8 lines, none older than 90 s.
 clean()
 for i = 1, 10 do line("yell", 100 + i) end
@@ -271,18 +273,60 @@ aura(22888, WoW.now + 7200)
 eq(said(), 0, "unknown at the baseline, then present: not announced")
 step(40)
 
--- Combat: no reads; the baseline at its end absorbs what landed.
+-- Combat: no reads; the read at its end compares with before the fight (#113).
 clean()
 line("yell", 14392)
 newChat()
+sounds()
 WoW.fire("PLAYER_REGEN_DISABLED")
 local reads = WoW.auraReads[22888] or 0
 aura(22888, WoW.now + 7200)
 eq(WoW.auraReads[22888] or 0, reads, "in combat: no aura read")
+eq(said(), 0, "  nothing said in combat")
 WoW.fire("PLAYER_REGEN_ENABLED")
 step()
-eq(said(), 0, "landed in combat: absorbed by the baseline at its end")
+chat = newChat()
+eq(#chat, 1, "landed in combat: said once the fight ends")
+check(chat[1] and chat[1]:find("is on you.", 1, true), "  is on you")
+eq(sounds(), 1, "  with its sound")
+eq(lastLog().outcome, "received", "  inside its window: received")
 step(40)
+-- Present before the fight and unchanged: nothing after it.
+WoW.fire("PLAYER_REGEN_DISABLED")
+WoW.fire("PLAYER_REGEN_ENABLED")
+step()
+eq(said(), 0, "present before the fight, unchanged after: silent")
+-- Refreshed during a fight, no window: said after it.
+step(WB.QUIET)
+WoW.fire("PLAYER_REGEN_DISABLED")
+aura(22888, WoW.now + 7200)
+WoW.fire("PLAYER_REGEN_ENABLED")
+step()
+eq(said(), 1, "refreshed in combat: said once the fight ends")
+eq(lastLog().outcome, "nowindow", "  logged without a window")
+-- Codex on #114: a receipt announced late never hides the next drop.
+clean()
+WoW.fire("PLAYER_REGEN_DISABLED")
+aura(16609, WoW.now + 3600)             -- drop A, in a fight
+step(90)
+WoW.fire("PLAYER_REGEN_ENABLED")
+step()
+eq(said(), 1, "drop A, announced 90 s late, after the fight")
+step(30)
+aura(16609, WoW.now + 3600)             -- drop B, 120 s after A, 30 s after A's announcement
+eq(said(), 1, "  drop B 30 s after A's announcement: said (its expiration is 2 minutes later)")
+aura(1304594, WoW.now + 3600)
+eq(said(), 0, "  B's copy: quiet")
+-- Copies without an expiration: by the announcement's time.
+clean()
+aura(16609, 0)
+eq(said(), 1, "no expiration: said")
+aura(355366, 0)
+eq(said(), 0, "  its copy at once: quiet")
+step(WB.QUIET)
+aura(16609, nil)
+aura(16609, 0)
+eq(said(), 1, "  a minute later: said")
 
 -- A secret GUID: counted, nothing else.
 clean()

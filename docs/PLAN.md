@@ -415,6 +415,9 @@ Yojamba Isle for Zandalar; `/gpearls worldbuffs` right after each)
       2026-11-14 (#106): Warchief's Blessing landed in Orgrimmar with **no line heard** in the 90 s before it (an
       empty ring, from a build that kept only readable lines). The ring now keeps unreadable lines with why: the
       next window-less receipt tells an unreadable sender from no line at all.
+      **2026-11-15 (#113): Thrall's two yells before the 01:44 drop came with the GUID missing** (`why = "missing"`,
+      6 s and 0 s before, owner in Orgrimmar): no speaker matched, no warning. The herald's and the other NPCs'
+      still to see.
 - [ ] The speakers: Runthak 14392 / Mattingly 14394 (Onyxia), Saurfang 14720 / Stonebridge 14721 (Nefarian),
       Thrall 4949 and the herald 10719 (Rend), the emissary 15076 (yell) and Molthor 14875 (say) for Zandalar.
 - [ ] The delays from the first line to receipt (the log's "s after the line"): about 14, 12, 6, 30-50.

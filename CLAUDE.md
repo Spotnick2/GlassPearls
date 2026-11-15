@@ -179,11 +179,15 @@ order) and before the options window and bootstrap.
   even after receipt. The warning is a candidate ("may drop in about N s", from the first line heard): another line
   by the same NPC can warn for nothing; close turn-ins merge. **Receiving**: `UNIT_AURA` (payload untouched) queues
   one check a frame later, never in combat; per spell ID uninitialized / absent / present with its expiration and
-  a `gap` flag after an unknown read; baselines at Enable, a switch turned on, PEW, regen end. Received = absent ->
+  a `gap` flag after an unknown read; baselines at Enable, a switch turned on, PEW; **not** at regen end, whose
+  read compares with before the fight, so a buff landed in combat is announced after it (#113). Received = absent ->
   present, or a positive expiration `REFRESH` (60) s later than the last positive one with no unknown between.
   "<buff> is on you" inside its window, once, **and without one** (#106: the line unheard; measured, Warchief's
-  Blessing in Orgrimmar with nothing heard), at most once per `QUIET` (600) s per buff, a window's announcement
-  starting the gap too; **Might of Stormwind** has no speaker mapped (its turn-in is 466, the speaker unmeasured).
+  Blessing in Orgrimmar with nothing heard; it lands zone-wide and from other layers, often minutes apart), every drop
+  said, its copies once (`WB.Copy`: an expiration within `QUIET` (60) s of the last announced one's, else, with no
+  expiration, an announcement within 60 s; by expiration so a late post-combat one never hides the next drop, #113),
+  a window's announcement included; **measured 2026-11-15: Thrall's yells came with the GUID missing** (nil 12th value), so no
+  speaker matched; **Might of Stormwind** has no speaker mapped (its turn-in is 466, the speaker unmeasured).
   Never attributed to a turn-in. Expiry is
   silent (log `unconfirmed`). Sounds `Media\WorldBuffYell.ogg` / `WorldBuffDrop.ogg` (`PlaySoundFile`, Master; the
   deploy and the package check take `Media\*.ogg`). The day-one record: `GlassPearlsDB.worldbuffs.log` (10, IDs

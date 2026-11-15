@@ -187,7 +187,8 @@
   head or Hakkar's heart speaks, "Rallying Cry of the Dragonslayer may drop in about 14 s" (Warchief's Blessing
   6 s, Spirit of Zandalar 30-50 s), then "is on you" once it lands on you: a chat line, a text in the middle of
   the screen and a sound for each (the sound can be turned off). A buff that lands without its line heard (you
-  were out of range, or it came later than expected) still says "is on you", at most once in 10 minutes; Might of
+  were out of range, or it dropped on another layer) still says "is on you", for every drop, and one that lands
+  during a fight says it after the fight; Might of
   Stormwind, whose announcer isn't known yet, only says that. Only what your own game hears, so you must be where it's announced; nothing is sent to anyone. The NPC
   is recognized by its ID, never its words, in every client language. New sounds: restart the game once after
   installing.
