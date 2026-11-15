@@ -29,6 +29,7 @@ T.KEY = "trades"
 T.WAIT = 2                -- for the message after a close, and for the money after it
 T.SLOTS = 6               -- slot 7 is the enchant slot, never traded (TradeFrame.lua:3)
 T.LOG_MAX = 10
+T.LOG_WIDTH = 496         -- the log's wrap width while the panel's can't be read: inside the scroll view (#107)
 T.EVENTS = { "TRADE_SHOW", "TRADE_UPDATE", "TRADE_MONEY_CHANGED", "TRADE_PLAYER_ITEM_CHANGED",
     "TRADE_TARGET_ITEM_CHANGED", "TRADE_ACCEPT_UPDATE", "TRADE_CLOSED", "UI_INFO_MESSAGE", "PLAYER_MONEY" }
 
@@ -230,10 +231,18 @@ local function configure(panel, refreshers)
     head:SetPoint("TOPLEFT", panel, "TOPLEFT", 0, 0)
     local body = GP.UI.Label(panel, "")
     body:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 4, -8)
-    body:SetWidth(560)
     body:SetWordWrap(true)
     body:SetJustifyH("LEFT")
+    -- The panel's width, less the log's 4 px each side: the panel scrolls
+    -- only vertically, so a wider line would be clipped (#107).
+    local function fit()
+        local w = panel:GetWidth()
+        if API.IsSecret(w) or type(w) ~= "number" or w <= 40 then w = T.LOG_WIDTH + 8 end
+        body:SetWidth(w - 8)
+    end
+    panel:HookScript("OnSizeChanged", fit)
     local function refresh()
+        fit()
         local lines = {}
         for _, e in ipairs(log()) do lines[#lines + 1] = e.line end
         body:SetText(#lines > 0 and table.concat(lines, "\n") or "No trade logged yet.")
