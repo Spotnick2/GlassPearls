@@ -22,10 +22,13 @@
 -- with a positive expiration at least REFRESH s later than the last positive
 -- one with no unknown read between. Announced inside its window, once, and
 -- also without one (the line unheard: out of range, an unreadable sender, a
--- delay longer than listed; on Forever, a drop on another layer, #113), at
--- most once per QUIET s per buff, a window's announcement included (#106):
--- one drop's copies are said once, every drop is said. Receipt is observed,
--- never attributed to a turn-in.
+-- delay longer than listed; on Forever, a drop on another layer, #113).
+-- Every drop is said, its copies once (WB.Copy): a receipt whose expiration
+-- is within QUIET s of the last announced one's is a copy of it; without an
+-- expiration on either side, one within QUIET s of that announcement is. The
+-- expiration, not the announcement's time, so a receipt announced late (after
+-- a fight) never hides the next drop (#113). Receipt is observed, never
+-- attributed to a turn-in.
 --
 -- The NPC IDs and delays are game facts from a reference addon and Wowhead
 -- Forever (database evidence); the 1304xxx spell IDs are Forever's copies.
@@ -39,7 +42,7 @@ GP.WorldBuffs = WB
 
 WB.KEY = "worldbuffs"
 WB.REFRESH = 60          -- a refresh moves the expiration at least this far
-WB.QUIET = 60            -- a window-less announcement's gap: one drop's copies, never the next drop (#113)
+WB.QUIET = 60            -- one drop's copies: expirations (or announcements) this close (#113)
 WB.LOG_MAX = 10
 WB.RING_MAX, WB.RING_AGE = 8, 90
 WB.SOUND_WARN = "Interface\\AddOns\\GlassPearls\\Media\\WorldBuffYell.ogg"
@@ -86,7 +89,7 @@ local state = {
     windows = {},        -- [buff key] = { token, heardAt, endsAt, event, npc, received }
     seq = 0,
     ring = {},           -- the last RING_MAX lines heard: { event, npc, at }
-    quiet = {},          -- [buff key] = GetTime() of its last window-less announcement
+    quiet = {},          -- [buff key] = { at = GetTime(), exp } of its last announcement
     counts = { unreadable = 0, ignored = 0, heard = 0 },
 }
 WB.state = state
@@ -227,8 +230,17 @@ local function ringCopy(now)
     return lines
 end
 
-function WB.Received(b, id)
+-- Whether a receipt (expiration exp, 0: none) is a copy of the drop last announced.
+function WB.Copy(b, exp, now)
+    local last = state.quiet[b.key]
+    if not last then return false end
+    if exp > 0 and last.exp > 0 then return math.abs(exp - last.exp) < WB.QUIET end
+    return now - last.at < WB.QUIET
+end
+
+function WB.Received(b, id, exp)
     local now = GetTime()
+    exp = (type(exp) == "number" and exp > 0) and exp or 0
     local w = window(b.key)
     if w then
         if w.received then return end
@@ -236,16 +248,15 @@ function WB.Received(b, id)
         record({ buff = b.key, event = w.event, npc = w.npc, spell = id, after = math.floor(now - w.heardAt + 0.5),
             outcome = "received" })
         if setting(b.key) then
-            state.quiet[b.key] = now
+            state.quiet[b.key] = { at = now, exp = exp }
             announce(("%s is on you."):format(WB.Name(b)), WB.SOUND_DROP)
         end
         return
     end
     record({ buff = b.key, spell = id, outcome = "nowindow", lines = ringCopy(now) })
     if not setting(b.key) then return end
-    local last = state.quiet[b.key]
-    if last and now - last < WB.QUIET then return end
-    state.quiet[b.key] = now
+    if WB.Copy(b, exp, now) then return end
+    state.quiet[b.key] = { at = now, exp = exp }
     announce(("%s is on you."):format(WB.Name(b)), WB.SOUND_DROP)
 end
 
@@ -258,10 +269,10 @@ local function check()
         local was = state.ids[id]
         if result == "present" then
             if was and was.s == "absent" then
-                got[b] = got[b] or id
+                got[b] = got[b] or { id, exp }
             elseif was and was.s == "present" and not was.gap and was.exp > 0 and exp > 0
                 and exp >= was.exp + WB.REFRESH then
-                got[b] = got[b] or id
+                got[b] = got[b] or { id, exp }
             end
             state.ids[id] = { s = "present", exp = exp }
         elseif result == "absent" then
@@ -271,7 +282,7 @@ local function check()
         end
     end
     for _, b in ipairs(WB.BUFFS) do
-        if got[b] then WB.Received(b, got[b]) end
+        if got[b] then WB.Received(b, got[b][1], got[b][2]) end
     end
 end
 

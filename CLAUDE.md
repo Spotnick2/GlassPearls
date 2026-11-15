@@ -182,9 +182,10 @@ order) and before the options window and bootstrap.
   read compares with before the fight, so a buff landed in combat is announced after it (#113). Received = absent ->
   present, or a positive expiration `REFRESH` (60) s later than the last positive one with no unknown between.
   "<buff> is on you" inside its window, once, **and without one** (#106: the line unheard; measured, Warchief's
-  Blessing in Orgrimmar with nothing heard; it lands zone-wide and from other layers, often minutes apart), at most
-  once per `QUIET` (60) s per buff (one drop's copies; #113: every drop sounds), a window's announcement starting
-  the gap too; **measured 2026-11-15: Thrall's yells came with the GUID missing** (nil 12th value), so no
+  Blessing in Orgrimmar with nothing heard; it lands zone-wide and from other layers, often minutes apart), every drop
+  said, its copies once (`WB.Copy`: an expiration within `QUIET` (60) s of the last announced one's, else, with no
+  expiration, an announcement within 60 s; by expiration so a late post-combat one never hides the next drop, #113),
+  a window's announcement included; **measured 2026-11-15: Thrall's yells came with the GUID missing** (nil 12th value), so no
   speaker matched; **Might of Stormwind** has no speaker mapped (its turn-in is 466, the speaker unmeasured).
   Never attributed to a turn-in. Expiry is
   silent (log `unconfirmed`). Sounds `Media\WorldBuffYell.ogg` / `WorldBuffDrop.ogg` (`PlaySoundFile`, Master; the

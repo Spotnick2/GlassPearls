@@ -304,6 +304,29 @@ WoW.fire("PLAYER_REGEN_ENABLED")
 step()
 eq(said(), 1, "refreshed in combat: said once the fight ends")
 eq(lastLog().outcome, "nowindow", "  logged without a window")
+-- Codex on #114: a receipt announced late never hides the next drop.
+clean()
+WoW.fire("PLAYER_REGEN_DISABLED")
+aura(16609, WoW.now + 3600)             -- drop A, in a fight
+step(90)
+WoW.fire("PLAYER_REGEN_ENABLED")
+step()
+eq(said(), 1, "drop A, announced 90 s late, after the fight")
+step(30)
+aura(16609, WoW.now + 3600)             -- drop B, 120 s after A, 30 s after A's announcement
+eq(said(), 1, "  drop B 30 s after A's announcement: said (its expiration is 2 minutes later)")
+aura(1304594, WoW.now + 3600)
+eq(said(), 0, "  B's copy: quiet")
+-- Copies without an expiration: by the announcement's time.
+clean()
+aura(16609, 0)
+eq(said(), 1, "no expiration: said")
+aura(355366, 0)
+eq(said(), 0, "  its copy at once: quiet")
+step(WB.QUIET)
+aura(16609, nil)
+aura(16609, 0)
+eq(said(), 1, "  a minute later: said")
 
 -- A secret GUID: counted, nothing else.
 clean()
