@@ -14,15 +14,18 @@
 -- Receiving: UNIT_AURA (payload untouched) queues one check a frame later,
 -- never in combat. Per watched spell ID: uninitialized, absent, or present
 -- with its expiration (0: none) and whether an unknown read came since. A
--- baseline (Enable, a switch turned on, a loading screen, combat's end) makes
--- every ID uninitialized; the first readable answer sets it silently. A buff
+-- baseline (Enable, a switch turned on, a loading screen) makes every ID
+-- uninitialized; the first readable answer sets it silently. Combat's end is
+-- no baseline: its read compares with what was known before the fight, so a
+-- buff that landed during it is announced then (#113). A buff
 -- is received when one of its IDs goes absent -> present, or stays present
 -- with a positive expiration at least REFRESH s later than the last positive
 -- one with no unknown read between. Announced inside its window, once, and
 -- also without one (the line unheard: out of range, an unreadable sender, a
--- delay longer than listed), at most once per QUIET s per buff, a window's
--- announcement included (#106). Receipt is observed, never attributed to a
--- turn-in.
+-- delay longer than listed; on Forever, a drop on another layer, #113), at
+-- most once per QUIET s per buff, a window's announcement included (#106):
+-- one drop's copies are said once, every drop is said. Receipt is observed,
+-- never attributed to a turn-in.
 --
 -- The NPC IDs and delays are game facts from a reference addon and Wowhead
 -- Forever (database evidence); the 1304xxx spell IDs are Forever's copies.
@@ -36,7 +39,7 @@ GP.WorldBuffs = WB
 
 WB.KEY = "worldbuffs"
 WB.REFRESH = 60          -- a refresh moves the expiration at least this far
-WB.QUIET = 600           -- a window-less announcement's gap
+WB.QUIET = 60            -- a window-less announcement's gap: one drop's copies, never the next drop (#113)
 WB.LOG_MAX = 10
 WB.RING_MAX, WB.RING_AGE = 8, 90
 WB.SOUND_WARN = "Interface\\AddOns\\GlassPearls\\Media\\WorldBuffYell.ogg"
@@ -291,7 +294,9 @@ events:SetScript("OnEvent", function(_, event, ...)
         queue()                              -- no argument read: UNIT_AURA's can be secret
     elseif event == "PLAYER_LEAVING_WORLD" then
         state.windows, state.ring = {}, {}
-    elseif event ~= "PLAYER_REGEN_DISABLED" then   -- PLAYER_ENTERING_WORLD, PLAYER_REGEN_ENABLED
+    elseif event == "PLAYER_REGEN_ENABLED" then
+        queue()                              -- against what was known before the fight (#113)
+    elseif event == "PLAYER_ENTERING_WORLD" then
         baseline()
     end
 end)
@@ -412,8 +417,8 @@ GP.Pearls.Register({
         .. "Only what your client hears: you must be in the city (or Booty Bay, Yojamba Isle, the Crossroads); "
         .. "nothing is sent to anyone. The NPC is recognized by its ID, never its words: another line of theirs can "
         .. "warn for nothing, and two turn-ins close together are one warning. A buff that lands without its line "
-        .. "heard (out of range, a delay longer than expected) still says \"is on you\", at most once in 10 minutes, "
-        .. "so a restored buff can say it too. Might of Stormwind only says \"is on you\" for now (who announces it "
+        .. "heard (out of range, a drop on another layer) still says \"is on you\", once per drop; one that lands "
+        .. "during a fight says it after the fight. Might of Stormwind only says \"is on you\" for now (who announces it "
         .. "isn't known yet). /gpearls worldbuffs "
         .. "shows what it heard. Unverified until checked in game.",
     default = true,
