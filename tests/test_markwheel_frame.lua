@@ -139,6 +139,14 @@ elseif mode == "glass" then
     check(f.highlight._desaturated, "  the highlight desaturated")
     local c = f.highlight._vertex
     check(c and near(c[1], 0.9) and near(c[2], 0.7) and near(c[3], 0.2), "  and in the suite's accent")
+    -- #117: it follows the suite's accent live, and goes neutral without one.
+    GlassUI.Suite.Accent = function(name) if name == "ice" then return { 0.65, 0.835, 0.905 } end end
+    EventRegistry:TriggerEvent(GP.Theme.EVENT, { tint = "smoked", accent = "ice" })
+    c = f.highlight._vertex
+    check(c and near(c[1], 0.65) and near(c[3], 0.905) and near(c[4], 0.85), "  a live accent change recolours it")
+    EventRegistry:TriggerEvent(GP.Theme.EVENT, { tint = "smoked", accent = "pink" })
+    c = f.highlight._vertex
+    check(c and near(c[1], 1) and near(c[2], 1) and near(c[4], 0.6), "  an unknown accent: neutral white")
 else
     eq(f.art, "plain", "no atlas: a plain disc")
     eq(f.bg._atlas, nil, "  no atlas set")

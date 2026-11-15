@@ -138,8 +138,13 @@ local function buildGlass()
         local info = atlasInfo(Frame.ATLAS.selected)
         hl:SetSize((plainNumber(info.width) or 160) * f.k, (plainNumber(info.height) or 160) * f.k)
         hl:SetDesaturated(true)
-        local r, gg, b = GP.Theme.AccentRGB()
-        if r then hl:SetVertexColor(r, gg, b, 0.85) else hl:SetVertexColor(1, 1, 1, 0.6) end
+        -- The suite's accent, or a neutral white; again at every look change (#117).
+        local function paint()
+            local r, gg, b = GP.Theme.AccentRGB()
+            if r then hl:SetVertexColor(r, gg, b, 0.85) else hl:SetVertexColor(1, 1, 1, 0.6) end
+        end
+        paint()
+        GP.Theme.OnLook(paint)
         if g.mask then hl:AddMaskTexture(g.mask) end
         f.highlight = hl
     end
