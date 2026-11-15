@@ -386,6 +386,11 @@ local function settingsPage()
         cb:SetPoint("TOPLEFT", share, "BOTTOMLEFT", -4, -6)
         page.refreshers[#page.refreshers + 1] = refresh
         page.share = cb
+        local mm, refreshMm = GP.UI.Check(f, "Show the minimap button", GP.Minimap.Shown, GP.Minimap.SetShown,
+            { tip = "The glass pearl on the minimap: left-click opens this window, right-click Settings. On this account." })
+        mm:SetPoint("TOPLEFT", cb, "BOTTOMLEFT", 0, -4)
+        page.refreshers[#page.refreshers + 1] = refreshMm
+        page.minimap = mm
     end)
 end
 

@@ -128,6 +128,13 @@ end }
 
 -- GameTooltip: its owner and lines, as text. SetOwner starts it over.
 GameTooltip = newWidget("GameTooltip", UIParent, "GameTooltip")
+
+-- Minimap (Blizzard_Minimap's frame): 198 px on Forever (AltStable's measure,
+-- 69913), centred at (1000, 500) so GetCenter reads; the minimap button's
+-- parent (#121).
+Minimap = newWidget("Frame", UIParent, "Minimap")
+Minimap:SetSize(198, 198)
+Minimap:SetPoint("CENTER", UIParent, "BOTTOMLEFT", 1000, 500)
 GameTooltip._lines = {}
 function Methods.SetOwner(t, owner) t._owner, t._lines = owner, {} end
 function Methods.GetOwner(t) return t._owner end

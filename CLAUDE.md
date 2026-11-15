@@ -42,7 +42,7 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 `Pearls\FastLoot.lua` → `Pearls\LowBuffs.lua` → `Pearls\InstanceGearFrame.lua` → `Pearls\InstanceGear.lua` →
 `Pearls\PetCareFrame.lua` → `Pearls\PetCare.lua` → ... → `Pearls\Fishing.lua` → `Pearls\BooksFrame.lua` →
 `Pearls\BooksCompass.lua` → `Pearls\Books.lua`)* →
-`Options.lua` → `GlassPearls.lua`. Pearls load after
+`Options.lua` → `Minimap.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
 
@@ -759,6 +759,19 @@ order) and before the options window and bootstrap.
   frame later; the bar shows only with a range. Lay a panel out to fit (about 310 tall, two columns
   of about 300 and 210 wide): the scroll is the safety net (a rogue's nine reagents, a font).
   Plus a small Esc > Options > AddOns page with an "Open Glass Pearls" button.
+- **`Minimap.lua`**: the glass pearl on the minimap (#121; `Media\Pearl.tga`, also the TOC's
+  `## IconTexture`). **Hand-made, no library**: LibDBIcon needs LibDataBroker-1.1, which has no published
+  licence (GlassMiniMapBar's LICENSE says so too), and its copy at hand drew wrong on Forever (Codex, three
+  rounds). AltStable's recipe (`SheetUI.lua`, the same owner's, MIT): `GlassPearlsMinimapButton`, a plain
+  Button child of `Minimap` (named and with `btn.icon` = the pearl: a collector such as the owner's
+  GlassMiniMapBar scans Minimap's named children and reads that field), 31 px, the tracking border; on the
+  ellipse of the minimap's half width and height + 10 (99 while it reads 0) at the saved angle (default
+  200), following `Minimap:HookScript("OnSizeChanged")` (a refusal recorded, `minimap size`); `Place` does
+  nothing once a collector reparents it. Left-drag around the ring; **one `stopDrag` from `OnDragStop` and
+  `OnHide`**, and the drag's update stops before writing when the parent isn't `Minimap` (a collector
+  grabbing it mid-drag). Left-click toggles the options, right-click opens Settings. `GlassPearlsDB.minimap
+  = { hide, angle }`, per account, never synced, each field checked at login (`M.Clean`); the setter saves
+  `hide` itself. Settings > "Show the minimap button", `/gpearls minimap`. Made at `PLAYER_LOGIN`.
 - **`GlassPearls.lua`**: bootstrap (saved settings, the look at `ADDON_LOADED`, login build
   warning), `GP.Settings`, and `/gpearls` (`/glasspearls`): no argument toggles the window. A pearl's
   key with `on`/`off` switches it; a pearl command of the same name as its key takes every other
