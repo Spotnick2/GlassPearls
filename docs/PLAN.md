@@ -39,6 +39,7 @@ until PearlsProbe's steps 1-3 pass** and the code is adjusted to what they show.
 | #40 | Easy delete (pearl `easydelete`, off by default): DELETE filled in for good items up to a chosen quality | built; the fill from addon code and taint wait for day one |
 | #44 | Quest loot sparkle (pearl `sparkle`, off by default): the outline mode kept off so quest loot sparkles | built; the CVars, their effect and the restore wait for day one |
 | #86 | Untrained gear (pearl `untrained`): gear red only for a skill your class and race can still learn, in yellow with a note | built; the tooltip's red slot-line side and its data colour wait for day one |
+| #110 | Gathering tracking (pearl `gathertrack`): Find Herbs and Find Minerals back on at login and after a death, never fighting a player's off | built; the IDs, both on together, the GCD, stealth and mounted, and the death and login paths wait for a check in game |
 | #104 | World buff announcer (pearl `worldbuffs`): "may drop in about N s" when a turn-in NPC speaks, "is on you" when it lands; Might of Stormwind on landing only | built; the GUIDs, delays, spell IDs and Might of Stormwind's speaker wait for a check in game |
 | #79 | Quest loot sparkle's stars (experimental option `stars`): NodeRadar's twinkling stars on the soft-interact quest object | built; the stars measured 2026-11-06 (with NodeRadar's values); the quest test waits |
 | #90 | The stars' three interact CVars claimed like NodeRadar's marker (two are secure: temps never reached them) | built; the claim at the defaults, the put-back and a full exit wait for a check in game |
@@ -418,6 +419,15 @@ Yojamba Isle for Zandalar; `/gpearls worldbuffs` right after each)
 - [ ] **Might of Stormwind's speaker**: the log's "heard before" lines when it lands; then map its (event, NPC)
       and delay in `WB.BUFFS`.
 - [ ] Do the sounds play (`Media\WorldBuffYell.ogg`, `WorldBuffDrop.ogg`; a client restart after the first install)?
+
+**Gathering tracking (#110)** (a herbalist-miner; `/gpearls gathertrack` after each)
+- [ ] Which spell ID the tracking entries report (2383 / 8387, 2580 / 8388), and that both stay on together.
+- [ ] Log in with both off: both on within about 5 s, the second a GCD after the first; nothing in chat or errors.
+- [ ] Die, release, run back: on again at the corpse; die and take a resurrection: on again; die in an instance and
+      come out: on again after the loading screen.
+- [ ] Turn one off by hand right after it came on: it stays off until the next login or death.
+- [ ] Stealthed, mounted, on a taxi: what happens (it waits for stealth and the taxi; mounted is unmeasured).
+- [ ] `/reload` with tracking off: it stays off.
 - [ ] Thrall's other lines: a false warning seen?
 
 **Quest loot sparkle's stars (#79)** (a quest with objects to click; an ordinary herb or chest nearby)

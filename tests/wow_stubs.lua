@@ -2192,6 +2192,66 @@ function C_Item.GetItemSubClassInfo(classID, subclassID)
 end
 INVTYPE_WEAPON, INVTYPE_2HWEAPON, INVTYPE_CHEST = "One-Hand", "Two-Hand", "Chest"
 
+--------------------------------------------------------------------------------
+-- Gathering tracking (#110). In the 70532 dump: C_Minimap.GetNumTrackingTypes,
+-- GetTrackingInfo, SetTracking (which casts the tracking spell and turns the
+-- entry on, measured by NodeRadar's probe), C_Spell.GetSpellCooldown
+-- (isActive), IsStealthed, UnitCastingInfo, UnitInVehicle, UnitHasVehicleUI.
+--   WoW.tracking = { { name, spellID, active }, ... }  the minimap's list
+--   WoW.trackingCount = a number, WoW.Secret(...) or "throw" in place of #WoW.tracking
+--   WoW.trackingThrows[i] / WoW.trackingSecret[i] / WoW.trackingSecretID[i] / WoW.trackingSecretActive[i]
+--   WoW.trackingCalls = { { index, on }, ... }; WoW.trackingRefuses (throws), WoW.trackingNoEffect
+--   WoW.trackingEventInside: MINIMAP_UPDATE_TRACKING fired inside SetTracking (else not at all)
+--   WoW.cooldowns[spellID] = true (active) | "secret" | "throw"; WoW.stealthed; WoW.casting (a name,
+--   "secret" or "throw"); WoW.vehicle; WoW.deadSecret
+--------------------------------------------------------------------------------
+
+WoW.tracking, WoW.trackingCalls, WoW.cooldowns = {}, {}, {}
+WoW.trackingThrows, WoW.trackingSecret, WoW.trackingSecretID, WoW.trackingSecretActive = {}, {}, {}, {}
+C_Minimap = C_Minimap or {}
+function C_Minimap.GetNumTrackingTypes()
+    local c = WoW.trackingCount
+    if c == "throw" then error("GetNumTrackingTypes refused") end
+    if c ~= nil then return c end
+    return #WoW.tracking
+end
+function C_Minimap.GetTrackingInfo(i)
+    if WoW.trackingThrows[i] then error("GetTrackingInfo refused") end
+    if WoW.trackingSecret[i] then return WoW.Secret("tracking info") end
+    local t = WoW.tracking[i]
+    if not t then return nil end
+    return { name = t.name or "", texture = 136000, active = WoW.trackingSecretActive[i] and WoW.Secret("active") or t.active,
+        type = "spell", subType = 0, spellID = WoW.trackingSecretID[i] and WoW.Secret("id") or t.spellID }
+end
+function C_Minimap.SetTracking(i, on)
+    WoW.trackingCalls[#WoW.trackingCalls + 1] = { i, on }
+    if WoW.trackingRefuses then error("SetTracking refused") end
+    local t = WoW.tracking[i]
+    if t and not WoW.trackingNoEffect then t.active = on end
+    if WoW.trackingEventInside then WoW.fire("MINIMAP_UPDATE_TRACKING") end
+end
+function C_Spell.GetSpellCooldown(id)
+    local c = WoW.cooldowns[id]
+    if c == "throw" then error("GetSpellCooldown refused") end
+    if c == "secret" then return WoW.Secret("cooldown") end
+    return { startTime = c and 1 or 0, duration = c and 1.5 or 0, isEnabled = true, modRate = 1, isActive = c == true }
+end
+function IsStealthed() return WoW.stealthed == true end
+function UnitCastingInfo(unit)
+    if unit ~= "player" or WoW.casting == nil then return nil end
+    if WoW.casting == "throw" then error("UnitCastingInfo refused") end
+    if WoW.casting == "secret" then return WoW.Secret("cast") end
+    return WoW.casting
+end
+function UnitInVehicle(unit) return unit == "player" and WoW.vehicle == true end
+-- WoW.deadSecret: UnitIsDeadOrGhost("player") answers a secret.
+local unitIsDeadOrGhostBefore = UnitIsDeadOrGhost
+function UnitIsDeadOrGhost(unit)
+    if unit == "player" and WoW.deadSecret then return WoW.Secret("dead") end
+    return unitIsDeadOrGhostBefore(unit)
+end
+function UnitHasVehicleUI(unit) return unit == "player" and WoW.vehicle == true end
+
 -- Strict globals: any read of an undefined global is an error, except the
 -- addon's own globals that are legitimately nil before first assignment.
 -- LibStub: the embedded libraries' loaders read _G.LibStub before creating it.
