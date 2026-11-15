@@ -29,9 +29,21 @@
 --
 -- Budget (each part capped where data is accepted, so the sum fits the
 -- 32 KB wire ceiling; test_sync_budget fills every part with the longest
--- values): known keys <= 12 KB (asserted on the real registry); set entries
--- <= 200 in all sets together, each line <= 69 B (~13.8 KB; 300 until #29); unknown keys
--- <= 32, each line <= 155 B (~5 KB); up to 10 set headers and the format line < 0.4 KB.
+-- values): known keys <= 14 KB (asserted on the real registry, every key at
+-- its longest value; 12 KB until #112); set entries <= 200 in all sets
+-- together, each line <= 61 B (~12.2 KB; 300 until #29); unknown keys <= 32,
+-- each line <= 147 B (~4.7 KB); up to 10 set headers and the format line
+-- < 0.4 KB. Every part full: 31,590 B of the 31,744.
+--
+-- Origins are at most 24 B since #112 (32 before), a deliberate break: the
+-- only producer is UnitGUID("player") (a Forever player GUID is 20 B) or
+-- "unknown". A payload carrying a longer one is rejected whole, and Clean
+-- drops a saved stamp, set entry (a tombstone too) or unknown key carrying
+-- one, so such a known key may be seeded again and such a removed member may
+-- come back from an older add. Never truncate an origin (it is identity and
+-- order). Released alphas reject a snapshot of more than 160 V lines (alpha1)
+-- or 192 (alpha2-8), and this version a longer origin: with more than 160
+-- keys registered, keep every account on the same version.
 --
 -- Format "GPS1", one record per line, tab-separated, data never run:
 --   GPS1
@@ -49,11 +61,11 @@ SS.KIND = "ST"
 SS.FORMAT = "GPS1"
 SS.WIRE_MAX = 32768          -- LibAccountSync's ceiling (AccountSync.lua asks for it)
 SS.BUDGET = 31 * 1024        -- what an encoded snapshot may use
-SS.ID_MAX, SS.ORIGIN_MAX, SS.VALUE_MAX = 32, 32, 64
+SS.ID_MAX, SS.ORIGIN_MAX, SS.VALUE_MAX = 32, 24, 64   -- origin 32 until #112 (the header)
 SS.SET_MAX = 200             -- entries in all sets together, members and tombstones (300 until #29)
 SS.SETS_MAX = 10               -- sets; the 200 entries are shared, so more sets cost only their headers (4 to 8 in #15, 10 in #53, before v0.1.0)
 SS.FOREIGN_MAX = 32
-SS.KNOWN_MAX = 160           -- V lines for known keys (128 until #53, before v0.1.0)
+SS.KNOWN_MAX = 200           -- V lines for known keys (128 until #53, 160 until #112, before v0.1.0)
 SS.DEBOUNCE, SS.LOGIN_DELAY, SS.PEER_CHECK = 2, 5, 60
 SS.BACKOFF = { 30, 60, 120, 240 }
 
@@ -634,11 +646,24 @@ end
 -- default's type: boolean, integer, or a string with `choices[name]`.
 local function registerAll()
     local P = GP.Pearls
+    -- The look choice first, then the pearls in order, each one's settings by
+    -- name: a full registry refuses a pearl's key, never the look, and always
+    -- the same one (#112). Every refusal is recorded.
+    SS.Register("core.glassui", { kind = "bool", default = true,
+        get = function() return GP.db.useGlassUI ~= false end,
+        set = function(v) GP.Settings.SetUseGlassUI(v) end })
     for _, def in ipairs(P.List()) do
         local key = def.key
-        SS.Register(SS.PearlOnId(key), { kind = "bool", default = def.default,
-            get = function() return P.IsOn(key) end, set = function(v) P.Set(key, v) end })
-        for name, d in pairs(def.defaults) do
+        local onId = SS.PearlOnId(key)
+        if not SS.Register(onId, { kind = "bool", default = def.default,
+            get = function() return P.IsOn(key) end, set = function(v) P.Set(key, v) end }) then
+            API.Fail("settings sync " .. onId, "not synced")
+        end
+        local names = {}
+        for name in pairs(def.defaults) do names[#names + 1] = name end
+        table.sort(names)
+        for _, name in ipairs(names) do
+            local d = def.defaults[name]
             local id = SS.SettingId(key, name)
             local spec = { default = d,
                 get = function() return P.Setting(key, name) end,
@@ -656,9 +681,6 @@ local function registerAll()
             if not (spec.kind and SS.Register(id, spec)) then API.Fail("settings sync " .. id, "not synced") end
         end
     end
-    SS.Register("core.glassui", { kind = "bool", default = true,
-        get = function() return GP.db.useGlassUI ~= false end,
-        set = function(v) GP.Settings.SetUseGlassUI(v) end })
 end
 
 local function checkPeers()

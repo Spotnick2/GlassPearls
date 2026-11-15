@@ -16,6 +16,8 @@
   automatically: change something on one and the others pick it up, including an account that was
   offline at the time. The most recent change wins, setting by setting. Settings > "Share settings
   with my other WoW accounts" turns it off; `/gpearls sync` shows what was last sent and received.
+  Keep all your accounts on the same Glass Pearls version: this one syncs more settings than the
+  alphas, and an older alpha may stop accepting what a newer version sends.
 - **Bags full helper** (Loot & Bags, on by default): when loot doesn't fit, it offers to destroy
   the cheapest item in your bags and loot in one click.
   - It only shows when an item really doesn't fit: a partial stack or a matching herb / mining bag

@@ -17,18 +17,37 @@ eq(#O_MAX, SS.ORIGIN_MAX, "the longest origin is " .. SS.ORIGIN_MAX .. " bytes")
 local function maxStamp() return { t = T_MAX, o = O_MAX, s = S_MAX } end
 
 -- Known keys: the real registry (every pearl's switch and settings, and the
--- look choice), each with the longest stamp. Their share is 12 KB (4 KB until
--- #27, 5 KB until #29 lowered the sets to 200; the whole, every part full,
--- is the real limit: checked below).
+-- look choice), each with the longest stamp and its longest value (#112: an
+-- enum's longest choice, an integer's longer end). Their share is 14 KB (4 KB
+-- until #27, 5 KB until #29 lowered the sets to 200, 12 KB until #112 cut
+-- origins to 24 B; the whole, every part full, is the real limit: checked below).
+local function longest(spec)
+    if spec.kind == "enum" then
+        local best = spec.values[1]
+        for _, v in ipairs(spec.values) do if #v > #best then best = v end end
+        return best
+    elseif spec.kind == "int" then
+        local lo, hi = spec.min or -999999999, spec.max or 999999999
+        return #C.EncodeValue(spec, lo) > #C.EncodeValue(spec, hi) and lo or hi
+    end
+    return true
+end
 local known = 0
-for id in pairs(SS.reg.keys) do
+for id, spec in pairs(SS.reg.keys) do
+    local v = longest(spec)
+    spec.get = function() return v end
     store.stamps[id] = maxStamp()
     known = known + 1
 end
 local knownBytes = #C.Encode(SS.reg, store)
 check(known >= 1, "the registry has keys (" .. known .. ")")
 check(known <= SS.KNOWN_MAX, "  at most " .. SS.KNOWN_MAX .. " of them (" .. known .. ": #14's reagents are one each)")
-check(knownBytes <= 12 * 1024, "the known keys fit their 12 KB share (" .. knownBytes .. " B)")
+check(knownBytes <= 14 * 1024, "the known keys fit their 14 KB share (" .. knownBytes .. " B)")
+local enumLine
+for line in C.Encode(SS.reg, store):gmatch("[^\n]+") do
+    if line:find("^V\tautogossip%.lone\t") then enumLine = line end
+end
+check(enumLine and enumLine:find("\teservices$"), "  an enum at its longest choice, not its default (" .. tostring(enumLine) .. ")")
 
 -- Unknown keys: 32 of them, the longest id and value, the longest stamp.
 for i = 1, SS.FOREIGN_MAX do
@@ -37,9 +56,9 @@ for i = 1, SS.FOREIGN_MAX do
 end
 local withForeign = #C.Encode(SS.reg, store)
 local foreignBytes = withForeign - knownBytes
-check(foreignBytes <= 5 * 1024, "32 unknown keys fit their 5 KB share (" .. foreignBytes .. " B)")
+check(foreignBytes <= 32 * 147, "32 unknown keys fit their ~4.7 KB share (" .. foreignBytes .. " B)")
 for line in C.Encode(SS.reg, store):gmatch("[^\n]+") do
-    if line:find("^V\tz%.") then check(#line + 1 <= 155, "an unknown key's line is at most 155 B") break end
+    if line:find("^V\tz%.") then eq(#line + 1, 147, "an unknown key's line is at most 147 B") break end
 end
 
 -- Sets: SET_MAX entries across the cap of sets (the shipped pearls' own, then
@@ -64,9 +83,10 @@ end
 eq(C.SetEntries(store), SS.SET_MAX, "the sets hold the cap of " .. SS.SET_MAX .. " entries")
 local body = C.Encode(SS.reg, store)
 local setBytes = #body - withForeign
-check(setBytes <= 14 * 1024, SS.SET_MAX .. " set entries fit their ~14 KB share (" .. setBytes .. " B)")
+check(setBytes <= SS.SET_MAX * 61 + SS.SETS_MAX * 35,
+    SS.SET_MAX .. " set entries and their headers fit their ~12.5 KB share (" .. setBytes .. " B)")
 for line in body:gmatch("[^\n]+") do
-    if line:find("^M\t") then check(#line + 1 <= 69, "a set entry's line is at most 69 B (" .. (#line + 1) .. ")") break end
+    if line:find("^M\t") then eq(#line + 1, 61, "a set entry's line is at most 61 B") break end
 end
 
 -- The whole: within the budget, under the wire ceiling, and decodable.

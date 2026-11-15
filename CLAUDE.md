@@ -102,10 +102,17 @@ order) and before the options window and bootstrap.
   holding something newer. Receiving applies
   through the same setters with stamping suppressed. A fixed byte budget per part (see the file's
   header; `test_sync_budget` fills every part). Up to `SETS_MAX` (10) sets share the `SET_MAX` (200)
-  entries, and the registry holds up to `KNOWN_MAX` (160) keys (sets raised from 4, #15, and to 10
+  entries, and the registry holds up to `KNOWN_MAX` (200) keys (sets raised from 4, #15, and to 10
   with the keys from 128, #53; entries lowered from 300 after v0.1.0-alpha1, #29, to give the known
-  keys room). The format's decoder rejects more of any of them (alpha1 more than 160 values or 8
-  sets), so change them only before a release or with a format change. The store is `GlassPearlsDB.sync`; integers are
+  keys room; keys to 200 with origins cut from 32 to 24 bytes, #112). `core.glassui` registers first,
+  then each pearl's switch and its settings by name, so a full registry refuses the same pearl keys
+  every time, each recorded (`settings sync <id>: not synced`). **Origins are at most 24 B** (a
+  Forever player GUID is 20; the only producer is `UnitGUID("player")` or `"unknown"`): a deliberate
+  break, a longer one rejects its payload and `Clean` drops a saved stamp, tombstone or unknown key
+  carrying one (never truncate an origin). The format's decoder rejects more of any of them (alpha1
+  more than 160 values or 8 sets; alpha2-8 more than 192 values), so change them only before a
+  release or with a format change; with more than 160 keys registered, every account needs the same
+  version. Two peers at the unknown-key cap reply to each other forever: #115. The store is `GlassPearlsDB.sync`; integers are
   written with `%.0f` (Lua 5.1's `%d` is 32-bit on Windows).
 - **`Core\ToolItems.lua`**: **generated** by `Tools\gen_tools.py` from the client's ItemSparse and
   TotemCategory tables (`References\Forever\db`, the `wago-tools` skill): every item the client
@@ -196,7 +203,8 @@ order) and before the options window and bootstrap.
   window-less receipt to find Might of Stormwind's speaker and whether a buff's line came unreadable.
   `/gpearls worldbuffs [test]`. Unmeasured until checked in game.
 - **`Pearls\GatherTrack.lua`**: gathering tracking (#110, pearl `gathertrack`, Professions > Gathering, on by
-  default; **no settings**: a per-kind choice would be a synced key, and the sync registry is at 155 of its 160).
+  default; **no settings**: a per-kind choice would be a synced key, and the sync registry was at 155 of its 160;
+  #112 made room).
   Turns Find Herbs (2383, 8387) and Find Minerals (2580, 8388) back on through `C_Minimap.SetTracking(i, true)`, which
   casts the tracking spell from addon code and costs a GCD (NodeRadar's probe, 70450). **An arm** (one at most):
   the session's first `PLAYER_ENTERING_WORLD` with `isInitialLogin` plainly true (logged in dead: `died` instead),
@@ -763,9 +771,10 @@ order) and before the options window and bootstrap.
    adds each control's `refresh`; `help` for the Help button. Settings sync picks them up: give a
    string setting its `choices` and an integer one its `ranges`, or it won't travel. A list (a
    keep list) is a sync set: `SettingsSync.RegisterSet("<key>.<name>")` at file scope. Mind the
-   budget: `test_sync_budget` fails if the known keys outgrow their 12 KB or the whole, every part
-   full, its 31 KB, and the registry its 160 keys (with #38: 122 keys and 7 of 10 sets, known keys 9.0 KB,
-   the whole about 28 KB; the 12 KB share is the real limit, about 40 more keys).
+   budget: `test_sync_budget` fails if the known keys, each at its longest value, outgrow their 14 KB
+   or the whole, every part full, its 31 KB, and `test_sync_registry` shows the registry's 200 (with
+   #112: 155 keys and 7 of 10 sets, known keys about 10.5 KB; the 14 KB share is the real limit,
+   about 55 more keys).
 5. Slash commands of its own: `commands = { name = { help, run(arg) } }` (`/gpearls <name>`, listed
    by `/gpearls help`).
 6. A test file `tests\test_<name>.lua` (the bags-full helper's four are the model), and a line in
