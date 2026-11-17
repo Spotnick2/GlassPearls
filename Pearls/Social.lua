@@ -368,7 +368,9 @@ events:SetScript("OnEvent", function(_, event, ...)
     elseif event == "PARTY_INVITE_REQUEST" then
         local token = bump("invite")
         if not setting("invites") then return end
-        local name, tank, healer, damage, _, _, guid, quest = ...
+        -- name, isTank, isHealer, isDamage, isNativeRealm, isCrossShard, allowMultipleRoles, inviterGUID,
+        -- questSessionActive: isCrossShard came in 70888 as the 6th value (#133).
+        local name, tank, healer, damage, _, _, _, guid, quest = ...
         if not (plainFalse(tank) and plainFalse(healer) and plainFalse(damage)) then
             return note("invite", "a group finder invite: left to you")
         end

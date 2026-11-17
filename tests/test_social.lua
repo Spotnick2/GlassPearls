@@ -388,8 +388,10 @@ P.SetSetting("social", "duels", false)
 local function invite(guid, opts)
     opts = opts or {}
     WoW.popups.PARTY_INVITE = true
+    -- 70888's shape: name, isTank, isHealer, isDamage, isNativeRealm, isCrossShard, allowMultipleRoles,
+    -- inviterGUID, questSessionActive.
     WoW.fire("PARTY_INVITE_REQUEST", "Mira Stormwind", opts.tank or false, opts.healer or false, opts.damage or false,
-        true, false, guid, opts.quest or false)
+        true, opts.crossShard or false, opts.multiRoles or false, guid, opts.quest or false)
 end
 
 reset()
@@ -411,6 +413,10 @@ WoW.guildGUIDs["Player-1-G"] = true
 invite("Player-1-G")
 frame()
 eq(calls("AcceptGroup"), 1, "invite: a guild mate: accepted")
+reset()
+invite("Player-1-G", { crossShard = true, multiRoles = true })
+frame()
+eq(calls("AcceptGroup"), 1, "invite: from another shard, multiple roles allowed: accepted")
 
 local function noInvite(label, between, guid, opts)
     reset()
