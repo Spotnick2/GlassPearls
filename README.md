@@ -35,7 +35,8 @@ Listed as the options window groups them, with whether each starts on or off.
 ### Loot & Bags
 
 **Bags full helper** (on). When loot doesn't fit, it offers to destroy the cheapest item in your
-bags and loot in one click, right beside the loot window.
+bags and loot in one click, right beside the loot window (on its left when "Loot window at cursor"
+puts it near the right edge of the screen).
 - It only shows when an item really doesn't fit: a partial stack or a matching herb or mining bag
   counts as room. After "Inventory is full" at a node or quest object, it helps you make room.
 - It offers grey items (or grey and white, in its options), cheapest first by vendor value times
@@ -194,7 +195,8 @@ yourself and it stays off until your next login or death.
 
 **Low-rank buffs** (on). When another player's Fortitude, Arcane Intellect, Mark of the Wild,
 Thorns, Blessing, Divine Spirit or Shadow Protection lands on you at a lower rank than they could
-cast, a chat line says so, once per person and buff a session.
+cast, a chat line says so, once per person and buff a session. A recast over the same buff you
+already have counts too.
 - A lower rank on a lower-level player is the game's rule and never said; book ranks are never
   expected. Casters from level 60 by default (a setting).
 - Optionally a polite whisper, only to your group, guild or friends.

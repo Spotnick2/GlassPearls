@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## v1.0.1 - 2026-11-16
+
+A small fix release.
 
 - **Bags full helper**: with "Loot window at cursor" on, near the right edge of the screen it now
   opens on the loot window's left instead of covering it (#129).
