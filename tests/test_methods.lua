@@ -139,12 +139,11 @@ eq(#WoW.strays - #strays, 2, "the two known stray lines (gossip, petcare help)")
 WoW.strays = strays
 
 -- Blizzard's Lua mixins on its own frames, which the dump's widget walk can't
--- see (wow-ui-source, forever branch).
+-- see (wow-ui-source, forever branch). GameTooltip's setters are allowed in
+-- the stub (Kit.allowMethods), which checkMethods accepts too.
 local MAP = "WorldMapFrame's MapCanvasMixin (Blizzard_MapCanvas.lua)"
-local TIP = "GameTooltipDataMixin's accessor (Blizzard_SharedXMLGame/Tooltip/TooltipDataHandler.lua)"
 local recorded = Kit.checkMethods({ allow = {
     ["Frame:GetMapID"] = MAP, ["Frame:GetNormalizedCursorPosition"] = MAP, ["Frame:IsCanvasMouseFocus"] = MAP,
-    ["GameTooltip:SetBagItem"] = TIP, ["GameTooltip:SetLootItem"] = TIP,
 } })
 -- Loading alone records about 45: the floor keeps the exercise from quietly
 -- shrinking back to that.

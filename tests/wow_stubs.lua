@@ -13,6 +13,15 @@ dofile("tests/kit.lua")
 local Methods = WoW.Methods
 local newWidget = WoW.newWidget
 
+-- GameTooltip's setters are Lua methods from Blizzard's tooltip mixin, which
+-- the dump's widget walk can't see; under Kit.API 2 an unlisted method reads
+-- nil, so each one the addon calls is allowed here, before it loads.
+local TIP = "GameTooltipDataMixin's accessor (Blizzard_SharedXMLGame/Tooltip/TooltipDataHandler.lua)"
+Kit.allowMethods({
+    ["GameTooltip:SetBagItem"] = TIP, ["GameTooltip:SetLootItem"] = TIP, ["GameTooltip:SetHyperlink"] = TIP,
+    ["GameTooltip:SetItemByID"] = TIP, ["GameTooltip:SetSpellByID"] = TIP,
+})
+
 -- A template named here is missing on the client: CreateFrame returns a bare
 -- frame without its fields, as the client does.
 local function resetTemplates() WoW.missingTemplates = WoW.missingTemplates or {} end
@@ -77,7 +86,7 @@ function CreateColor(r, g, b, a) return { r = r, g = g, b = b, a = a } end
 date = os.date
 time = os.time
 function GetServerTime() return time() end
-function GetBuildInfo() return "1.60.1", "70532", "Oct 20 2026", 16001 end
+function GetBuildInfo() return "1.60.1", "70959", "Nov 12 2026", 16001 end
 -- The player: GUID, and the name split across UnitName's two returns, one of
 -- the two shapes the client has used (AltStable #56).
 WoW.playerGUID = "Player-1-AAA"
@@ -260,7 +269,11 @@ function C_ChatInfo.RegisterAddonMessagePrefix(prefix)
 end
 -- The tag, then the localized label: distinct here, as on a non-English client (Alliance, Allianz).
 function UnitFactionGroup(unit)
-    if unit == "player" then return WoW.player.faction, WoW.player.faction .. " (localized)" end
+    if unit ~= "player" then return end
+    local f = WoW.player.faction
+    -- A secret faction comes back as it is, with no error, as on the client.
+    if issecretvalue(f) then return f, f end
+    return f, f .. " (localized)"
 end
 function IsLoggedIn() return WoW.loggedIn == true end
 function debugprofilestop() return (GetTime() or 0) * 1000 end
@@ -318,6 +331,8 @@ end
 WoW.resetBags()
 
 local function itemLink(id)
+    -- A secret item ID gives a secret link, with no error, as on the client.
+    if issecretvalue(id) then return id end
     local it = WoW.items[id]
     return "|cffffffff|Hitem:" .. id .. "::::::::16:::::|h[" .. (it and it.name or ("item " .. id)) .. "]|h|r"
 end

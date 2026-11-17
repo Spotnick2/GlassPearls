@@ -11,10 +11,12 @@ local GP = GlassPearls
 local API = {}
 GP.API = API
 
--- The build the notes in docs/ were measured on. Bump only after re-measuring
--- in game; tests/test_toc.lua pins the same literal. Nothing is measured yet:
--- this is the newest API dump when the repo was made.
-GP.MEASURED_ON_BUILD = "1.60.1.70532"
+-- The client build the addon was last checked on in game. Bump it with a new
+-- build's dump diff and an in-game check of what the diff touches;
+-- tests/test_toc.lua pins the same literal. 70959 (#132): the diff from 70532
+-- touched only PARTY_INVITE_REQUEST, fixed and checked in game (#133). The
+-- day-one checklist in docs/PLAN.md is still open.
+GP.MEASURED_ON_BUILD = "1.60.1.70959"
 
 function API.Print(msg)
     print("|cff7fd4ffGlassPearls|r " .. msg)

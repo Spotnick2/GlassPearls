@@ -70,7 +70,9 @@ Each line is a claim the code relies on that only the live client can settle.
       following; unticking "Use Glass UI appearance" + reload gives the Forever look, listed as declined.
 - [ ] The Esc > Options > AddOns page shows on its first visit and its button opens the window.
 - [ ] `GlassPearlsDB`, `GlassPearlsCharDB`, `GlassPearlsSyncDB` are written after a full client exit.
-- [ ] The client build is still 1.60.1.70532; if not, a new dump (`forever-api-dump` skill).
+- [x] The client build is still 1.60.1.70532; if not, a new dump (`forever-api-dump` skill). It wasn't:
+      70959, dumped and diffed; the one change that touched us, `PARTY_INVITE_REQUEST`, fixed (#133) and the
+      build bumped (#132).
 
 **Settings sync (#4)** (needs two of your accounts online on the same Battle.net account)
 - [ ] `/gpearls sync` on both: the link sees the other account ("Battle.net: usable", a trusted peer).

@@ -146,7 +146,7 @@ check(at["Data\\Landmarks.lua"] < at["Pearls\\Landmarks.lua"], "the landmark dat
 
 -- Two places that must agree, never derived from each other (porting guide section 0).
 loadAddon()
-eq(GlassPearls.MEASURED_ON_BUILD, "1.60.1.70532", "MEASURED_ON_BUILD")
+eq(GlassPearls.MEASURED_ON_BUILD, "1.60.1.70959", "MEASURED_ON_BUILD")
 
 
 -- Without Glass UI there is no glass: the WoW Forever look, and no instance.
