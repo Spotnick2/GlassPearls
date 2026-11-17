@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- **Social automation**: group invites from people you know are accepted again. Since client build
+  70888 every invite was left to you, read as a quest session (#133).
+
 ## v1.0.1 - 2026-11-16
 
 A small fix release.
