@@ -398,8 +398,12 @@ order) and before the options window and bootstrap.
   this session is never judged (sticky, recorded before any other exit). **Detection, out of
   combat only**: `UNIT_AURA` (payload untouched) queues one check a frame later; each watched ID
   is uninitialized, absent or present; a baseline (Enable, `PLAYER_ENTERING_WORLD`,
-  `PLAYER_REGEN_ENABLED`) makes all uninitialized and reads at once; only absent → present is
-  judged, everything about the caster read in that same check (`sourceUnit`, plain `UnitGUID`,
+  `PLAYER_REGEN_ENABLED`) makes all uninitialized and reads at once; absent → present is
+  judged, and so is a **recast of the same rank over a running buff** (#129: the game refuses a
+  lower rank over a higher one, so that is the other way a low rank lands): present → present with
+  the expiration more than `REAPPLY` (1 s, provisional) later than the last positive one, an
+  unknown, absent or zero read in between clearing it; everything about the caster is read in
+  that same check (`sourceUnit`, plain `UnitGUID`,
   `UnitIsPlayer`, not you by `UnitIsUnit`, `UnitLevel`, `UnitClass`, `GetUnitName(unit, false)`:
   the first name and surname on Camelot). **Whisper** (setting `whisper`, off): only to people
   you positively know (`UnitInParty`, `UnitInRaid` a positive index, `UnitIsInMyGuild`,
@@ -749,6 +753,10 @@ order) and before the options window and bootstrap.
   its Configuration Panel (when it checks, what it lists, Check now, the kept ranks).
 - **`Pearls\BagsFullFrame.lua`**: its window (beside the loot window, or where the player dragged it,
   per character) and its Configuration Panel (quality scope, greys first, the never-suggest list).
+  Beside the loot window means the side with room (#129: "loot window at cursor" puts it anywhere,
+  `LootFrame.lua:254`): the right when it fits, else the left when it fits, else the roomier (ties:
+  right), in screen units (each frame's edges times its own effective scale), decided at each
+  placement; an unreadable, secret or throwing read keeps the right.
 - **`Options.lua`**: **our own options window**, on Leatrix Plus's layout (the owner's choice;
   `References\Addons\Miscellaneous\LeatrixPlus`, All Rights Reserved: the layout is the model,
   nothing is copied). Left: the name, the version, Home, each category that has pearls, Settings.

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- **Bags full helper**: with "Loot window at cursor" on, near the right edge of the screen it now
+  opens on the loot window's left instead of covering it (#129).
+- **Low-rank buffs**: a buff recast at the same low rank over one you already have is now noticed
+  too, not only a buff you didn't have (#129).
+
 ## v1.0.0 - 2026-11-15
 
 The first release: 28 pearls, two looks of its own (WoW Forever and Pearl) or Glass UI's glass, a
