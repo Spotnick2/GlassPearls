@@ -16,7 +16,7 @@ independent feature the player switches on or off on its own. It wears WoW Forev
 default and Glass UI's glass when Glass UI is installed (owner). The milestones, the plan and the
 day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 
-**Status: v1.0.1** (2026-11-16; v1.0.0, the first release, 2026-11-15); M1 (docs/PLAN.md): the options window and the look (#3) and settings sync
+**Status: v1.0.2** (2026-11-17; v1.0.1 2026-11-16; v1.0.0, the first release, 2026-11-15); M1 (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
 uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64), library books (#72), invite from whispers (#77), untrained gear (#86), the world buff announcer (#104), gathering tracking (#110); the day-one
