@@ -105,11 +105,42 @@ local function showMessage(c, text)
     c.msg:Show()
 end
 
+-- Which side of the loot window has room for us (#129): with "loot window at
+-- cursor" Blizzard puts it where the player clicked (LootFrame.lua:254), and
+-- near the right edge the clamp would push us back over its rows. Screen
+-- units (each frame's coordinates times its own effective scale). The right
+-- when it fits, else the left when it fits, else the side with more room
+-- (ties: right); any read that throws, is secret or isn't a number: right.
+local GAP = 6
+local function lootSide()
+    local ok, side = pcall(function()
+        local v = {
+            LootFrame:GetLeft(), LootFrame:GetRight(), LootFrame:GetEffectiveScale(),
+            UIParent:GetLeft(), UIParent:GetRight(), UIParent:GetEffectiveScale(), f:GetEffectiveScale(),
+        }
+        for i = 1, 7 do
+            if API.IsSecret(v[i]) or type(v[i]) ~= "number" then return "right" end
+        end
+        local lootLeft, lootRight, parentLeft, parentRight = v[1] * v[3], v[2] * v[3], v[4] * v[6], v[5] * v[6]
+        local need = (W + GAP) * v[7]
+        local right, left = parentRight - lootRight, lootLeft - parentLeft
+        if right >= need then return "right" end
+        if left >= need then return "left" end
+        return left > right and "left" or "right"
+    end)
+    return ok and side or "right"
+end
+Frame.LootSide = lootSide
+
 local function place()
     f:ClearAllPoints()
     local db = GP.charDB and GP.charDB.bagsfull
     if LootFrame and LootFrame:IsShown() and not (db and db.moved) then
-        f:SetPoint("TOPLEFT", LootFrame, "TOPRIGHT", 6, 0)
+        if lootSide() == "left" then
+            f:SetPoint("TOPRIGHT", LootFrame, "TOPLEFT", -GAP, 0)
+        else
+            f:SetPoint("TOPLEFT", LootFrame, "TOPRIGHT", GAP, 0)
+        end
     elseif db and type(db.x) == "number" and type(db.y) == "number" then
         f:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", db.x, db.y)
     else

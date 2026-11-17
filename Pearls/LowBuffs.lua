@@ -21,9 +21,13 @@
 --
 -- Detection: each watched ID is uninitialized, absent or present. A baseline
 -- (at Enable, a loading screen, combat's end) makes every ID uninitialized;
--- the first readable answer sets it without judging. Only absent -> present is
--- a new buff, judged with everything about the caster read in that same
--- check (tokens are reused). Identity is the caster's GUID, never a name.
+-- the first readable answer sets it without judging. Absent -> present is a
+-- new buff, judged with everything about the caster read in that same check
+-- (tokens are reused). The game refuses a lower rank over a higher one, so the
+-- other new buff is the same rank cast again over a running one (#129): its
+-- expiration read more than REAPPLY s later than the last positive one, with
+-- no unknown, absent, zero or baseline in between. Identity is the caster's
+-- GUID, never a name.
 -- Unmeasured until 2026-11-04 (docs/PLAN.md, day one).
 
 GlassPearls = GlassPearls or {}
@@ -36,6 +40,9 @@ LB.KEY = "lowbuffs"
 LB.MAX_LEVEL = 60
 LB.WHISPER_GAP = 10
 LB.REPORT_MAX = 10
+-- An expiration this much later than the last one read is a new application:
+-- the same rank cast again over the running buff (#129). Provisional (day one).
+LB.REAPPLY = 1
 -- The first rank of each watched single-target buff. Not Blessing of Light
 -- (19977): the client removed it in build 70862 (#98).
 LB.WATCH = { 1243, 1459, 1126, 467, 19740, 19742, 14752, 976 }
@@ -45,6 +52,7 @@ local events = CreateFrame("Frame")
 local state = {
     pending = false,     -- a check is queued (one at most)
     ids = {},            -- [spellID] = "absent" | "present" (nil: uninitialized)
+    exp = {},            -- [spellID] = the present read's positive expiration (nil: none known)
     casters = {},        -- [guid] = { level, levelled }
     told = {},           -- ["guid:group"] = true
     whispered = {},      -- [guid] = true
@@ -237,15 +245,21 @@ local function check()
     state.pending = false
     if not LB.enabled or API.InCombat() then return end
     for id in pairs(watched) do
-        local result, _, _, source = AA.Read(id)
-        local was = state.ids[id]
+        local result, exp, _, source = AA.Read(id)
+        local was, last = state.ids[id], state.exp[id]
         if result == "present" then
             state.ids[id] = "present"
-            if was == "absent" then LB.Judge(id, source) end
+            state.exp[id] = exp > 0 and exp or nil
+            if was == "absent" then
+                LB.Judge(id, source)
+            elseif was == "present" and last and exp > last + LB.REAPPLY then
+                LB.Judge(id, source)    -- the same rank cast again over it (#129)
+            end
         elseif result == "absent" then
-            state.ids[id] = "absent"
+            state.ids[id], state.exp[id] = "absent", nil
+        else
+            state.exp[id] = nil         -- "unknown" keeps the state, never bridges a recast
         end
-        -- "unknown" keeps the state, uninitialized included
     end
 end
 
@@ -257,7 +271,7 @@ end
 
 -- A new baseline: every ID uninitialized, then read at once.
 local function baseline()
-    state.ids = {}
+    state.ids, state.exp = {}, {}
     queue()
 end
 

@@ -1253,6 +1253,7 @@ function GetFileIDFromPath(path) return WoW.fileIDs[path] end
 function Methods.SetID(w, id) w._id = id end
 function Methods.GetID(w) return w._id or 0 end
 function Methods.GetLeft(w) return w._left end
+function Methods.GetRight(w) return w._right end   -- SimpleScriptRegionAPI (the bags-full side, #129)
 function Methods.GetTop(w) return w._top end
 
 local function gossipOptions()

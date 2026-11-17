@@ -39,6 +39,63 @@ eq(GameTooltip._owner, f.out, "hovering the Destroy card shows its tooltip")
 f.inc:GetScript("OnEnter")(f.inc)
 eq(GameTooltip._owner, f.inc, "  and the You get card")
 
+-- A loot window at the cursor (#129): the side with room, in screen units.
+-- The helper is 380 wide plus a gap of 6: 386 needed.
+local side = GP.BagsFullFrame.LootSide
+local scaleOf = { LootFrame.GetEffectiveScale, UIParent.GetEffectiveScale, f.GetEffectiveScale }
+local function geometry(lootLeft, lootRight, opts)
+    opts = opts or {}
+    LootFrame._left, LootFrame._right = lootLeft, lootRight
+    UIParent._left, UIParent._right = 0, opts.width or 1920
+    local s = opts.scales or {}
+    LootFrame.GetEffectiveScale = function() return s.loot or 1 end
+    UIParent.GetEffectiveScale = function() return s.parent or 1 end
+    f.GetEffectiveScale = function() return s.ours or 1 end
+end
+local function anchored()
+    BF.Evaluate()
+    local q = f._points[#f._points]
+    return q[2] == LootFrame and q[1] .. ">" .. q[3]
+end
+geometry(400, 650)
+eq(anchored(), "TOPLEFT>TOPRIGHT", "room on the right: on the right")
+geometry(1500, 1750)
+eq(anchored(), "TOPRIGHT>TOPLEFT", "near the right edge: on the left")
+eq(f._points[#f._points][4], -6, "  6 to its left")
+geometry(1920 - 250 - 386, 1920 - 386)
+eq(anchored(), "TOPLEFT>TOPRIGHT", "exactly 386 on the right: still the right")
+geometry(1920 - 250 - 385, 1920 - 385)
+eq(anchored(), "TOPRIGHT>TOPLEFT", "385 on the right, the left has room: the left")
+geometry(300, 550, { width = 900 })
+eq(anchored(), "TOPLEFT>TOPRIGHT", "neither fits, more on the right (350 vs 300): the right")
+geometry(350, 600, { width = 900 })
+eq(anchored(), "TOPRIGHT>TOPLEFT", "neither fits, more on the left (350 vs 300): the left")
+geometry(325, 575, { width = 900 })
+eq(anchored(), "TOPLEFT>TOPRIGHT", "neither fits, a tie: the right")
+-- Each frame's own scale: the loot window at scale 2 ends at 1700 on screen.
+geometry(600, 850, { scales = { loot = 2 } })
+eq(anchored(), "TOPRIGHT>TOPLEFT", "a loot window at scale 2 near the edge: the left")
+geometry(1000, 1250, { scales = { loot = 0.5, parent = 0.5, ours = 0.5 } })
+eq(anchored(), "TOPLEFT>TOPRIGHT", "all at 0.5 (the screen ends at 960): 335 on the right is room enough")
+geometry(1000, 1250, { scales = { loot = 0.5, parent = 0.5, ours = 1 } })
+eq(anchored(), "TOPRIGHT>TOPLEFT", "  but ours at 1 needs 386: the left")
+-- Unreadable geometry: the right, as before.
+for _, case in ipairs({
+    { "a secret edge", function() LootFrame._right = WoW.Secret("right") end },
+    { "no edge (nil)", function() LootFrame._left = nil end },
+    { "a secret scale", function() f.GetEffectiveScale = function() return WoW.Secret("scale") end end },
+    { "a throwing read", function() UIParent.GetEffectiveScale = function() error("no") end end },
+}) do
+    geometry(1500, 1750)
+    case[2]()
+    eq(side(), "right", case[1] .. ": the right")
+    eq(anchored(), "TOPLEFT>TOPRIGHT", "  anchored on the right")
+end
+geometry(1500, 1750)
+eq(anchored(), "TOPRIGHT>TOPLEFT", "read again at each placement: back to the left")
+LootFrame._left, LootFrame._right, UIParent._left, UIParent._right = nil, nil, nil, nil
+LootFrame.GetEffectiveScale, UIParent.GetEffectiveScale, f.GetEffectiveScale = scaleOf[1], scaleOf[2], scaleOf[3]
+
 -- Dragged: where the player put it, from then on (per character).
 f._left, f._top = 300, 700
 function f:GetLeft() return self._left end

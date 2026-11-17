@@ -95,6 +95,10 @@ Each line is a claim the code relies on that only the live client can settle.
 - [ ] Loot that fits on a partial stack or in a herb / mining bag: no prompt.
 - [ ] A white item: the first click says "Click again to destroy", the second destroys.
 - [ ] The window sits right of the loot window; dragged, it stays where it was put after a /reload.
+- [ ] "Loot window at cursor" (`lootUnderMouse`, #129): open loot near each screen edge and take a
+      screenshot each time. Near the right edge the helper sits on the loot window's left; nowhere
+      does it cover the loot rows. Also at a non-default UI scale, and with the alternative's row
+      (the taller layout).
 - [ ] Tooltips on both cards (Blizzard's bag and loot tooltips).
 - [ ] The X: the item isn't offered again, on another character, and after a sync on another account.
 - [ ] Auto-loot on: the helper still shows for the rows that didn't fit.
@@ -321,6 +325,11 @@ story NPC, a multi-page NPC)
 **Low-rank buffs (#42)** (a level-60 priest, mage, druid and paladin on alts of 37, 38, 50 and 60)
 - [ ] `sourceUnit` on a buff from a party member, a raid member, a targeted stranger, a stranger
       with only a nameplate, and a stranger with no token (unattributed: nothing said).
+- [ ] A same-rank recast over a running buff (#129): `expirationTime`, `duration` and `sourceUnit`
+      before and after, with the recast seconds apart and immediately after; the expiration moves
+      later and `sourceUnit` names the new caster (else `LB.REAPPLY` or the trigger changes). Does the
+      expiration ever move later without a recast (other aura updates)? A lower rank over a higher
+      one is refused by the game (the premise).
 - [ ] The caster's `UnitGUID`, `UnitLevel`, `UnitClass`, `UnitIsPlayer` and `GetUnitName(unit, false)`
       plain out of combat; the name is the first name and surname.
 - [ ] The downrank rule: a 60's Fortitude lands at rank 4 on a 37 and rank 5 on a 38, and nothing
