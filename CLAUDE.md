@@ -849,7 +849,8 @@ order) and before the options window and bootstrap.
 - `C:\Projects\WoW\References\Docs\PORTING-TBC-TO-FOREVER.md`: measured, addon-agnostic field
   notes. Treat them as fact. New addon-agnostic findings go there, not into a copy here.
 - `C:\Projects\WoW\References\Forever\api\`: the API dumps; use the highest build (the root
-  CLAUDE.md's rule). This repo was made against 1.60.1.70532. **Presence is not a contract.**
+  CLAUDE.md's rule). This repo was made against 1.60.1.70532 and moved to 1.60.1.70959 (#132:
+  `MEASURED_ON_BUILD`, `tests\kit.pin`). **Presence is not a contract.**
 - `C:\Projects\WoW\References\Docs\EMBEDDED-LIBRARIES.md`, `LIBGLASS-MIGRATION.md`: library rules.
   `..\LibGlass\README.md` and `..\LibAccountSync\README.md`: the two libraries' contracts.
 - `C:\Projects\WoW\wow-ui-source` (branch `forever`): the client's own FrameXML; line numbers match
@@ -928,8 +929,11 @@ silent no-op, `WoW.tempThrows` / `WoW.tempRemoveThrows`, `WoW.tempReadAs`, `WoW.
 (`WoW.atlases`; `SetAtlas` returns nothing, as on the client)), `tests\harness.lua` (`loadAddon` with an `opts.before` hook for
 registering test pearls, `opts.pearls = false` to leave the shipped pearls out of a framework
 test, `newChat`, `chatHas`). Bags, items, the cursor and the loot window are modelled too
-(`WoW.bags`, `WoW.items`, `WoW.openLoot`, `WoW.deleteForbidden`, ...; the block's header lists them). A stub is added only for something in the 70532
-dump (documented functions or the `_G` walk) or Blizzard's source, and its comment says which.
+(`WoW.bags`, `WoW.items`, `WoW.openLoot`, `WoW.deleteForbidden`, ...; the block's header lists them). A stub is added only for something in the pinned
+build's dump (documented functions or the `_G` walk; the stubs' "70532 dump" comments predate #132) or Blizzard's
+source, and its comment says which. Kit.API 2 (#132): a widget method the build lacks reads nil, so a Blizzard
+mixin method the addon calls (GameTooltip's setters) is allowed in the stub with `Kit.allowMethods`, and a stub
+returns a secret it is handed without touching it (`done()` fails on a swallowed secret touch).
 `tests\test_methods.lua` (and `_glass`) exercises the addon, then `Kit.checkMethods` fails on any
 widget method the pinned build lacks on that type: a new pearl's window or command goes in its exercise.
 
