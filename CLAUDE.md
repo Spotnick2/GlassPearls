@@ -267,7 +267,8 @@ order) and before the options window and bootstrap.
   frame after the registry's `Start` (or a later switch-on), only while `hash_SlashCmdList["/WAY"]` is nil and
   no `SLASH_*` global is plainly `/way` in any case; never taken over; off: it says so. `/gpearls way [x y
   note | paste | list | clear]`. Unmeasured until checked in game.
-- **`Pearls\WayFrame.lua`**: its step list (per character `wayList`; 8 rows, the wheel; number, an arrow at
+- **`Pearls\WayFrame.lua`**: its step list (per character `wayList`, kept by its top; as tall as the route up
+  to 8 rows (`Height(n)`), the wheel beyond; number, an arrow at
   `bearing - facing` (`Compass.Angle`), the distance, or the zone on another continent, or "no position",
   coordinates and note; current highlighted, done dimmed and checked; repainted every 0.2 s while shown,
   scrolled to the current step only when it changes; Previous, Next, Paste, Clear; the X remembered as

@@ -35,6 +35,9 @@ check(F._test.list() == nil, "nothing built before a route")
 W.Load("/way 10 0 east\n/way 0 10\n/way #1411 50 50 orc town")
 local list = F._test.list()
 check(list and list:IsShown(), "a route loaded: the list shows")
+eq(list:GetHeight(), F.Height(3), "  as tall as its three steps")
+local p = list._points[#list._points]
+check(p[1] == "TOP", "  placed by its top (a shorter route shortens it downwards)")
 eq(list.count:GetText(), "Step 1 of 3", "  the header")
 local rows = list.rows
 eq(rows[1].num:GetText(), "1.", "row 1: its number")
@@ -93,6 +96,7 @@ local many = {}
 for i = 1, 20 do many[i] = ("/way %d 1"):format(i) end
 W.Load(table.concat(many, "\n"))
 eq(rows[1].num:GetText(), "1.", "a long route: from the top")
+eq(list:GetHeight(), F.Height(F.ROWS), "  at most ROWS rows tall")
 list:GetScript("OnMouseWheel")(list, -1)
 eq(rows[1].num:GetText(), "2.", "the wheel scrolls")
 for _ = 1, 30 do list:GetScript("OnMouseWheel")(list, -1) end

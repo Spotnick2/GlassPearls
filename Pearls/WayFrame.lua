@@ -2,8 +2,8 @@
 -- paste box, the numbered pins and the Configuration Panel. The route and its
 -- progress are Pearls/Way.lua's; this file only shows them and passes clicks.
 --
--- The step list: a movable window (per character), ROWS rows with the mouse
--- wheel; each row the step's number, an arrow at bearing - facing (the
+-- The step list: a movable window (per character, kept by its top), as tall
+-- as the route up to ROWS rows, the mouse wheel beyond; each row the step's number, an arrow at bearing - facing (the
 -- compass's arrow art and convention), its distance (or its zone on another
 -- continent, or "no position"), its coordinates and note; the current one
 -- highlighted, done ones dimmed with a check. Repainted every REPAINT seconds
@@ -58,13 +58,14 @@ local function savePos(frame, key)
     end
 end
 
-local function place(frame, key, x, y)
+-- Where the player left it (its top left), else `point` (CENTER by default) at x, y from the screen's centre.
+local function place(frame, key, x, y, point)
     frame:ClearAllPoints()
     local db = type(GP.charDB) == "table" and GP.charDB[key]
     if type(db) == "table" and type(db.x) == "number" and type(db.y) == "number" then
         frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", db.x, db.y)
     else
-        frame:SetPoint("CENTER", UIParent, "CENTER", x, y)
+        frame:SetPoint(point or "CENTER", UIParent, "CENTER", x, y)
     end
 end
 
@@ -185,9 +186,12 @@ local function buildRow(parent, n)
     return row
 end
 
+-- The list's height for n rows: the header, the rows, the buttons.
+function Frame.Height(n) return 48 + n * Frame.ROW_H + 44 end
+
 local function buildList()
     list = CreateFrame("Frame", Frame.NAME, UIParent)
-    list:SetSize(Frame.WIDTH, 48 + Frame.ROWS * Frame.ROW_H + 44)
+    list:SetSize(Frame.WIDTH, Frame.Height(Frame.ROWS))
     list:SetFrameStrata("MEDIUM")
     movable(list, "wayList")
     list:Hide()
@@ -218,7 +222,7 @@ local function buildList()
         elapsed = 0
         paintRows()
     end)
-    place(list, "wayList", 380, 60)
+    place(list, "wayList", 380, 160, "TOP")   -- by its top: a shorter route shortens it downwards
 end
 
 -- The route changed: the header, the buttons, the rows (the current step brought into view).
@@ -231,6 +235,7 @@ function Frame.Refresh()
         return
     end
     follow()
+    list:SetHeight(Frame.Height(math.min(#r.steps, Frame.ROWS)))
     list.count:SetText(header())
     list.prev:SetEnabled(r.current > 1)
     list.next:SetEnabled(r.current <= #r.steps)
