@@ -248,7 +248,10 @@ order) and before the options window and bootstrap.
   (never climbed) or `Zone name x y` (the client's own localized names of `LandmarkData.zonemaps` and the
   two continents; exact, else one unique substring; several listed); `66,2` a comma decimal, `66.2, 34`
   a separator; 0-100, rounded to 0.01; a map must convert (`GetWorldCoordinatesFromZone`: west, north,
-  continent, all plain). Notes lose `|` and control characters, 60 bytes on a character boundary. Bounds:
+  continent, all plain). **A zone line** (a zone name or `#mapID` alone, with or without `/way`; the owner:
+  bare coordinates are the map you stand on, Duskwood's pasted in Thunder Bluff landed there) makes the
+  bare coordinates after it in that paste its zone's, until the next one; one `/way` with a zone alone
+  says so and adds nothing. Notes lose `|` and control characters, 60 bytes on a character boundary. Bounds:
   20000 bytes, 200 lines, 100 steps; at most 5 problems said, then a count. A paste with no valid step leaves
   the route. A widely used waypoint add-on is the syntax's behaviour reference (All Rights Reserved, nothing
   copied). **The route** (`GlassPearlsCharDB.way` = `{ steps = { map, x, y, desc, done }, current, closed }`,

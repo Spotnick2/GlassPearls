@@ -6,7 +6,9 @@
   when no other add-on uses it) and follow them step by step. The compass under your character points at
   the current step; within 10 yards it's done and the next one is current. A step list shows each step's
   direction and distance (Previous, Next, or click a step), and numbered pins mark them on the world map
-  and the minimap. The route is kept for your character until you clear it (#139).
+  and the minimap. The route is kept for your character until you clear it. Coordinates without a zone
+  are the map you're on; a line with a zone name alone (`Duskwood`) makes the ones after it that
+  zone's (#139).
 - **Library books**: the compass is now shared with waypoint routes; a route, while you follow one, has it
   first (#139).
 - **Auto gossip**: a vendor whose only option is to show its goods now opens them, even when the

@@ -10,7 +10,9 @@
 -- per paste), `#mapID x y [desc]` (that map, never climbed) or `zone name x y
 -- [desc]` (the client's own, localized names of the zone maps and the two
 -- continents; exact, else one unique substring). `66 34`, `66.2 34.5`,
--- `66,2 34,5`, `66.2, 34.5`. A widely used waypoint add-on is the behaviour
+-- `66,2 34,5`, `66.2, 34.5`. A **zone line** (a zone name or `#mapID` alone,
+-- with or without `/way`) makes the bare coordinates after it in the same
+-- paste that zone's, until the next one. A widely used waypoint add-on is the behaviour
 -- reference for this syntax (All Rights Reserved: behaviour only).
 --
 -- The route (GlassPearlsCharDB.way = { steps = { { map, x, y, desc, done } },
@@ -189,8 +191,10 @@ local function coordinate(token)
     return math.floor(v * 100 + 0.5) / 100
 end
 
--- One line: a step { map, x, y, desc }, or nil and why (nil, nil for a blank line).
--- `here` is the player's zone (or nil); `names()` gives the name index on demand.
+-- One line: a step { map, x, y, desc }, or nil and why (nil, nil for a blank line), or
+-- nil, nil, map for a **zone line** (a zone name or #mapID alone: the zone of the bare
+-- coordinates after it in a paste). `here` is the player's zone (or nil); `names()` gives
+-- the name index on demand.
 function W.ParseLine(line, here, names)
     line = line:gsub("^%s*/%S*", "")
     if not line:find("%S") then return nil, nil end
@@ -201,6 +205,10 @@ function W.ParseLine(line, here, names)
     local id = tokens[1]:match("^#(%d+)$")
     if id then
         map, first = tonumber(id), 2
+        if #tokens == 1 then
+            if W.World(map, 50, 50) then return nil, nil, map end
+            return nil, ("map %d can't be placed"):format(map)
+        end
     elseif coordinate(tokens[1]) then
         if not here then return nil, "your zone can't be read here: name it (Zone name x y)" end
         map, first = here, 1
@@ -208,7 +216,12 @@ function W.ParseLine(line, here, names)
         for i = 2, #tokens do
             if coordinate(tokens[i]) then first = i; break end
         end
-        if not first then return nil, "no coordinates" end
+        if not first then                              -- no numbers: a zone line, or nothing
+            local zone, why = W.ZoneByName(table.concat(tokens, " "), names())
+            if zone and W.World(zone, 50, 50) then return nil, nil, zone end
+            if zone then return nil, ("map %d can't be placed"):format(zone) end
+            return nil, "no coordinates, and " .. why
+        end
         local why
         map, why = W.ZoneByName(table.concat(tokens, " ", 1, first - 1), names())
         if not map then return nil, why end
@@ -238,8 +251,10 @@ function W.Parse(text, here)
             problems[#problems + 1] = ("only the first %d lines were read"):format(W.MAX_LINES)
             break
         end
-        local step, why = W.ParseLine(line:gsub("\r", ""), here, names)
-        if step then
+        local step, why, zone = W.ParseLine(line:gsub("\r", ""), here, names)
+        if zone then
+            here = zone                                -- the bare coordinates after it are this zone's
+        elseif step then
             if #steps < W.MAX_STEPS then steps[#steps + 1] = step else over = over + 1 end
         elseif why then
             problems[#problems + 1] = ("line %d: %s"):format(n, why)
@@ -376,8 +391,9 @@ end
 
 -- One line: added at the end (a new route when there's none; current when the route was complete).
 function W.Append(line)
-    local step, why = W.ParseLine(line or "", W.Here(), W.NameIndex)
+    local step, why, zone = W.ParseLine(line or "", W.Here(), W.NameIndex)
     if not step then
+        if zone then why = "a zone alone sets the zone of the lines after it in a paste; add coordinates" end
         say("Waypoint route: " .. (why or "no coordinates") .. ".")
         return false
     end
@@ -573,6 +589,8 @@ GP.Pearls.Register({
     desc = "Paste /way lines and follow them step by step with a compass, a step list and map pins.",
     help = "Paste lines such as \"/way 66 34\" (also \"/way Zone name 66 34 note\" or \"/way #1429 66 34\") into the "
         .. "paste box (/gpearls way paste, or /way alone when no other add-on uses /way) and they become a route. "
+        .. "Coordinates without a zone are your current map's, unless a line with a zone name alone (\"Duskwood\") "
+        .. "comes before them in the paste. "
         .. "The compass points at the current step; within 10 yards it is done and the next one is current. The "
         .. "step list shows each step's direction and distance: Previous, Next or a click on a row choose another. "
         .. "Numbered pins mark the steps on the world map and the minimap. The route is kept for this character "

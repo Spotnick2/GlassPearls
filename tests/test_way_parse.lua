@@ -96,9 +96,33 @@ check(body and body:find("if not API.IsSecret%(n%)"), "a map name is checked for
 local text = table.concat({ "/way 66 34", "", "/way nowhere", "/way 50 50 b", "garbage here 12" }, "\r\n")
 local steps, problems = W.Parse(text, ELWYNN)
 eq(#steps, 2, "a paste: the valid lines")
-eq(problems[1], "line 3: no coordinates", "  each problem with its line number")
+eq(problems[1], 'line 3: no coordinates, and no zone named "nowhere"', "  each problem with its line number")
 eq(problems[2], 'line 5: no zone named "garbage here"', "  and its reason")
 eq(#problems, 2, "  blank lines aren't problems")
+
+-- Zone lines: a zone name (or #mapID) alone sets the zone of the bare coordinates after it.
+text = table.concat({ "1 1", "Durotar", "/way 2 2", "Elwynn Forest 3 3", "4 4", "/way #1426", "5 5",
+    "/way dusk", "6 6 note", "du", "7 7", "#9999", "8 8" }, "\n")
+steps, problems = W.Parse(text, ELWYNN)
+local maps = {}
+for i, st in ipairs(steps) do maps[i] = st.map end
+eq(table.concat(maps, " "), table.concat({ ELWYNN, DUROTAR, ELWYNN, DUROTAR, DUN, DUSK, DUSK, DUSK }, " "),
+    "zone lines: the bare coordinates after each are its zone's; a named line keeps its own")
+eq(#steps, 8, "  a zone line is no step")
+check(is(steps[6], DUSK, 6, 6, "note"), "  coordinates and notes as usual")
+eq(problems[1], 'line 10: no coordinates, and "du" could be Dun Morogh, Durotar, Duskwood',
+    "an ambiguous zone line: said, the zone unchanged")
+eq(problems[2], "line 12: map 9999 can't be placed", "a #mapID that can't be placed: said")
+eq(#problems, 2, "  nothing else")
+steps, problems = W.Parse("Duskwood\n66 34", nil)
+check(#steps == 1 and steps[1].map == DUSK and #problems == 0, "a zone line where your zone can't be read")
+WoW.zoneRects[4245] = nil
+WoW.mapInfo[4245] = { name = "Unplaceable" }
+GP.LandmarkData.zonemaps[#GP.LandmarkData.zonemaps + 1] = 4245
+steps, problems = W.Parse("Unplaceable\n1 1", ELWYNN)
+check(#steps == 1 and steps[1].map == ELWYNN and problems[1] == "line 1: map 4245 can't be placed",
+    "a named zone that can't be placed: said, the zone unchanged")
+table.remove(GP.LandmarkData.zonemaps)
 local many = {}
 for i = 1, W.MAX_STEPS + 5 do many[i] = ("/way %d %d"):format(i % 100, 50) end
 steps, problems = W.Parse(table.concat(many, "\n"), ELWYNN)
