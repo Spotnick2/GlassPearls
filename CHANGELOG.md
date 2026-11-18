@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- **Auto gossip**: a vendor whose only option is to show its goods now opens them, even when the
+  NPC would talk first (a new switch, "Always open a vendor's goods", on by default). And an option
+  you keep choosing that auto gossip doesn't pick is now offered to always pick; until now a
+  single option was never offered, even when it wasn't picked (#137).
+
 ## v1.0.2 - 2026-11-17
 
 A hotfix for client build 70959.

@@ -51,6 +51,8 @@ local function picksLone(icon, extra)
     bye()
     return selects() > before
 end
+-- The lone rule alone, with vendors left to it (#137: they have their own switch).
+P.SetSetting("autogossip", "vendors", false)
 check(not picksLone(BINDER), "most: never the hearthstone binder")
 check(not picksLone(136458), "  nor its other icon")
 check(not picksLone(HEALER), "  nor the spirit healer")
@@ -86,7 +88,7 @@ WoW.fire("PLAYER_REGEN_DISABLED")
 check(not picks({ options = { opt(304, 1, VENDOR) } }), "in combat: nothing")
 WoW.fire("PLAYER_REGEN_ENABLED")
 check(not picks({ options = { opt(305, 1, VENDOR, { status = 1 }) } }), "an unavailable option: nothing")
-check(not picks({ options = { opt(306, 1, VENDOR) }, force = true }), "the NPC forces its gossip: no lone pick")
+check(not picks({ options = { opt(306, 1, CHAT) }, force = true }), "the NPC forces its gossip: no lone pick")
 check(not picks({ options = { opt(307, 1, VENDOR), opt(308, 2, VENDOR) } }), "several options: nothing")
 check(not picks({ options = { opt(309, 1, VENDOR) }, textureKit = "skyriding" }), "a custom gossip frame: out of scope")
 check(not picks({ options = { opt(310, 1, VENDOR) }, textureKit = WoW.Secret("kit") }), "a secret texture kit: out of scope")
@@ -95,6 +97,53 @@ WoW.gossipOptionsSecret = true
 check(not picks({ options = { opt(312, 1, VENDOR) } }), "options that can't be read: nothing")
 WoW.gossipOptionsSecret = nil
 check(not picks({ options = { opt(WoW.Secret("id"), 1, VENDOR) } }), "a secret option ID: nothing")
+
+-- Vendors (#137): a vendor's lone option, even on forced gossip, whatever the lone rule.
+eq(P.Setting("autogossip", "vendors"), true, "vendors: on by default")
+local function forcedVendor(id, extra, spec)
+    spec = spec or {}
+    spec.options, spec.force = { opt(id, 1, VENDOR, extra) }, spec.force ~= false
+    return picks(spec)
+end
+before = selects()
+talk({ options = { opt(700, 1, VENDOR) }, force = true })
+check(selects() == before + 1 and lastSelect().fn == "SelectOption" and lastSelect().arg == 700,
+    "a vendor's lone option on forced gossip: picked by its ID")
+eq(lastSelect().confirmed, nil, "  never with confirmed")
+eq(G.state.last, "picked 700 (vendor)", "  as a vendor")
+bye()
+P.SetSetting("autogossip", "lone", "off")
+check(forcedVendor(701), "  even with the lone rule off")
+check(forcedVendor(702, nil, { force = false }), "  and on an ordinary page with the rule off")
+P.ResetSettings("autogossip")
+check(not forcedVendor(703, { status = 1 }), "  not when unavailable")
+check(not forcedVendor(704, nil, { available = 1 }), "  not with quest business")
+check(not forcedVendor(705, { override = BINDER }), "  not when the override icon says binder")
+WoW.shift = true
+check(not forcedVendor(706), "  not with Shift held")
+WoW.shift = false
+G._test.db().confirms[707] = true
+check(not forcedVendor(707), "  not once it asked for a confirmation")
+check(not picks({ options = { opt(708, 1, VENDOR), opt(709, 2, CHAT) }, force = true }),
+    "  not among several options")
+check(not picks({ options = { opt(710, 1, CHAT) }, force = true }), "a forced non-vendor lone option: nothing")
+P.SetSetting("autogossip", "vendors", false)
+check(not forcedVendor(711), "vendors off: a forced vendor is left to the player")
+check(forcedVendor(712, nil, { force = false }), "  an ordinary vendor page: back to the lone rule (most)")
+P.SetSetting("autogossip", "lone", "off")
+check(not forcedVendor(713, nil, { force = false }), "  which may say no")
+P.ResetSettings("autogossip")
+-- The vendor icons: the fixed one, and the path's when it resolves to another.
+WoW.fileIDs["Interface\\GossipFrame\\VendorGossipIcon"] = 132999
+P.Set("autogossip", false); P.Set("autogossip", true)
+check(picks({ options = { opt(714, 1, 132999) }, force = true }), "a vendor icon resolved from its path")
+check(forcedVendor(715), "  and the fixed one still")
+WoW.fileIDs["Interface\\GossipFrame\\VendorGossipIcon"] = nil
+P.Set("autogossip", false); P.Set("autogossip", true)
+check(not picks({ options = { opt(716, 1, 132999) }, force = true }), "the path unresolved: only the fixed icon")
+check(forcedVendor(717), "  which still opens")
+WoW.fileIDs["Interface\\GossipFrame\\VendorGossipIcon"] = VENDOR
+P.Set("autogossip", false); P.Set("autogossip", true)
 
 -- Blizzard's own lone pick: never a second select on top, in either order.
 for _, first in ipairs({ true, false }) do

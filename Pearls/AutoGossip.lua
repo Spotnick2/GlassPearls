@@ -15,7 +15,10 @@
 --    or when Blizzard's own lone pick applies (GossipFrameShared.lua:191);
 -- 2. an option the player chose to always pick (sync set autogossip.always),
 --    unless two of them are on the page;
--- 3. else the lone option, by the `lone` setting and its icon.
+-- 3. else a vendor's lone option (the vendor gossip icon), with `vendors` on,
+--    even when the NPC forces its gossip and whatever `lone` says (#137),
+--    unless it once asked for a confirmation;
+-- 4. else the lone option, by the `lone` setting and its icon.
 -- The same decision runs again on fresh state just before selecting and must
 -- give the same option. Selected by ID (else by index), never with
 -- `confirmed`: paid options, binding the hearthstone and wiping talents all
@@ -35,7 +38,8 @@
 -- / GOSSIP_ENTER_CODE name it; CONFIRM_BINDER / _TALENT_WIPE / _XP_LOSS don't,
 -- so they go to the player's pending pick, else to our own last pick (kept
 -- PENDING_SECONDS; audit #61: an always-listed binder would otherwise ask at
--- every inn). After `repeats` such picks the prompt offers to always pick it.
+-- every inn). After `repeats` such picks the prompt offers to always pick it,
+-- unless this pearl's own decision on that page would have picked it (#137).
 -- Unmeasured until 2026-11-04: all of it (docs/PLAN.md, day one).
 
 GlassPearls = GlassPearls or {}
@@ -57,9 +61,11 @@ G.TRACE_MAX = 40
 G.BINDER = { [132052] = true, [136458] = true }
 G.HEALER = { [132054] = true }
 G.SERVICE_FIXED = { [132057] = true, [132058] = true }      -- taxi, trainer
+G.VENDOR_FIXED = { [132060] = true }                         -- VendorGossipIcon (two references)
+G.VENDOR_PATH = "Interface\\GossipFrame\\VendorGossipIcon"
 -- Blizzard's gossip icon files, resolved with GetFileIDFromPath. The client's
 -- set has no auctioneer or stable master icon: those NPCs aren't `services`.
-G.SERVICE_PATHS = { "Interface\\GossipFrame\\VendorGossipIcon", "Interface\\GossipFrame\\TrainerGossipIcon",
+G.SERVICE_PATHS = { G.VENDOR_PATH, "Interface\\GossipFrame\\TrainerGossipIcon",
     "Interface\\GossipFrame\\BankerGossipIcon", "Interface\\GossipFrame\\TaxiGossipIcon" }
 -- Interactions that show a pick went through (Enum.PlayerInteractionType
 -- names). Never Binder, TalentMaster, SpiritHealer, AreaSpiritHealer, Gossip
@@ -80,9 +86,10 @@ local state = {
     ownPickGen = 0,
     own = false,         -- our own select is running
     services = {},       -- the `services` icons, resolved at Enable
+    vendors = {},        -- the vendor icons, resolved at Enable
     iconReport = {},
     serviceTypes = {},   -- [interaction type] = true
-    meta = {},           -- [optionID] = { icon, lone }: what the offer checks
+    meta = {},           -- [optionID] = { icon, auto }: what the offer checks
     heldOffer = nil,     -- an offer waiting for combat to end
     trace = {},
     last = "nothing yet",
@@ -216,8 +223,12 @@ function G.Decide(s)
         return found, "always"
     end
     if #opts ~= 1 then return nil, "several options" end
-    if s.force then return nil, "the NPC forces its gossip" end
     local o = opts[1]
+    if setting("vendors") and o.icon and state.vendors[o.icon] and not (o.id and db().confirms[o.id]) then
+        if o.status ~= available() then return nil, "not available" end
+        return o, "vendor"
+    end
+    if s.force then return nil, "the NPC forces its gossip" end
     if o.status ~= available() then return nil, "not available" end
     if not G.LoneAllowed(o.icon) then return nil, "the lone rule" end
     return o, "lone"
@@ -329,7 +340,9 @@ function G.PlayerClicked(index)
     end
     if not (opt and opt.id) then return end
     if opt.name then db().names[opt.id] = opt.name end
-    state.meta[opt.id] = { icon = opt.icon, lone = #page.options == 1 }
+    -- Would this pearl's own decision on this page pick it? Then it needs no offer.
+    local would = G.Decide(page)
+    state.meta[opt.id] = { icon = opt.icon, auto = would ~= nil and would.id == opt.id }
     if state.pending then
         -- Two picks before either resolved: neither can be told apart.
         trace("two picks before a sign: neither counted")
@@ -359,7 +372,7 @@ function G.Offerable(id)
     local m = state.meta[id]
     if not m then return false end
     if m.icon and (G.BINDER[m.icon] or G.HEALER[m.icon]) then return false end
-    if m.lone and G.LoneAllowed(m.icon) then return false end
+    if m.auto then return false end
     return true
 end
 
@@ -537,17 +550,20 @@ end
 
 local function resolveIcons()
     local services, report = {}, {}
+    local vendors = {}
     for id in pairs(G.SERVICE_FIXED) do services[id] = true end
+    for id in pairs(G.VENDOR_FIXED) do vendors[id] = true end
     for _, path in ipairs(G.SERVICE_PATHS) do
         local id = ask(GetFileIDFromPath, path)
         if type(id) == "number" and id > 0 then
             services[id] = true
+            if path == G.VENDOR_PATH then vendors[id] = true end
             report[#report + 1] = path .. " = " .. id
         else
             report[#report + 1] = path .. ": not found"
         end
     end
-    state.services, state.iconReport = services, report
+    state.services, state.vendors, state.iconReport = services, vendors, report
 end
 
 -- Once, at the first Enable: none of these can be undone, so each checks
@@ -619,8 +635,8 @@ G.OptionText = optionText
 
 function G.Report()
     local page = state.page
-    say(("Auto gossip: %s; lone options: %s; last: %s."):format(G.enabled and "on" or "off",
-        tostring(setting("lone")), state.last))
+    say(("Auto gossip: %s; lone options: %s; vendors: %s; last: %s."):format(G.enabled and "on" or "off",
+        tostring(setting("lone")), setting("vendors") and "opened" or "by the lone rule", state.last))
     if page and page.options then
         say(("  This page (NPC %s, quests %s, forced %s):"):format(tostring(npcID() or "unknown"),
             tostring(page.quests), tostring(page.force)))
@@ -705,7 +721,8 @@ GP.Pearls.Register({
     name = "Auto gossip",
     desc = "Picks an NPC's gossip option for you when it's safe, and learns the ones you keep choosing.",
     help = "When an NPC has a single gossip option, it is picked for you (the setting decides which: never the "
-        .. "hearthstone binding or the spirit healer by default). When you choose the same option at an NPC a few "
+        .. "hearthstone binding or the spirit healer by default). A vendor's single option opens its goods even "
+        .. "when the NPC would talk first, unless you switch that off. When you choose the same option at an NPC a few "
         .. "times, it offers to always pick it. Never in combat, never with Shift held, never while the NPC has a "
         .. "quest for you, and at most three picks in a row. Anything that costs money, binds your hearthstone or "
         .. "resets talents still asks you first. /gpearls gossip shows the options of the NPC you're talking to; "
@@ -713,7 +730,7 @@ GP.Pearls.Register({
     default = true,
     category = "Automation",
     section = "NPCs",
-    defaults = { lone = "most", offer = true, repeats = 3 },
+    defaults = { lone = "most", vendors = true, offer = true, repeats = 3 },
     choices = { lone = G.LONE },
     ranges = { repeats = { 2, 10 } },
     Enable = enable,

@@ -240,6 +240,40 @@ check(not FR.IsShown(), "a spirit healer option: never offered")
 G._test.db().confirms[67] = true
 pick(67); pick(67); pick(67)
 check(not FR.IsShown(), "an option that asked for a confirmation: never offered")
+-- #137: offered unless this pearl's own decision on that page would pick it.
+-- Shift keeps ours from running, so the player's click is the only pick.
+local function pickLone(id, icon, force)
+    WoW.shift = true
+    WoW.openGossip({ options = { opt(id, 1, icon) }, force = force })
+    WoW.flushTimers(0)
+    WoW.shift = false
+    check(WoW.playerPicks(1), "the lone option's button exists")
+    nextPage()
+    bye()
+end
+local VENDOR = 132060
+P.SetSetting("autogossip", "lone", "most")
+pickLone(74); pickLone(74); pickLone(74)
+check(not FR.IsShown() and counts(74) == 3, "a lone option the rule picks: counted, never offered")
+pickLone(75, CHAT, true); pickLone(75, CHAT, true); pickLone(75, CHAT, true)
+check(FR.IsShown() and f.id == 75, "the same option on forced gossip, which the rule skips: offered")
+FR.Withdraw()
+pickLone(76, VENDOR, true); pickLone(76, VENDOR, true); pickLone(76, VENDOR, true)
+check(not FR.IsShown() and counts(76) == 3, "a forced vendor the vendor rule opens: never offered")
+P.SetSetting("autogossip", "vendors", false)
+pickLone(77, VENDOR, true); pickLone(77, VENDOR, true); pickLone(77, VENDOR, true)
+check(FR.IsShown() and f.id == 77, "  with vendors off: offered")
+FR.Withdraw()
+P.SetSetting("autogossip", "vendors", true)
+-- The rule would pick the page's always option, not the one clicked: offered.
+SS.SetAdd(G.ALWAYS, 60)
+WoW.shift = true
+pick(78); pick(78); pick(78)
+WoW.shift = false
+check(FR.IsShown() and f.id == 78, "another option than the one the rule picks: offered")
+FR.Withdraw()
+SS.SetRemove(G.ALWAYS, 60)
+P.SetSetting("autogossip", "lone", "off")
 P.SetSetting("autogossip", "offer", false)
 pick(68); pick(68); pick(68)
 check(not FR.IsShown(), "offers switched off: none")
