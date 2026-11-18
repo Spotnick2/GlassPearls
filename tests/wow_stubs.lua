@@ -598,6 +598,23 @@ function WoW.installFakeHBD()
         if type(p) ~= "table" then return nil, nil, nil end
         return p[1], p[2], p[3]
     end
+    -- Waypoint routes (#139): the vendored copy's GetPlayerZone (uiMapID, mapType: HereBeDragons-2.0.lua:673)
+    -- from WoW.playerZone = { id, type } | "throw", and GetWorldCoordinatesFromZone's formula (:430) over
+    -- WoW.zoneRects[uiMapID] = { width, height, left, top, instance } (x west = left - width * x, y north =
+    -- top - height * y), "throw" refusing, { secret = <a secret> } answering it as west.
+    function H:GetPlayerZone()
+        local z = WoW.playerZone
+        if z == "throw" then error("zone refused") end
+        if type(z) ~= "table" then return nil, nil end
+        return z[1], z[2]
+    end
+    function H:GetWorldCoordinatesFromZone(x, y, zone)
+        local d = WoW.zoneRects[zone]
+        if d == "throw" then error("map refused") end
+        if type(d) == "table" and d.secret then return d.secret, 0, 0 end   -- a secret west, untouched
+        if type(d) ~= "table" or d[1] == 0 or d[2] == 0 or not x or not y then return nil, nil, nil end
+        return d[3] - d[1] * x, d[4] - d[2] * y, d[5]
+    end
     local P = stub:NewLibrary("HereBeDragons-Pins-2.0", 17)
     WoW.hbd = { calls = {}, world = {}, mini = {} }
     local function add(display, kind)
@@ -2097,10 +2114,11 @@ function IsAltKeyDown() return WoW.altDown == true end
 -- C_Item.GetItemIconByID, C_Map.GetMapInfo (documented). The position is the
 -- fake HereBeDragons' (WoW.playerWorld, above).
 --   WoW.questsDone[questID] = true | false | "throw" | a secret (absent: false)
---   WoW.mapInfo[uiMapID] = { name }         WoW.items[id].icon (GetItemIconByID)
+--   WoW.mapInfo[uiMapID] = { name, mapType?, parentMapID? } | "throw"   WoW.items[id].icon (GetItemIconByID)
+--   (mapType defaults to 3, a zone; parentMapID to 0; any field may be a secret)
 --------------------------------------------------------------------------------
 
-WoW.questsDone, WoW.mapInfo = {}, {}
+WoW.questsDone, WoW.mapInfo, WoW.zoneRects = {}, {}, {}
 C_QuestLog = C_QuestLog or {}
 function C_QuestLog.IsQuestFlaggedCompleted(id)
     local v = WoW.questsDone[id]
@@ -2114,7 +2132,12 @@ function C_Item.GetItemIconByID(x)
 end
 function C_Map.GetMapInfo(id)
     local m = WoW.mapInfo[id]
-    if m then return { mapID = id, name = m.name, mapType = 3, parentMapID = 0 } end
+    if m == "throw" then error("map info refused") end
+    if m then
+        local t = m.mapType
+        if t == nil then t = 3 end
+        return { mapID = id, name = m.name, mapType = t, parentMapID = m.parentMapID or 0 }
+    end
 end
 
 --------------------------------------------------------------------------------

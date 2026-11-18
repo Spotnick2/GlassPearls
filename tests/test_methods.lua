@@ -113,6 +113,28 @@ for icon, r in pairs(WoW.hbd.world) do
         break
     end
 end
+-- A waypoint route (#139): the paste box, the step list and its rows, the compass for it, a pin's tooltip.
+WoW.zoneRects[1429] = { 1000, 700, 0, 0, 0 }
+WoW.playerZone = { 1429, 3 }
+WoW.playerWorld = { 0, 0, 0 }
+WoW.facing = 0
+SlashCmdList.GLASSPEARLS("way paste")
+local wayPaste = GP.WayFrame._test.paste()
+wayPaste.edit:SetText("/way 10 10 one\n/way 20 20 two")
+wayPaste.load:GetScript("OnClick")(wayPaste.load)
+check(GP.Way.Route() ~= nil, "a route loaded for the exercise")
+WoW.tick(1)
+local wayList = GP.WayFrame._test.list()
+wayList:GetScript("OnMouseWheel")(wayList, -1)
+wayList.rows[2]:GetScript("OnClick")(wayList.rows[2])
+for icon, r in pairs(WoW.hbd.mini) do
+    if r.ref == GP.WayFrame then
+        icon._scripts.OnEnter(icon)
+        icon._scripts.OnLeave(icon)
+        break
+    end
+end
+GP.Compass._test.disc():GetScript("OnEnter")(GP.Compass._test.disc())
 -- Each pearl off and on again (its Disable and Enable).
 for _, def in ipairs(P.List()) do
     SlashCmdList.GLASSPEARLS(def.key .. " off")

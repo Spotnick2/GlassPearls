@@ -80,6 +80,8 @@ Pearls\Books.lua
 Pearls\Untrained.lua
 Pearls\WorldBuffs.lua
 Pearls\GatherTrack.lua
+Pearls\WayFrame.lua
+Pearls\Way.lua
 Options.lua
 Minimap.lua
 GlassPearls.lua
