@@ -569,7 +569,10 @@ order) and before the options window and bootstrap.
   meanwhile (`hooksecurefunc` on `C_GossipInfo.SelectOption` / `SelectOptionByIndex`; ours are
   marked before the call). Never in combat, with Shift, with quest business, past the chain's cap,
   or when Blizzard's own lone pick applies (`GossipFrameShared.lua:191`). Picks an option of the
-  sync set `autogossip.always` (two on a page: nothing; `ForceGossip` doesn't block it), else the
+  sync set `autogossip.always` (two on a page: nothing; `ForceGossip` doesn't block it), else a
+  **vendor's** lone option (#137, setting `vendors`, on: the vendor gossip icon, 132060 fixed plus
+  its path resolved; Available; never one in `confirms`), **even on forced gossip and whatever
+  `lone` says** (the owner: vendors' "Show me what's for sale." was left open, likely forced), else the
   lone option by the `lone` setting (`off` | `services` | `most`, the default: never the binder or
   spirit healer icons | `any`; icons are the override first, binder 132052/136458 and healer
   132054 fixed, services fixed plus `GetFileIDFromPath` of Blizzard's gossip icon paths, unresolved
@@ -587,7 +590,9 @@ order) and before the options window and bootstrap.
   asking at every inn); `GOSSIP_CONFIRM` / `GOSSIP_ENTER_CODE` name the option; all take it off the
   always list. The default lone rule and encounter starters are #62's question. After `repeats` (3)
   picks, the prompt offers Always / Not now / Never (sync set `autogossip.never`), never for the
-  binder, the healer, a confirmed option or a lone option the rule picks anyway. Counts, names
+  binder, the healer, a confirmed option or one this pearl's own `Decide` on that page picks
+  (recorded at the click, `meta.auto`; #137: the old test, any lone option the `lone` rule's icon
+  allows, also hid the ones forced gossip kept it from picking). Counts, names
   and confirms are local (`GlassPearlsDB.autogossip`, counts at most 200). `/gpearls gossip
   [list | trace | always <id> | forget <id>]`: the page's options with their IDs and icons, for
   day one. Unmeasured until day one.

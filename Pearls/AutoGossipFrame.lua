@@ -120,8 +120,15 @@ function Frame.Configure(panel, refreshers)
         { "off", "Never pick it" },
     }, function() return P.Setting(KEY, "lone") end, function(v) P.SetSetting(KEY, "lone", v) end)
     refreshers[#refreshers + 1] = refreshLone
+    -- #137: a vendor's lone option, whatever the choice above.
+    local vendors, refreshVendors = GP.UI.Check(panel, "Always open a vendor's goods",
+        function() return P.Setting(KEY, "vendors") end, function(on) P.SetSetting(KEY, "vendors", on) end,
+        { tip = "When a vendor's only option is to show its goods, pick it even when the NPC would talk first, "
+            .. "whatever the choice above. Off: the choice above decides." })
+    vendors:SetPoint("TOPLEFT", last, "BOTTOMLEFT", -4, -6)
+    refreshers[#refreshers + 1] = refreshVendors
     local learn = GP.UI.Header(panel, "When you keep choosing the same option", "GameFontNormal")
-    learn:SetPoint("TOPLEFT", last, "BOTTOMLEFT", -4, -14)
+    learn:SetPoint("TOPLEFT", vendors, "BOTTOMLEFT", 4, -12)
     local offer, refreshOffer = GP.UI.Check(panel, "Offer to always pick it",
         function() return P.Setting(KEY, "offer") end, function(on) P.SetSetting(KEY, "offer", on) end,
         { tip = "Only options that never asked for a confirmation, and never binding or the spirit healer." })
