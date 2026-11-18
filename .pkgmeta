@@ -11,14 +11,14 @@ enable-nolib-creation: no
 # No comment on a value line: the packager's YAML reader keeps it as part of
 # the value (measured in GlassUnitFrames #64).
 externals:
-  # r12: the Pearl preset (Theme.lua asks for it, r11+); fonts follow the client's locale.
+  # r13: adds Glass.Button (unused here); r12: the Pearl preset (Theme.lua asks for it, r11+).
   Libs/LibGlass-1.0:
     url: https://github.com/Spotnick2/LibGlass
-    tag: r12
-  # r6: the shared caps reserve room for verified senders (r5: one instance per kind).
+    tag: r13
+  # r8: a goodbye sent at logout is delivered; r7: every delivery proven by its MAC.
   Libs/LibAccountSync-1.0:
     url: https://github.com/Spotnick2/LibAccountSync
-    tag: r6
+    tag: r8
 
 manual-changelog:
   filename: CHANGELOG.md
