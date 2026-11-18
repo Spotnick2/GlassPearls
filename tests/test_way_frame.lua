@@ -45,8 +45,7 @@ check(math.abs(rows[1].arrow._rotation + math.pi / 2) < 0.01, "  east of a playe
 check(rows[1].current:IsShown(), "  the current step highlighted")
 check(not rows[2].current:IsShown(), "row 2 not")
 eq(rows[2].dist:GetText(), "70 yd", "  its distance")
-check(math.abs(rows[2].arrow._rotation) < 0.01 or math.abs(math.abs(rows[2].arrow._rotation) - math.pi) < 0.01,
-    "  south: straight behind")
+check(math.abs(math.abs(rows[2].arrow._rotation) - math.pi) < 0.01, "  south: straight behind")
 eq(rows[3].dist:GetText(), "Durotar", "another continent: the zone instead")
 check(not rows[3].arrow:IsShown(), "  no arrow")
 check(not rows[4]:IsShown(), "unused rows hidden")
@@ -104,6 +103,17 @@ list:GetScript("OnMouseWheel")(list, -3)
 WoW.tick(F.REPAINT)
 F.Refresh()
 eq(rows[1].num:GetText(), "5.", "  browsing isn't undone while the current step stays")
+-- Scrolled to the bottom with step 1 current, then a short route pasted (step 1 current too): from the top.
+W.Select(1)
+for _ = 1, 30 do list:GetScript("OnMouseWheel")(list, -1) end
+eq(rows[1].num:GetText(), (20 - F.ROWS + 1) .. ".", "browsed to the bottom, step 1 current")
+W.Load("/way 1 1\n/way 2 2")
+check(rows[1]:IsShown() and rows[1].num:GetText() == "1." and rows[2].num:GetText() == "2.",
+    "a replacement route: shown from its top, never blank")
+W.Load(table.concat(many, "\n"))
+for _ = 1, 30 do list:GetScript("OnMouseWheel")(list, -1) end
+W.Load(table.concat(many, "\n"))
+eq(rows[1].num:GetText(), "1.", "  as long, step 1 current again: from the top too (a new route, not browsing)")
 
 --------------------------------------------------------------------------------
 -- The paste box

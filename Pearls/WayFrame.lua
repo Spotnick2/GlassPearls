@@ -42,6 +42,7 @@ local CIRCLE = "Interface\\CharacterFrame\\TempPortraitAlphaMask"
 local list, paste
 local offset = 0           -- the first row's step index - 1
 local lastCurrent          -- the current step the list last scrolled to
+local lastRoute            -- the route it was for (a paste replaces the table)
 local elapsed = 0
 
 local function W() return GP.Way end
@@ -51,8 +52,8 @@ local function W() return GP.Way end
 
 local function savePos(frame, key)
     local left, top = frame:GetLeft(), frame:GetTop()
-    if type(GP.charDB) == "table" and type(left) == "number" and type(top) == "number"
-        and not API.IsSecret(left) and not API.IsSecret(top) then
+    if not API.IsSecret(left) and not API.IsSecret(top) and type(GP.charDB) == "table"
+        and type(left) == "number" and type(top) == "number" then
         GP.charDB[key] = { x = left, y = top }
     end
 end
@@ -124,15 +125,18 @@ local function paintRows()
     end
 end
 
--- Keep the current step in view (only when it changed: browsing isn't undone).
+-- Keep the current step in view (only when it changed, or the route was
+-- replaced: browsing isn't undone), and the rows always within the route.
 local function follow()
     local r = W().Route()
     if not r then return end
+    if r ~= lastRoute then lastRoute, lastCurrent, offset = r, nil, 0 end
     local cur = math.min(r.current, #r.steps)
-    if cur == lastCurrent then return end
-    lastCurrent = cur
-    if cur <= offset then offset = cur - 1
-    elseif cur > offset + Frame.ROWS then offset = cur - Frame.ROWS end
+    if cur ~= lastCurrent then
+        lastCurrent = cur
+        if cur <= offset then offset = cur - 1
+        elseif cur > offset + Frame.ROWS then offset = cur - Frame.ROWS end
+    end
     offset = math.max(0, math.min(offset, math.max(0, #r.steps - Frame.ROWS)))
 end
 
@@ -222,7 +226,7 @@ function Frame.Refresh()
     if not list then return end
     local r = W().Route()
     if not r then
-        lastCurrent, offset = nil, 0
+        lastRoute, lastCurrent, offset = nil, nil, 0
         list:Hide()
         return
     end

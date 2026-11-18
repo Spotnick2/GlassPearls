@@ -86,7 +86,7 @@ end
 local function mapName(id)
     local info = mapInfo(id)
     local n = info and info.name
-    if n ~= nil and not API.IsSecret(n) and type(n) == "string" and n ~= "" then return n end
+    if not API.IsSecret(n) and type(n) == "string" and n ~= "" then return n end
 end
 
 function W.ZoneName(id) return mapName(id) or ("Map " .. tostring(id)) end
@@ -527,14 +527,15 @@ local function claimSoon() C_Timer.After(0, W.Claim) end
 --------------------------------------------------------------------------------
 -- Commands
 
--- `/gpearls way ...` and `/way ...`: nothing opens the list (or the paste box);
--- paste, clear / reset, list; anything else is one step to add.
+-- `/gpearls way ...` and `/way ...`: nothing: `/way` opens the paste box,
+-- `/gpearls way` toggles the list (the paste box with no route); paste,
+-- clear / reset, list; anything else is one step to add.
 function W.Command(arg, fromWay)
     if not W.enabled then return say("Waypoint routes is off: /gpearls way on.") end
     arg = (arg or ""):match("^%s*(.-)%s*$")
     local verb = arg:match("^(%S+)") and arg:match("^(%S+)"):lower()
     if arg == "" then
-        if W.Route() then return Frame().ToggleList() end
+        if W.Route() and not fromWay then return Frame().ToggleList() end
         return Frame().ShowPaste()
     elseif verb == "paste" then
         return Frame().ShowPaste()

@@ -86,6 +86,11 @@ check(refused("/way duskwood 1 2", nil, "no zone named"), "a secret zone name: n
 WoW.mapInfo[DUSK] = "throw"
 check(refused("/way duskwood 1 2", nil, "no zone named"), "  a throwing one either")
 WoW.mapInfo[DUSK] = { name = "Duskwood" }
+-- The kit's secrets can't catch a comparison (`n ~= nil` on one passes silently in Lua 5.1), so the guard
+-- order is checked in the source: IsSecret first.
+local src = io.open("Pearls/Way.lua"):read("*a")
+local body = src:match("local function mapName%(id%)(.-)\nend")
+check(body and body:find("if not API.IsSecret%(n%)"), "a map name is checked for secrecy before anything else")
 
 -- A paste.
 local text = table.concat({ "/way 66 34", "", "/way nowhere", "/way 50 50 b", "garbage here 12" }, "\r\n")
