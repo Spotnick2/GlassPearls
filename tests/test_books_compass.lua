@@ -9,7 +9,7 @@ dofile("tests/harness.lua")
 
 WoW.player.faction = "Alliance"
 local GP = loadAddon()
-local B, P, D, C = GP.Books, GP.Pearls, GP.BookData, GP.BooksCompass
+local B, P, D, C = GP.Books, GP.Pearls, GP.BookData, GP.Compass
 
 local function book(item) for _, b in ipairs(D.books) do if b.item == item then return b end end end
 local THEO = 203755
@@ -212,16 +212,31 @@ local disc = C._test.disc()
 check(disc._clicks == false, "the disc lets clicks through")
 disc:GetScript("OnEnter")(disc)
 eq(GameTooltip:GetOwner(), disc, "hovered: the book's tooltip")
-check(not table.concat(GameTooltip._lines, "\n"):find(C.ENTRANCE, 1, true), "  no entrance line for a book in the open")
+check(not table.concat(GameTooltip._lines, "\n"):find(B.ENTRANCE, 1, true), "  no entrance line for a book in the open")
 local cave
 for _, b in ipairs(D.books) do if b.entrance then cave = b end end
 B._test.setTarget(cave)
-C.Show(cave, cave.spots[1])
-check(table.concat(GameTooltip._lines, "\n"):find(C.ENTRANCE, 1, true),
+C.Changed("books")
+WoW.tick()
+check(table.concat(GameTooltip._lines, "\n"):find(B.ENTRANCE, 1, true),
     "the target changed under the cursor: its tooltip follows, the entrance line for a cave book")
 disc:GetScript("OnLeave")(disc)
 B._test.setTarget(theo)
 B.Tick()
+-- Another book's toast while the ring shows: Books tells the ring, which re-dresses (its icon).
+eq(C.Shown(), "books", "the ring shows for the books")
+WoW.items[cave.item] = { name = "A cave book", icon = 4242 }
+B._test.latched[cave.item] = nil
+local cs = cave.spots[1]
+WoW.playerWorld = { cs.y + 50, cs.x, cs.c }
+B.Tick()
+eq(B.Target(), cave, "another book's toast: the new target")
+WoW.tick()
+eq(C._test.icon()._file, 4242, "  the ring re-dressed with its icon")
+B._test.latched[THEO] = nil
+at(50)
+B.Tick()
+eq(B.Target(), theo, "  back to the journal")
 
 UIParent:SetSize(1000, 800)
 local cx, cy = C._test.clamp(10000, -10000)

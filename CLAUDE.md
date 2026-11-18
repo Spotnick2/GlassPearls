@@ -32,7 +32,7 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 → `Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua` → `Libs\HereBeDragons-2.0\HereBeDragons-2.0.lua` →
 `Libs\HereBeDragons-2.0\HereBeDragons-Pins-2.0.lua` → `Compat.lua` → `Theme.lua` → `UI.lua` →
 `AccountSync.lua` → `Pearls.lua` → `SettingsSync.lua` → `Core\ToolItems.lua` → `Core\Bags.lua` →
-`Core\Merchant.lua` → `Core\AuraAlert.lua` → `Core\Notice.lua` → `Core\BagMarks.lua` →
+`Core\Merchant.lua` → `Core\AuraAlert.lua` → `Core\Notice.lua` → `Core\BagMarks.lua` → `Core\Compass.lua` →
 `Data\Landmarks.lua` → `Data\SpellRanks.lua` → `Data\AuraDurations.lua` → `Data\Training.lua` → `Data\Restock.lua` → `Data\Books.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
 `Pearls\BagsFull.lua` → `Pearls\Landmarks.lua` → `Pearls\SpellRanksFrame.lua` →
 `Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua` → `Pearls\FixateFrame.lua` →
@@ -41,7 +41,7 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 `Pearls\MarkWheel.lua` → `Pearls\AutoGossipFrame.lua` → `Pearls\AutoGossip.lua` → `Pearls\FastLootFrame.lua` →
 `Pearls\FastLoot.lua` → `Pearls\LowBuffs.lua` → `Pearls\InstanceGearFrame.lua` → `Pearls\InstanceGear.lua` →
 `Pearls\PetCareFrame.lua` → `Pearls\PetCare.lua` → ... → `Pearls\Fishing.lua` → `Pearls\BooksFrame.lua` →
-`Pearls\BooksCompass.lua` → `Pearls\Books.lua`)* →
+`Pearls\Books.lua`)* →
 `Options.lua` → `Minimap.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
@@ -725,13 +725,21 @@ order) and before the options window and bootstrap.
   Unmeasured until day one.
 - **`Pearls\BooksFrame.lua`**: its toast (icon, name, where, how far; **stays until OK**: no timeout, not in
   `UISpecialFrames`; position per character) and its panel (the four switches, Test).
-- **`Pearls\BooksCompass.lua`**: the compass's ring (#93), NodeRadar's (`Compass.lua` and its six
-  `Media\Compass*.tga`, MIT, the same owner): lens with the book's icon, rim bronze (WoW Forever) or pearl
-  (Glass UI, `Theme.Active()`), arrow and arc at `bearing - facing` (NodeRadar's measured convention:
-  `atan2(-east, north)`, `GetPlayerFacing` counter-clockwise from north), "n yd" capsule, the book's tooltip
-  (plus the cave line), mouse motion only. Its OnUpdate runs only while shown: hides at once (quiet, combat,
-  a read failing, another continent) and ends the target on arrival. Alt-drag (NodeRadar's grip from live
-  input), the whole footprint clamped, saved in `GlassPearlsCharDB.booksCompass`. Built on its first show.
+- **`Core\Compass.lua`**: the compass ring any pearl points with (#93's, shared in #139), NodeRadar's
+  (`Compass.lua` and its six `Media\Compass*.tga`, MIT, the same owner): lens with an icon or a label, rim
+  bronze (WoW Forever) or pearl (Glass UI, `Theme.Active()`), arrow and arc at `bearing - facing` (NodeRadar's
+  measured convention: `atan2(-east, north)`, `GetPlayerFacing` counter-clockwise from north), "n yd"
+  capsule, the owner's tooltip, mouse motion only. **Owners**: `Register(owner, { priority, Point(continent,
+  north, west), Icon, Label, Tooltip, Hidden, near?, Arrive? })`, `Want` / `Drop` (only that owner's
+  request), `Changed` (re-dressed the next frame, never at once). The ring shows the highest-priority owner
+  with a request, **even while that owner's frame keeps it hidden** (no stale lower target flashing in).
+  Its OnUpdate runs only while shown: hides at once (the owner's `Hidden`, a read failing, another
+  continent; the request stays, the owner's ticker `Want`s again); only an owner with `near` arrives in the
+  ring (books, priority 1); one without is drawn at any distance (a route, priority 2, advances on its own).
+  `Position()` (HereBeDragons' world position, plain) is Books'. Alt-drag (NodeRadar's grip from live input),
+  the whole footprint clamped, saved in `GlassPearlsCharDB.booksCompass` (the key kept from #93). Built on
+  its first show. Books' owner is registered in `Pearls\Books.lua` (quiet or combat hides it; its target's
+  nearest spot; arrival within `NEAR`; `Changed` when its target changes).
 - **`Data\SpellRanks.lua`**: **generated** by `Tools\gen_ranks.py` (never edit it): every class
   spell that comes in ranks, `groups[g]` (IDs, lowest rank first) and `ranks[id] = { g, rank,
   level }`, from the client's SkillLine (class trees: category 7 with flag 0x400; pet lines lack

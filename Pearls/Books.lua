@@ -32,7 +32,7 @@
 -- reading LEAVE yards from all of them (a book with no spot on this continent
 -- keeps its latch: #93). Quiet in an instance, dead or on a taxi.
 --
--- The compass (#93, setting `compass`, Pearls/BooksCompass.lua draws it): the
+-- The compass (#93, setting `compass`, Core/Compass.lua draws it, owner "books"): the
 -- toast's book becomes the target (in memory). Ended by arriving within NEAR
 -- yards (backing away doesn't bring it back), its LEAVE re-arm, its state
 -- proved have / done / hidden, the pearl, `nearby` or `compass` off. Hidden,
@@ -170,16 +170,8 @@ local function recordBank()
     if whole then st.bankSeen = true end
 end
 
--- The player's world position: continent, north, west; nil when unreadable.
-function B.Position()
-    local HBD = lib("HereBeDragons-2.0")
-    if not (HBD and HBD.GetPlayerWorldPosition) then return nil end
-    local ok, west, north, continent = pcall(HBD.GetPlayerWorldPosition, HBD)
-    if not ok then return nil end
-    west, north, continent = plainNumber(west), plainNumber(north), plainNumber(continent)
-    if not (west and north and continent) then return nil end
-    return continent, north, west
-end
+-- The player's world position: continent, north, west; nil when unreadable (the compass's reading).
+function B.Position() return GP.Compass.Position() end
 
 -- The nearest spot of a book on this continent: yards and the spot, or nil.
 function B.Nearest(book, continent, north, west)
@@ -215,8 +207,18 @@ end
 --------------------------------------------------------------------------------
 -- The compass's target (#93)
 
-local function ring() return GP.BooksCompass end
-local function hideRing() if ring() then ring().Hide() end end
+-- The ring is shared (Core/Compass.lua): Books asks for it as the owner "books" and
+-- drops only its own request; a higher owner (a route) keeps it meanwhile.
+local OWNER = "books"
+local dressed               -- the target the ring was last told about
+local function hideRing() GP.Compass.Drop(OWNER) end
+local function showRing()
+    if target ~= dressed then
+        dressed = target
+        GP.Compass.Changed(OWNER)
+    end
+    GP.Compass.Want(OWNER)
+end
 local function compassOn() return B.enabled and setting("nearby") and setting("compass") and true or false end
 
 function B.Target() return target end
@@ -227,6 +229,32 @@ local function clearTarget()
 end
 -- The ring reached its book (its own frame, the same rule as the ticker's).
 function B.Arrive() clearTarget() end
+
+B.ENTRANCE = "Cave entrance: the book is inside"
+-- The ring's owner (Core/Compass.lua): hidden while quiet or in combat; the
+-- target's nearest spot on this continent; arrival within NEAR.
+GP.Compass.Register(OWNER, {
+    priority = 1,
+    near = B.NEAR,
+    Arrive = function() B.Arrive() end,
+    Hidden = function() return not target or quiet() or B.InCombat() end,
+    Point = function(continent, north, west)
+        if not target then return nil end
+        local d, s = B.Nearest(target, continent, north, west)
+        if not d then return nil end
+        return s.x, s.y
+    end,
+    Icon = function() return target and B.Icon(target) or nil end,
+    Tooltip = function(tooltip)
+        if not target then return false end
+        local ok, err = pcall(tooltip.SetItemByID, tooltip, target.item)
+        if not ok then
+            API.Fail("pearl books compass tooltip", err)
+            return false
+        end
+        if target.entrance then tooltip:AddLine(B.ENTRANCE, 1, 0.82, 0, true) end
+    end,
+})
 
 -- The target against its state: false when it can't be shown now (cleared, or kept hidden).
 -- (The switches clear it themselves; a toast sets it only with the compass on.)
@@ -245,7 +273,7 @@ local function reconcile(continent, north, west)
     local d, spot = B.Nearest(target, continent, north, west)
     if not d then return hideRing() end                        -- another continent: kept
     if d <= B.NEAR then return clearTarget() end
-    ring().Show(target, spot)
+    showRing()
 end
 
 --------------------------------------------------------------------------------
@@ -507,7 +535,7 @@ end
 
 local function command(arg)
     if arg and arg:match("^%s*compass%s+reset%s*$") then
-        if ring() then ring().ResetPosition() end
+        GP.Compass.ResetPosition()
         return API.Print("Library books: the compass is back under your character.")
     end
     if not B.enabled then return API.Print("Library books is off: /gpearls books on.") end

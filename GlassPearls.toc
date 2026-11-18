@@ -29,6 +29,7 @@ Core\Merchant.lua
 Core\AuraAlert.lua
 Core\Notice.lua
 Core\BagMarks.lua
+Core\Compass.lua
 Data\Landmarks.lua
 Data\SpellRanks.lua
 Data\AuraDurations.lua
@@ -75,7 +76,6 @@ Pearls\SparkleStars.lua
 Pearls\Trades.lua
 Pearls\Fishing.lua
 Pearls\BooksFrame.lua
-Pearls\BooksCompass.lua
 Pearls\Books.lua
 Pearls\Untrained.lua
 Pearls\WorldBuffs.lua
