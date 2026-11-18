@@ -2,10 +2,10 @@
 
 <img src="https://raw.githubusercontent.com/Spotnick2/GlassPearls/main/docs/screenshots/pearl.png" alt="" width="96" align="right">
 
-**Twenty-eight small things World of Warcraft: Forever should have done for you all along, in one
+**Twenty-nine small things World of Warcraft: Forever should have done for you all along, in one
 addon.** Junk sold and gear repaired the moment you open a merchant. Bags that never block your
 loot. A trainer that tells you what's new when you level. Library books, dungeon doors and boats on
-your map. Fishing without hunting for the bobber. A raid mark wheel at your cursor. And many more.
+your map, and a compass along any `/way` route you paste. Fishing without hunting for the bobber. A raid mark wheel at your cursor. And many more.
 
 Each one is a **pearl**: a small, independent feature with its own switch. Keep the ones you love,
 turn off the rest. Your choices follow you to every one of your own WoW accounts.
@@ -111,8 +111,23 @@ the minimap, at each place a book you still need can be found.
   away. No notes in instances, while dead or on a flight.
 - Then a compass under your character points at that book, with how far it is, until you reach it,
   go 150 yards away or no longer need it (hidden in a fight). Hover it for the book; Alt-drag it to
-  move it.
+  move it. While you follow a waypoint route, the compass points at the route instead.
 - The bank is read when you open it: open it once so the notes can start.
+
+**Waypoint routes** (on). Paste a list of `/way` lines (from a guide, a forum, a friend) and follow
+them one step at a time.
+- `/gpearls way paste` opens the paste box (so does `/way` alone, when no other addon uses `/way`).
+  Lines such as `/way 66 34`, `/way Duskwood 66 34 Raven Hill` or `/way #1429 66 34` each become a
+  step. Coordinates without a zone are the map you're on; a line with only a zone name (`Duskwood`)
+  makes the lines after it that zone's.
+- A compass under your character points at the current step, with how far it is. Within 10 yards
+  the step is done and the next one is current.
+- A step list shows every step's direction and distance, or its zone when it's elsewhere: Previous,
+  Next, or click a step to go there instead. Done steps are ticked.
+- Numbered pins mark the steps on the world map and the minimap (each switchable); the current
+  step's pin stays on the minimap's edge while it is farther away.
+- The route is kept for your character until you clear it or paste another. Not while dead, on a
+  flight or in an instance. Alt-drag the compass to move it.
 
 ### Combat
 
@@ -217,6 +232,8 @@ Battle.net whisper the character they're playing here.
 
 **Auto gossip** (on). When an NPC has a single gossip option, it's picked for you (never the
 hearthstone binding or the spirit healer, by default; a setting chooses).
+- A vendor whose only option is to show its goods opens them, even when the NPC talks first
+  ("Always open a vendor's goods", on).
 - When you keep choosing the same option at an NPC, it offers to always pick it for you, on all
   your characters.
 - Never in combat, with Shift held, or while the NPC has a quest for you; anything that costs
@@ -268,6 +285,7 @@ you can place it:
 | Easy delete | `/gpearls easydelete`: what it last filled in or skipped |
 | Quest loot sparkle | `/gpearls sparkle`; `sparkle restore` (while off) puts your settings back; `sparkle target`: what the game says about the object you're facing |
 | Library books | `/gpearls books`: what's left and the nearest; `books test`, `books compass reset` |
+| Waypoint routes | `/gpearls way`: the step list; `way paste`, `way 66 34 note` adds a step, `way clear` |
 | World buff announcer | `/gpearls worldbuffs`: what it heard; `worldbuffs test` |
 | Fixate alert | `/gpearls fixate`, `fixate test` |
 | Buff alerts | `/gpearls buffs`, `buffs test` |
@@ -298,7 +316,7 @@ pearl's place stays per account.
 
 ## Good to know
 
-- **New art and sounds** (the minimap pearl, the books compass, the sparkle's stars, the world buff
+- **New art and sounds** (the minimap pearl, the compass, the sparkle's stars, the world buff
   sounds): restart the game once after installing; `/reload` doesn't load new files.
 - **Warchief's Blessing on WoW Forever:** its announcer's yell usually comes without the NPC's ID,
   so there's no "may drop" warning for it. It's still told every time it lands.

@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## v1.1.0 - 2026-11-18
+
+A new pearl, waypoint routes, and a vendor fix for auto gossip.
 
 - **Waypoint routes** (new, Interface, on by default): paste `/way` lines (`/gpearls way paste`, or `/way`
   when no other add-on uses it) and follow them step by step. The compass under your character points at
@@ -15,6 +17,9 @@
   NPC would talk first (a new switch, "Always open a vendor's goods", on by default). And an option
   you keep choosing that auto gossip doesn't pick is now offered to always pick; until now a
   single option was never offered, even when it wasn't picked (#137).
+- **Settings on your other accounts**: the account library is updated. A message is now credited
+  only to the character it proves it came from, also right after you switch characters, and a
+  last message sent as you log out reaches your other accounts.
 
 ## v1.0.2 - 2026-11-17
 
