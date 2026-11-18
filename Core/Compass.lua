@@ -1,27 +1,39 @@
--- Pearls/BooksCompass.lua: the library books' compass (#93). After a book's
--- nearby toast, a ring under the character points at it until you reach it,
--- go 150 yards away or it's no longer needed (the life is Pearls/Books.lua's;
--- this file only draws). NodeRadar's compass (its Compass.lua and art, MIT,
--- the same owner): the lens with the book's icon, the rim (bronze in WoW
--- Forever's look, pearl under Glass UI), an arrow outside the rim with an arc
--- beneath it, the distance in a capsule below, the book's tooltip on hover
--- (mouse motion only: clicks reach the world), Alt-drag to move (saved per
--- character), clamped to the screen.
+-- Core/Compass.lua: the compass ring any pearl points with (#93, shared by
+-- #139). A ring under the character points at one target: NodeRadar's
+-- compass (its Compass.lua and art, MIT, the same owner): the lens with an
+-- icon or a label, the rim (bronze in WoW Forever's look, pearl under Glass
+-- UI), an arrow outside the rim with an arc beneath it, the distance in a
+-- capsule below, a tooltip on hover (mouse motion only: clicks reach the
+-- world), Alt-drag to move (saved per character), clamped to the screen.
+--
+-- Owners: a pearl registers once (`Register(owner, spec)`) and asks for the
+-- ring (`Want`) or stops asking (`Drop`, which touches only its own request).
+-- The ring shows the highest-priority owner with a request, even while that
+-- owner's own frame keeps it hidden (a hidden owner reserves the ring: never
+-- a lower one's stale target flashing in). `Changed(owner)` re-dresses the
+-- icon, label and tooltip on the next frame, never synchronously.
+--
+-- spec = { priority, Point(continent, north, west) -> the target's north, west | nil (given the player's), Icon() -> texture
+-- | nil, Label() -> text | nil, Tooltip(tooltip) (sets its lines; false: no
+-- tooltip), Hidden() -> bool, near?, Arrive()? }. Only an owner with `near`
+-- arrives in the ring: within it, `Arrive()` is called once and the frame
+-- returns. An owner without (a route) is drawn at any distance and advances
+-- on its own.
 --
 -- NodeRadar measured on 70450: GetPlayerFacing is counter-clockwise from
 -- north, 0 to 2pi; a point's bearing from (north, west) is atan2(-east,
--- north); an arrow at bearing - facing points true. Our spots are (x north,
--- y west), the player's position (north, west) from Books.Position.
+-- north); an arrow at bearing - facing points true. HereBeDragons' world
+-- position is (west, north, continent).
 --
 -- Built on its first show. Its OnUpdate runs only while shown: each frame it
--- hides at once (quiet, combat, a read failing, another continent) and clears
--- the target on arrival; Books' 1 s ticker shows it again.
+-- hides at once (the owner hidden, a read failing, another continent);
+-- the owner's own ticker asks again (`Want`), which shows it again.
 
 GlassPearls = GlassPearls or {}
 local GP = GlassPearls
 local API = GP.API
 local C = {}
-GP.BooksCompass = C
+GP.Compass = C
 
 C.MEDIA = "Interface\\AddOns\\GlassPearls\\Media\\"
 C.DISC = 52            -- NodeRadar's medium diameter
@@ -36,13 +48,16 @@ C.PILL = { 56, 18 }
 C.FOOT = C.PILL_TOP + C.PILL[2]
 C.HOME = { 0, -160 }   -- under the character
 C.TINTS = { forever = { 0.80, 0.62, 0.38 }, glass = { 0.97, 0.97, 1 } }   -- bronze, pearl
-C.ENTRANCE = "Cave entrance: the book is inside"
+-- The saved spot keeps the books' key (#93): renaming it would lose every placement.
+C.SAVE_KEY = "booksCompass"
 
 local CIRCLE = "Interface\\CharacterFrame\\TempPortraitAlphaMask"
 local TAU = 2 * math.pi
 
-local root, body, disc, icon, rim, arc, arrow, text, hit, grip
-local book, spot            -- what it's showing
+local root, body, disc, icon, label, rim, arc, arrow, text, hit, grip
+local specs, wanted = {}, {}
+local shownOwner              -- the owner the ring is dressed for
+local dirty = {}              -- [owner] = true: re-dress on the next frame
 local shownDist
 local dragging = false
 
@@ -50,18 +65,61 @@ local function num(v)
     if API.IsSecret(v) or type(v) ~= "number" or v ~= v or v == math.huge or v == -math.huge then return nil end
     return v
 end
+C.Num = num
 local function wrap(a) return (a + math.pi) % TAU - math.pi end
+C.Wrap = wrap
 
 local function facing()
     local ok, f = pcall(GetPlayerFacing)
     return ok and num(f) or nil
 end
+C.Facing = facing
+
+local function lib(name)
+    local stub = rawget(_G, "LibStub")
+    return stub and stub(name, true)
+end
+
+-- The player's world position: continent, north, west; nil when unreadable.
+function C.Position()
+    local HBD = lib("HereBeDragons-2.0")
+    if not (HBD and HBD.GetPlayerWorldPosition) then return nil end
+    local ok, west, north, continent = pcall(HBD.GetPlayerWorldPosition, HBD)
+    if not ok then return nil end
+    west, north, continent = num(west), num(north), num(continent)
+    if not (west and north and continent) then return nil end
+    return continent, north, west
+end
+
+-- The angle of an arrow pointing from (north, west) to (tn, tw), counter-
+-- clockwise from straight ahead for a facing f.
+function C.Angle(north, west, tn, tw, f)
+    local dn, east = tn - north, -(tw - west)
+    return wrap(math.atan2(-east, dn) - f)
+end
 
 local function saved()
     local c = GP.charDB
-    local s = type(c) == "table" and c.booksCompass
+    local s = type(c) == "table" and c[C.SAVE_KEY]
     return type(s) == "table" and s or nil
 end
+
+--------------------------------------------------------------------------------
+-- Owners
+
+function C.Register(owner, spec)
+    specs[owner] = spec
+end
+
+local function top()
+    local best, bestP
+    for owner in pairs(wanted) do
+        local p = specs[owner] and specs[owner].priority or 0
+        if not best or p > bestP then best, bestP = owner, p end
+    end
+    return best
+end
+C.Top = top
 
 --------------------------------------------------------------------------------
 -- Moving it
@@ -95,7 +153,7 @@ local function stopDrag()
     rx, ry, ux, uy = num(rx), num(ry), num(ux), num(uy)
     if rx and ry and ux and uy and type(GP.charDB) == "table" then
         local x, y = clamp(rx - ux, ry - uy)
-        GP.charDB.booksCompass = { x = x, y = y }
+        GP.charDB[C.SAVE_KEY] = { x = x, y = y }
     end
     place()
 end
@@ -125,24 +183,26 @@ local function ownsTooltip()
 end
 
 local function setTooltip()
-    if not book then
+    local spec = shownOwner and specs[shownOwner]
+    if not (spec and spec.Tooltip) then
         if ownsTooltip() then GameTooltip:Hide() end
         return
     end
     GameTooltip:SetOwner(disc, "ANCHOR_TOP")
-    local ok, err = pcall(GameTooltip.SetItemByID, GameTooltip, book.item)
+    local ok, shown = pcall(spec.Tooltip, GameTooltip)
     if not ok then
-        API.Fail("pearl books compass tooltip", err)
+        API.Fail("compass tooltip " .. tostring(shownOwner), shown)
         GameTooltip:Hide()
         return
     end
-    if book.entrance then GameTooltip:AddLine(C.ENTRANCE, 1, 0.82, 0, true) end
+    if shown == false then return GameTooltip:Hide() end
     GameTooltip:Show()
 end
 
 --------------------------------------------------------------------------------
 -- Showing
 
+-- Hidden for now: the requests stay (an owner's Want shows it again).
 local function hide()
     if not root then return end
     if grip then grip:Hide() end                       -- its OnHide ends a drag under way
@@ -150,22 +210,43 @@ local function hide()
     shownDist = nil
     if ownsTooltip() then GameTooltip:Hide() end
 end
-C.Hide = hide
 
--- Each frame while shown: hidden at once when Books says so, the target
--- cleared on arrival; else the arrow and arc at bearing - facing, the distance.
+-- Dress the ring for `owner`: the rim's tint, the icon or label, the tooltip under a still cursor.
+local function dress(owner)
+    local spec = specs[owner]
+    shownOwner = owner
+    dirty[owner] = nil
+    local tint = C.TINTS[GP.Theme and GP.Theme.Active and GP.Theme.Active() or "forever"] or C.TINTS.forever
+    rim:SetVertexColor(tint[1], tint[2], tint[3])
+    local tex = spec.Icon and spec.Icon() or nil
+    local words = spec.Label and spec.Label() or nil
+    icon:SetTexture(tex)
+    icon:SetShown(tex ~= nil)
+    label:SetText(words or "")
+    label:SetShown(words ~= nil)
+    shownDist = nil
+    if ownsTooltip() then setTooltip() end
+end
+
+-- Each frame while shown: the top owner, hidden at once when it says so or a
+-- read fails; its arrival; else the arrow and arc at bearing - facing, the distance.
 local function frame()
-    local B = GP.Books
-    local target = B.Target()
-    if not target or B.Quiet() or B.InCombat() then return hide() end
-    local continent, north, west = B.Position()
+    local owner = top()
+    if not owner then return hide() end
+    local spec = specs[owner]
+    if owner ~= shownOwner or dirty[owner] then dress(owner) end
+    local okH, hidden = pcall(spec.Hidden)
+    if not okH or hidden ~= false then return hide() end
+    local continent, north, west = C.Position()
     local f = facing()
     if not (continent and f) then return hide() end
-    local d, s = B.Nearest(target, continent, north, west)
-    if not d then return hide() end
-    if d <= B.NEAR then return B.Arrive() end
-    local dn, east = s.x - north, -(s.y - west)
-    local a = wrap(math.atan2(-east, dn) - f)          -- counter-clockwise from straight ahead
+    local okP, tn, tw = pcall(spec.Point, continent, north, west)
+    if not okP then tn, tw = nil, nil end
+    tn, tw = num(tn), num(tw)
+    if not (tn and tw) then return hide() end
+    local d = math.sqrt((north - tn) ^ 2 + (west - tw) ^ 2)
+    if spec.near and d <= spec.near then return spec.Arrive() end
+    local a = C.Angle(north, west, tn, tw, f)
     arrow:ClearAllPoints()
     arrow:SetPoint("CENTER", body, "CENTER", -C.ORBIT * math.sin(a), C.ORBIT * math.cos(a))
     arrow:SetRotation(a)
@@ -212,6 +293,9 @@ local function build()
     mask:SetAllPoints(icon)
     icon:AddMaskTexture(mask)
     icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    label = disc:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    label:SetPoint("CENTER", disc, "CENTER", 0, 1)
+    label:Hide()
     rim = layer(disc, "CompassRim.tga", C.DISC, "OVERLAY", 1)
     arc = layer(disc, "CompassArc.tga", C.DISC, "OVERLAY", 2)
     local over = CreateFrame("Frame", nil, body)
@@ -251,9 +335,9 @@ local function build()
     local fill = grip:CreateTexture(nil, "BACKGROUND")
     fill:SetAllPoints(grip)
     fill:SetColorTexture(0, 0, 0, 0.45)
-    local label = grip:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    label:SetPoint("CENTER", body, "CENTER")
-    label:SetText("Drag to move")
+    local gripText = grip:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    gripText:SetPoint("CENTER", body, "CENTER")
+    gripText:SetText("Drag to move")
     grip:SetScript("OnDragStart", function()
         dragging = true
         root:StartMoving()
@@ -278,28 +362,37 @@ local function build()
     place()
 end
 
--- Show it for a book (Books' ticker, every condition already checked): dressed
--- when the book changed, then one frame's work.
-function C.Show(target, s)
+-- An owner asks for the ring: shown (built on the first), then one frame's work.
+function C.Want(owner)
+    if not specs[owner] then return end
+    wanted[owner] = true
     if not root then build() end
-    local changed = target ~= book
-    book, spot = target, s
-    local tint = C.TINTS[GP.Theme and GP.Theme.Active and GP.Theme.Active() or "forever"] or C.TINTS.forever
-    rim:SetVertexColor(tint[1], tint[2], tint[3])
-    if changed then
-        icon:SetTexture(GP.Books.Icon(target))
-        if ownsTooltip() then setTooltip() end         -- the target changed under a still cursor
-    end
     if not root:IsShown() then place() end
     root:Show()
     frame()
 end
 
-function C.IsShown() return root ~= nil and root:IsShown() end
+-- An owner stops asking: only its own request. The ring goes to the next
+-- owner with a request, or hides.
+function C.Drop(owner)
+    if not wanted[owner] then return end
+    wanted[owner] = nil
+    if not root then return end
+    if owner == shownOwner then
+        shownOwner = nil
+        if top() and root:IsShown() then frame() else hide() end
+    end
+end
 
--- Back under the character (/gpearls books compass reset), shown or not, the pearl on or off.
+function C.Changed(owner) dirty[owner] = true end
+
+function C.Wants(owner) return wanted[owner] == true end
+function C.IsShown() return root ~= nil and root:IsShown() end
+function C.Shown() return C.IsShown() and shownOwner or nil end
+
+-- Back under the character (/gpearls books compass reset), shown or not, any owner.
 function C.ResetPosition()
-    if type(GP.charDB) == "table" then GP.charDB.booksCompass = nil end
+    if type(GP.charDB) == "table" then GP.charDB[C.SAVE_KEY] = nil end
     if root then
         stopDrag()
         place()
@@ -310,5 +403,6 @@ C._test = {
     root = function() return root end, arrow = function() return arrow end, arc = function() return arc end,
     text = function() return text end, icon = function() return icon end, rim = function() return rim end,
     disc = function() return disc end, grip = function() return grip end, hit = function() return hit end,
-    dragging = function() return dragging end, clamp = clamp,
+    label = function() return label end, dragging = function() return dragging end, clamp = clamp,
+    wanted = wanted, reset = function() for k in pairs(wanted) do wanted[k] = nil end; shownOwner = nil end,
 }

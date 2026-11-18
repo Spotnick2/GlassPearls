@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: v1.0.2** (2026-11-17; v1.0.1 2026-11-16; v1.0.0, the first release, 2026-11-15); M1 (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64), library books (#72), invite from whispers (#77), untrained gear (#86), the world buff announcer (#104), gathering tracking (#110); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64), library books (#72), invite from whispers (#77), untrained gear (#86), the world buff announcer (#104), gathering tracking (#110), waypoint routes (#139); the day-one
 probe (#5) follows. The pearls that sell, buy, pick or destroy were audited offline (#61,
 [docs/AUDIT.md](docs/AUDIT.md): the property, the trace matrix, 15 findings with witness tests, the
 declared exceptions). Nothing
@@ -32,7 +32,7 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 → `Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua` → `Libs\HereBeDragons-2.0\HereBeDragons-2.0.lua` →
 `Libs\HereBeDragons-2.0\HereBeDragons-Pins-2.0.lua` → `Compat.lua` → `Theme.lua` → `UI.lua` →
 `AccountSync.lua` → `Pearls.lua` → `SettingsSync.lua` → `Core\ToolItems.lua` → `Core\Bags.lua` →
-`Core\Merchant.lua` → `Core\AuraAlert.lua` → `Core\Notice.lua` → `Core\BagMarks.lua` →
+`Core\Merchant.lua` → `Core\AuraAlert.lua` → `Core\Notice.lua` → `Core\BagMarks.lua` → `Core\Compass.lua` →
 `Data\Landmarks.lua` → `Data\SpellRanks.lua` → `Data\AuraDurations.lua` → `Data\Training.lua` → `Data\Restock.lua` → `Data\Books.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
 `Pearls\BagsFull.lua` → `Pearls\Landmarks.lua` → `Pearls\SpellRanksFrame.lua` →
 `Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua` → `Pearls\FixateFrame.lua` →
@@ -41,7 +41,7 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 `Pearls\MarkWheel.lua` → `Pearls\AutoGossipFrame.lua` → `Pearls\AutoGossip.lua` → `Pearls\FastLootFrame.lua` →
 `Pearls\FastLoot.lua` → `Pearls\LowBuffs.lua` → `Pearls\InstanceGearFrame.lua` → `Pearls\InstanceGear.lua` →
 `Pearls\PetCareFrame.lua` → `Pearls\PetCare.lua` → ... → `Pearls\Fishing.lua` → `Pearls\BooksFrame.lua` →
-`Pearls\BooksCompass.lua` → `Pearls\Books.lua`)* →
+`Pearls\Books.lua` → ... → `Pearls\WayFrame.lua` → `Pearls\Way.lua`)* →
 `Options.lua` → `Minimap.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
@@ -238,6 +238,44 @@ order) and before the options window and bootstrap.
   `GetSpellCooldown().isActive`), then one call recorded in flight before it, judged 1.5 s later, 3 per kind.
   `/gpearls gathertrack`; the outcomes in `GlassPearlsCharDB.gathertrack` (10). Codex: three rounds to consensus.
   Unmeasured until checked in game.
+- **`Pearls\Way.lua`**: waypoint routes (#139, pearl `way`, Interface > Maps, on by default; `worldmap`,
+  `minimap`; Codex three rounds). Paste `/way` lines (the paste box, `/gpearls way paste`, `/way` alone) and
+  get a route; the shared compass (`Core\Compass.lua`, owner `way`, priority 2: above the books, a hidden
+  route reserving the ring) points at the current step; within `NEAR` (10) yd it is done and the next is
+  current. **Parsing** (`W.Parse` / `ParseLine`): an optional leading `/word`, then `x y [note]` (the player's
+  zone, read once per paste: HereBeDragons' `GetPlayerZone`, climbed from a dungeon / micro / orphan map
+  through `GetMapInfo().parentMapID` to a zone, at most 5, cycles and secrets unreadable), `#mapID x y`
+  (never climbed) or `Zone name x y` (the client's own localized names of `LandmarkData.zonemaps` and the
+  two continents; exact, else one unique substring; several listed); `66,2` a comma decimal, `66.2, 34`
+  a separator; 0-100, rounded to 0.01; a map must convert (`GetWorldCoordinatesFromZone`: west, north,
+  continent, all plain). **A zone line** (a zone name or `#mapID` alone, with or without `/way`; the owner:
+  bare coordinates are the map you stand on, Duskwood's pasted in Thunder Bluff landed there) makes the
+  bare coordinates after it in that paste its zone's, until the next one; one `/way` with a zone alone
+  says so and adds nothing. Notes lose `|` and control characters, 60 bytes on a character boundary. Bounds:
+  20000 bytes, 200 lines, 100 steps; at most 5 problems said, then a count. A paste with no valid step leaves
+  the route. A widely used waypoint add-on is the syntax's behaviour reference (All Rights Reserved, nothing
+  copied). **The route** (`GlassPearlsCharDB.way` = `{ steps = { map, x, y, desc, done }, current, closed }`,
+  never synced): `current` = `#steps + 1` is **complete** (kept across logins, said once). One `/way`
+  appends (a new route; on a complete route the new step is current, armed); 100 is the whole route's cap.
+  Previous / Next / a row: current, done or not, **disarmed** until a plain reading puts the player farther
+  than `NEAR`. A step HereBeDragons can't place has no position: the route's own advance passes it (not done),
+  chosen by hand it stays. `CleanRoute` at every Enable: invalid steps dropped, `done` kept on its step,
+  `current` carried through the compaction. **The controller** (a 0.5 s ticker while there's a current step):
+  eligibility first (`UnitIsDeadOrGhost`, `UnitOnTaxi`, `IsInInstance` each plainly false), then the
+  position; **one advance per tick, the ring never advances a route**; it `Want`s the ring each tick, which
+  is how the ring comes back (no window needed). Shown in combat. **`/way`**: claimed once a session, a
+  frame after the registry's `Start` (or a later switch-on), only while `hash_SlashCmdList["/WAY"]` is nil and
+  no `SLASH_*` global is plainly `/way` in any case; never taken over; off: it says so. `/gpearls way [x y
+  note | paste | list | clear]`. Unmeasured until checked in game.
+- **`Pearls\WayFrame.lua`**: its step list (per character `wayList`, kept by its top; as tall as the route up
+  to 8 rows (`Height(n)`), the wheel beyond; number, an arrow at
+  `bearing - facing` (`Compass.Angle`), the distance, or the zone on another continent, or "no position",
+  coordinates and note; current highlighted, done dimmed and checked; repainted every 0.2 s while shown,
+  scrolled to the current step only when it changes; Previous, Next, Paste, Clear; the X remembered as
+  `closed` until a route is loaded or it's opened), the paste box (a multi-line edit box in a
+  `UIPanelScrollFrameTemplate`, Load, Cancel), the pins (HereBeDragons-Pins, ref `WayFrame`: world map by map
+  in 0-1, minimap by map in 0-1, **the current step's minimap pin by world position floating on the edge**;
+  separate pools; a numbered disc, current gold, done grey; tooltip only) and its panel.
 - **`Pearls\JunkSpot.lua`**: junk spotlight (#41, pearl `junkspot`, Loot & Bags > Merchant, **off** by default;
   its panel inside; `show` = `both` | `bags` | `tooltip`). Shows what the junk seller **may** sell: only while
   it sells (`junk` on and its `autoSell`), only bags 0-4, by `Junk.Judge` alone (the equipment-set snapshot
@@ -725,13 +763,21 @@ order) and before the options window and bootstrap.
   Unmeasured until day one.
 - **`Pearls\BooksFrame.lua`**: its toast (icon, name, where, how far; **stays until OK**: no timeout, not in
   `UISpecialFrames`; position per character) and its panel (the four switches, Test).
-- **`Pearls\BooksCompass.lua`**: the compass's ring (#93), NodeRadar's (`Compass.lua` and its six
-  `Media\Compass*.tga`, MIT, the same owner): lens with the book's icon, rim bronze (WoW Forever) or pearl
-  (Glass UI, `Theme.Active()`), arrow and arc at `bearing - facing` (NodeRadar's measured convention:
-  `atan2(-east, north)`, `GetPlayerFacing` counter-clockwise from north), "n yd" capsule, the book's tooltip
-  (plus the cave line), mouse motion only. Its OnUpdate runs only while shown: hides at once (quiet, combat,
-  a read failing, another continent) and ends the target on arrival. Alt-drag (NodeRadar's grip from live
-  input), the whole footprint clamped, saved in `GlassPearlsCharDB.booksCompass`. Built on its first show.
+- **`Core\Compass.lua`**: the compass ring any pearl points with (#93's, shared in #139), NodeRadar's
+  (`Compass.lua` and its six `Media\Compass*.tga`, MIT, the same owner): lens with an icon or a label, rim
+  bronze (WoW Forever) or pearl (Glass UI, `Theme.Active()`), arrow and arc at `bearing - facing` (NodeRadar's
+  measured convention: `atan2(-east, north)`, `GetPlayerFacing` counter-clockwise from north), "n yd"
+  capsule, the owner's tooltip, mouse motion only. **Owners**: `Register(owner, { priority, Point(continent,
+  north, west), Icon, Label, Tooltip, Hidden, near?, Arrive? })`, `Want` / `Drop` (only that owner's
+  request), `Changed` (re-dressed the next frame, never at once). The ring shows the highest-priority owner
+  with a request, **even while that owner's frame keeps it hidden** (no stale lower target flashing in).
+  Its OnUpdate runs only while shown: hides at once (the owner's `Hidden`, a read failing, another
+  continent; the request stays, the owner's ticker `Want`s again); only an owner with `near` arrives in the
+  ring (books, priority 1); one without is drawn at any distance (a route, priority 2, advances on its own).
+  `Position()` (HereBeDragons' world position, plain) is Books'. Alt-drag (NodeRadar's grip from live input),
+  the whole footprint clamped, saved in `GlassPearlsCharDB.booksCompass` (the key kept from #93). Built on
+  its first show. Books' owner is registered in `Pearls\Books.lua` (quiet or combat hides it; its target's
+  nearest spot; arrival within `NEAR`; `Changed` when its target changes).
 - **`Data\SpellRanks.lua`**: **generated** by `Tools\gen_ranks.py` (never edit it): every class
   spell that comes in ranks, `groups[g]` (IDs, lowest rank first) and `ranks[id] = { g, rank,
   level }`, from the client's SkillLine (class trees: category 7 with flag 0x400; pet lines lack
@@ -900,7 +946,9 @@ names validated against the pinned build, every widget method recorded, protecte
 templates in `WoW.templates`, Battle.net and ChatThrottleLib for LibAccountSync, `WoW.installGlassUI` for a scriptable Glass UI suite,
 `WoW.missingTemplates` for a template the client lacks, `WoW.reloadForbidden` for a refused
 `ReloadUI`, the world map, `C_Map` / `C_TaxiMap` / `C_Texture` and a recording HereBeDragons fake,
-`WoW.installFakeHBD`, which the harness installs in place of the vendored copy, action slots,
+`WoW.installFakeHBD`, which the harness installs in place of the vendored copy (with `GetPlayerZone` from
+`WoW.playerZone` and `GetWorldCoordinatesFromZone` over `WoW.zoneRects`, and `WoW.mapInfo`'s `mapType` /
+`parentMapID`, for waypoint routes), action slots,
 macros, known spells, overrides and a spell on the cursor (`WoW.actions`, `WoW.known`,
 `WoW.placeHook`, ...), and a merchant: selling, the buyback page, repair and guild funds
 (`WoW.openMerchant`, `WoW.money`, `WoW.buyback`, `WoW.repairCost`, `WoW.guild`, `WoW.salesAsync`
