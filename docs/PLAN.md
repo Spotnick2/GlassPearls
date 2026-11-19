@@ -552,8 +552,8 @@ Yojamba Isle for Zandalar; `/gpearls worldbuffs` right after each)
 - [x] The game's own tooltip names an item's sets ("Equipment Sets: Shadow, Discipline", bag and worn items;
       2026-11-19): our line dropped (#144).
 - [x] The disenchant warning named the right item and set (Tattered Mittens, Discipline; 2026-11-19).
-- [ ] At a merchant, `tooltipData.guid` on a bag set item: the red "Careful when selling" line; `setList`'s
-      look with two sets (the separator, in `/gpearls setguard`).
+- [x] At a merchant, a bag set item's tooltip shows the red "Careful when selling" line (2026-11-19).
+- [ ] `setList`'s look with two sets (the separator, in `/gpearls setguard`).
 - [ ] `C_Container.GetContainerItemEquipmentSetInfo` and `C_EquipmentSet.GetItemLocations` agree; a set slot
       left empty or ignored decodes as nothing; the second copy is never named.
 - [ ] Destroy: at `DELETE_ITEM_CONFIRM` the cursor's location (or `GetItemLocation(guid)`) reads the set; the
