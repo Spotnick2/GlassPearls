@@ -548,6 +548,19 @@ Yojamba Isle for Zandalar; `/gpearls worldbuffs` right after each)
 - [ ] `C_PartyInfo.CanInvite()` solo, as leader, as a member; `IsPartyFull()` at 5.
 - [ ] Whisper payloads inside an instance (plain or secret).
 
+**Equipment set guard (#142)** (two sets sharing an item; a second copy of a set item outside the set)
+- [ ] `tooltipData.guid` on a bag item, a worn item (character pane) and the bank; the line on each, none on a
+      vendor's or a link's; `setList`'s look with two sets (the separator).
+- [ ] `C_Container.GetContainerItemEquipmentSetInfo` and `C_EquipmentSet.GetItemLocations` agree; a set slot
+      left empty or ignored decodes as nothing; the second copy is never named.
+- [ ] Destroy: at `DELETE_ITEM_CONFIRM` the cursor's location (or `GetItemLocation(guid)`) reads the set; the
+      warning under each popup (grey, rare, quest), gone with Yes, No and Esc; easy delete leaves a set item.
+- [ ] The hook: a right-click at a merchant runs it with the item still in its slot (or the slot already
+      empty: then no sale warning is possible); the sold item's GUID then has no location, or a buyback one.
+- [ ] Disenchant: the right-click on the target runs the hook within 0.5 s of `UNIT_SPELLCAST_START` (13262),
+      either order; the warning names it; Esc and moving still cancel.
+- [ ] `/gpearls setguard` against the equipment manager.
+
 **The probe (#5):** its steps are added here by its PR.
 
 ## Candidate pearls after M1

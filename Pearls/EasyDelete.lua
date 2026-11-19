@@ -12,6 +12,9 @@
 -- the cursor all name the same item and the box is still empty. Nothing is
 -- ever written on the dialog or its data, the delete is never called (Yes
 -- and Enter are Blizzard's), and the gamepad popups (no edit box) are left.
+-- Never for an item in an equipment set, or one whose sets can't be read
+-- (Core/EquipSets.lua, by the cursor's location: #142), whatever the
+-- equipment set guard's switch says.
 -- Unmeasured until 2026-11-04 (docs/PLAN.md, day one: the fill and taint).
 
 GlassPearls = GlassPearls or {}
@@ -65,6 +68,11 @@ local function fill(token, quality, quest, guid)
     local okG, cursorGUID = false, nil
     if okC and type(plain(loc)) == "table" then okG, cursorGUID = pcall(C_Item.GetItemGUID, loc) end
     if not okG or text(cursorGUID) ~= guid then return skip("the cursor holds another item") end
+    -- Never a set item (#142): this copy must be plainly in no equipment set.
+    local inSets = GP.EquipSets.ForLocation(loc)
+    if inSets ~= false then
+        return skip(inSets == nil and "equipment sets unreadable" or "in an equipment set")
+    end
     local okB, box = pcall(dialog.GetEditBox, dialog)
     if not okB or type(plain(box)) ~= "table" then return skip("no edit box") end
     local okT, typed = pcall(box.GetText, box)
@@ -130,7 +138,8 @@ GP.Pearls.Register({
     desc = "Fills in DELETE when destroying a good item, and names it in chat.",
     help = "When the game asks you to type DELETE to destroy a Rare or better item, it is filled in for you and "
         .. "the item's link is said in your chat, so one click on Yes confirms. Only up to the quality you choose "
-        .. "(Epic by default): above it, you still type it. Once filled in, Yes or Enter destroys the item. "
+        .. "(Epic by default): above it, you still type it. Never for an item in an equipment set. Once filled "
+        .. "in, Yes or Enter destroys the item. "
         .. "/gpearls easydelete shows the last fill. Unverified until the game is live.",
     default = false,
     category = "Loot & Bags",

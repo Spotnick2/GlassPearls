@@ -20,10 +20,12 @@ WoW.items[107] = { name = "Potion", classID = 0, subclassID = 1, equipLoc = "" }
 local GP = loadAddon()
 local UT, P, D = GP.Untrained, GP.Pearls, GP.GearSkillData
 check(P.IsOn("untrained"), "on by default")
-eq(#(WoW.tooltipPostCalls[Enum.TooltipDataType.Item] or {}), 1, "one item post-call")
+-- The equipment set guard (#142) has an item post-call of its own: counted apart.
+local others = GP.SetGuard.state.tipHooked and 1 or 0
+eq(#(WoW.tooltipPostCalls[Enum.TooltipDataType.Item] or {}) - others, 1, "one item post-call")
 P.Set("untrained", false)
 P.Set("untrained", true)
-eq(#WoW.tooltipPostCalls[Enum.TooltipDataType.Item], 1, "  registered once, kept across off and on")
+eq(#WoW.tooltipPostCalls[Enum.TooltipDataType.Item] - others, 1, "  registered once, kept across off and on")
 
 local function as(class, race, level) WoW.class, WoW.player.raceID, WoW.playerLevel = class, race, level end
 -- A tooltip of ours, named like Blizzard's (its right font strings by index).

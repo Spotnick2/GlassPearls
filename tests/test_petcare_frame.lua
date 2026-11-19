@@ -228,8 +228,9 @@ local function tip(id, data)
     end
     return table.concat(added, "\n")
 end
--- Untrained gear (#86) has an item hook of its own: pet care's is counted apart.
-local others = GP.Untrained.state.hooked and 1 or 0
+-- Untrained gear (#86) and the equipment set guard (#142) have item hooks of their own: pet care's is
+-- counted apart.
+local others = (GP.Untrained.state.hooked and 1 or 0) + (GP.SetGuard.state.tipHooked and 1 or 0)
 eq(#(WoW.tooltipPostCalls[Enum.TooltipDataType.Item] or {}) - others, 1, "one item tooltip hook")
 eq(tip(QUAIL), FR.TIP, "tooltip (the default): edible")
 eq(tip(BREAD), "", "  not edible: nothing")
