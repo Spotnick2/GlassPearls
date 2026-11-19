@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## v1.2.0 - 2026-11-19
+
+A new pearl: the equipment set guard.
 
 - **Equipment set guard** (new, Loot & Bags, on by default): you're warned before losing an item in one of
   your Equipment Sets. Destroying a set item keeps the game's own confirmation, with the sets named under

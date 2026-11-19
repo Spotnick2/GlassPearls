@@ -2,7 +2,7 @@
 
 <img src="https://raw.githubusercontent.com/Spotnick2/GlassPearls/main/docs/screenshots/pearl.png" alt="" width="96" align="right">
 
-**Twenty-nine small things World of Warcraft: Forever should have done for you all along, in one
+**Thirty small things World of Warcraft: Forever should have done for you all along, in one
 addon.** Junk sold and gear repaired the moment you open a merchant. Bags that never block your
 loot. A trainer that tells you what's new when you level. Library books, dungeon doors and boats on
 your map, and a compass along any `/way` route you paste. Fishing without hunting for the bobber. A raid mark wheel at your cursor. And many more.
@@ -80,9 +80,21 @@ yet (a warrior's plate before level 40, a mage's first sword) shows its type in 
 with a note in its tooltip: a weapon master teaches weapons, your class trainer armor, and from
 which level. Anything else red, and gear your class can never use, stays as it is.
 
+**Equipment set guard** (on). Warns you before you lose an item from one of your Equipment Sets
+(the game's own tooltip already names an item's sets).
+- Destroying one: the game's confirmation stays, with the set's name in red under it.
+- Selling: at a merchant, a set item's tooltip says to take care. If one you right-clicked there
+  leaves your bags, you're told to buy it back from the Buyback tab (dragging an item onto the
+  merchant isn't noticed).
+- Disenchanting: during the cast you're told which set item it may be on, so you can move or press
+  Esc to stop it.
+- An addon can't stop a sale or a cast, so these are warnings, not confirmations. Each has its own
+  switch.
+
 **Easy delete** (off). When the game asks you to type DELETE to destroy a Rare or better item, it's
 filled in and the item named in your chat, so one click on Yes confirms. Up to Epic by default (a
-setting: Rare, Epic or Legendary); above it you still type it.
+setting: Rare, Epic or Legendary); above it you still type it. Never for an item in one of your
+Equipment Sets.
 
 **Quest loot sparkle** (off). Keeps the game's sparkle on lootable quest items by turning the
 outline mode off, and again after a graphics preset puts it back. Switched off, your own outline
@@ -283,6 +295,7 @@ you can place it:
 | Sell junk & repair | `/gpearls sell`: what would be sold; `sell <item>`, `keep <item>`, `forget <item>` manage the lists |
 | Restock | `/gpearls restock`: at a merchant, what it would buy there and why not |
 | Easy delete | `/gpearls easydelete`: what it last filled in or skipped |
+| Equipment set guard | `/gpearls setguard`: your items in Equipment Sets, as the game reports them |
 | Quest loot sparkle | `/gpearls sparkle`; `sparkle restore` (while off) puts your settings back; `sparkle target`: what the game says about the object you're facing |
 | Library books | `/gpearls books`: what's left and the nearest; `books test`, `books compass reset` |
 | Waypoint routes | `/gpearls way`: the step list; `way paste`, `way 66 34 note` adds a step, `way clear` |
