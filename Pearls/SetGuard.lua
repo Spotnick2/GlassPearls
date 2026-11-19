@@ -22,7 +22,7 @@
 --   its sets), set item or not, a few kept. The item read after the call is
 --   taken as the one used (the sale or cast still pending): a day-one check.
 -- - Disenchant: UNIT_SPELLCAST_START of 13262 (the only Disenchant, a 3 s
---   cast); PAIR seconds later every use within PAIR of the start belongs to
+--   cast); SETTLE seconds later every use within PAIR of the start belongs to
 --   it, and a set item among them is warned with "may be": time is the only
 --   link between a use and a cast. Other targeting paths (target-item, an
 --   inventory slot) aren't seen.
@@ -42,7 +42,8 @@ GP.SetGuard = SG
 SG.KEY = "setguard"
 SG.DISENCHANT = 13262
 SG.PAIR = 0.5            -- a use and a Disenchant start this close may belong together
-SG.SALE_FROM = 1.1       -- past 2 x PAIR: any cast that could claim the use has settled
+SG.SETTLE = 0.55         -- a start settles a little after its window closed (a use exactly at its edge counts)
+SG.SALE_FROM = 1.1       -- past PAIR: every start that could claim the use has come (one unsettled is waited for)
 SG.SALE_UNTIL = 2.5      -- a sale seen by then, or dropped
 SG.KEEP = 5              -- recent uses kept this long
 SG.USES_MAX = 8
@@ -55,7 +56,7 @@ SG.CAST_ENDS = { UNIT_SPELLCAST_STOP = true, UNIT_SPELLCAST_INTERRUPTED = true, 
 SG.EQUIP_LAST = 19       -- INVSLOT_LAST_EQUIPPED: gear, not the buyback or bank slots
 
 local events = CreateFrame("Frame")
-local state = { hooked = false, tipHooked = false, token = 0, gen = 0, uses = {}, cast = nil,
+local state = { hooked = false, tipHooked = false, token = 0, gen = 0, uses = {}, cast = nil, open = {},
                 last = "nothing yet" }
 SG.state = state
 
@@ -261,7 +262,7 @@ local function prune()
     state.uses = keep
 end
 
--- PAIR seconds after a Disenchant started, its candidates are settled: every
+-- SETTLE seconds after a Disenchant started (its window closed), its candidates are settled: every
 -- unclaimed use within PAIR of the start, either side, belongs to that cast
 -- (never a sale, never another cast's), whether or not the warning is on and
 -- even when the cast is already over; casts settle in the order they started,
@@ -270,6 +271,9 @@ end
 local function settle(cast, gen)
     if gen ~= state.gen or cast.settled then return end
     cast.settled = true
+    for i, c in ipairs(state.open) do
+        if c == cast then table.remove(state.open, i); break end
+    end
     local live, warned = state.cast == cast, false
     for _, u in ipairs(state.uses) do
         if not u.cast and math.abs(u.at - cast.at) <= SG.PAIR then
@@ -283,13 +287,17 @@ local function settle(cast, gen)
 end
 
 -- Could this use be a sale? Only once every Disenchant that could claim it
--- has settled (a start within PAIR of the use settles PAIR after it).
+-- has settled: not before SALE_FROM, and never while a start within PAIR of
+-- the use is still unsettled (a late timer): it waits for that.
 local function checkSale(u)
     if u.gen ~= state.gen or u.cast or u.done or not u.sale then return end
     if not on("sell") or not GP.Merchant.Current(u.session) then u.done = true; return end
     local age = now() - u.at
     if age > SG.SALE_UNTIL then u.done = true; return end
     if age < SG.SALE_FROM then return end
+    for _, c in ipairs(state.open) do
+        if math.abs(c.at - u.at) <= SG.PAIR then return end
+    end
     local where, bag, slot = whereabouts(u.guid)
     if where == "held" then
         if bag ~= u.bag or slot ~= u.slot then u.done = true end   -- moved, not sold
@@ -357,7 +365,8 @@ events:SetScript("OnEvent", function(_, event, ...)
         local cast = { guid = castGUID, at = now() }
         state.cast = cast
         local gen = state.gen
-        C_Timer.After(SG.PAIR, function() settle(cast, gen) end)
+        state.open[#state.open + 1] = cast
+        C_Timer.After(SG.SETTLE, function() settle(cast, gen) end)
     elseif SG.CAST_ENDS[event] then
         local unit, castGUID = ...
         if state.cast and plain(unit, "string") == "player" and plain(castGUID, "string") == state.cast.guid then
@@ -450,7 +459,7 @@ end
 -- Everything pending is dropped; a timer of an older generation does nothing.
 function SG.Forget()
     state.gen = state.gen + 1
-    state.uses, state.cast = {}, nil
+    state.uses, state.cast, state.open = {}, nil, {}
 end
 
 local function disable()

@@ -546,7 +546,7 @@ order) and before the options window and bootstrap.
   for a bag, the bank or the special values -1 / 0 / 1, `nil` unreadable); a match names the set at once, "in
   none" only after every value of every set read. `|` escaped in both. Unmeasured.
 - **`Pearls\SetGuard.lua`**: equipment set guard (#142, pearl `setguard`, Loot & Bags > Bags, on by default;
-  `tooltip`, `destroy`, `sell`, `disenchant`, all on; its panel inside; Codex five rounds). **None of the three
+  `tooltip`, `destroy`, `sell`, `disenchant`, all on; its panel inside; Codex rounds to consensus). **None of the three
   warnings can stop anything** (a right-click sale can't be cancelled without replacing Blizzard's bag button;
   `SpellStopCasting` is protected): the help says so. **Tooltip**: one item post-call (once; checks the switch),
   `tooltipData.guid` (Blizzard's comparison manager reads it) -> "Equipment sets: names"; at a merchant, for a
@@ -559,11 +559,11 @@ order) and before the options window and bootstrap.
   `Mainline/ContainerFrame.lua:1611`, which Forever loads; spell targeting; our junk seller), every call recorded
   (bag, slot, the GUID read right after the call, its sets; set item or not; `USES_MAX` 8, `KEEP` 5 s; one let go
   is done), a generation (`Forget`: Disable, loading screen) on every timer. **Disenchant** (13262, the only one,
-  3 s): `PAIR` (0.5) s after its `UNIT_SPELLCAST_START`, every unclaimed use within `PAIR`, either side, is that
+  3 s): `SETTLE` (0.55) s after its `UNIT_SPELLCAST_START`, every unclaimed use within `PAIR` (0.5), either side, is that
   cast's (never a sale, never a later cast's; claimed even once the cast is over), a set item among them warned
   ("Your Disenchant may be on <link>...", notice, sound) only while it is the live cast. **Sell**: a single set
-  item used in bags 0-4 at a merchant with `sell` on, unclaimed, checked from `SALE_FROM` (1.1 s, past any
-  settle) to `SALE_UNTIL` (2.5 s) and at `BAG_UPDATE_DELAYED`: gone (no location, or neither a bag slot nor gear
+  item used in bags 0-4 at a merchant with `sell` on, unclaimed, checked from `SALE_FROM` (1.1 s, past `PAIR`;
+  a start near it still unsettled is waited for) to `SALE_UNTIL` (2.5 s) and at `BAG_UPDATE_DELAYED`: gone (no location, or neither a bag slot nor gear
   1-19: the buyback slots) -> "left your bags at this merchant: if you sold it, buy it back from the Buyback tab";
   still in its slot or unreadable: pending; held elsewhere: moved, dropped; the visit closing (`Merchant.On`,
   which also makes the session tracked) or the switch drops it. A visit already open when it's switched on isn't

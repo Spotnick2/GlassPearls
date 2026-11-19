@@ -554,6 +554,35 @@ eq(ES.ForGUID("Item-W"), nil, "a location constant missing: can't tell")
 ITEM_INVENTORY_LOCATION_BAGS = constant
 eq(ES.ForGUID("Item-W"), false, "  back: in none")
 
+-- A use exactly PAIR after the start, recorded as the window closes: still
+-- that cast's (Codex round 5).
+setup()
+WoW.openMerchant()
+start()
+WoW.advance(SG.PAIR)
+C_Container.UseContainerItem(0, 1)
+WoW.applySales()
+WoW.advance(1.5)
+WoW.fire("BAG_UPDATE_DELAYED")
+check(not sold(), "a use at the edge of a cast's window is never a sale")
+eq(SG.state.uses[1].cast, "Cast-" .. castN, "  claimed by that cast")
+WoW.closeMerchant()
+
+-- The settle timer late: a sale check meanwhile waits for it.
+setup()
+WoW.openMerchant()
+C_Container.UseContainerItem(0, 1)
+WoW.applySales()
+WoW.advance(0.4)
+start()
+WoW.now = WoW.now + 1.0        -- time passes, the timers don't run
+WoW.fire("BAG_UPDATE_DELAYED")
+check(not sold(), "an unsettled cast near the use: the sale check waits")
+WoW.advance(0)
+WoW.fire("BAG_UPDATE_DELAYED")
+check(not sold(), "  then the cast claims it")
+WoW.closeMerchant()
+
 -- Where an item is: unknown stays unknown.
 setup()
 eq(SG.Whereabouts("Item-A"), "held", "whereabouts: in a bag")
