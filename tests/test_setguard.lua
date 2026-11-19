@@ -1,5 +1,5 @@
 -- Equipment set guard (#142): which sets hold one copy (by location, never by
--- item ID), the tooltip line, the destroy warning under Blizzard's popup, easy
+-- item ID), the merchant's tooltip line, the destroy warning under Blizzard's popup, easy
 -- delete never filling for a set item, the sale warning after a use at a
 -- merchant, and the disenchant warning during the cast.
 dofile("tests/wow_stubs.lua")
@@ -89,7 +89,7 @@ WoW.setInfo[1].name = "A|B"
 eq(ES.ForGUID("Item-A"), "A||B", "a bag set list: escaped")
 
 --------------------------------------------------------------------------------
--- The tooltip
+-- The tooltip: only the merchant's warning (the game names the sets itself, #144)
 
 local function tip(guid)
     local added = {}
@@ -105,27 +105,29 @@ end
 setup()
 check(P.IsOn("setguard"), "on by default")
 check(SG.state.tipHooked, "the tooltip post-call installed")
-eq(tip("Item-A"), "Equipment sets: |cffffffffShadow|r", "a set ring's tooltip names its set")
-eq(tip("Item-B"), "", "  its other copy: nothing")
-eq(tip("Item-C"), "Equipment sets: |cffffffffShadow, Discipline|r", "two sets named")
-eq(tip("Item-R"), "Equipment sets: |cffffffffDiscipline|r", "worn: named")
-eq(tip(nil), "", "no GUID (a vendor's, a link): nothing")
-eq(tip(WoW.Secret("g")), "", "a secret GUID: nothing")
+local CAREFUL = "Careful when selling it to this merchant."
+eq(P.Setting("setguard", "tooltip"), nil, "no tooltip switch: the game names the sets")
+eq(tip("Item-A"), "", "no merchant: nothing added (never the set names)")
+eq(tip("Item-R"), "", "  worn: nothing")
 WoW.openMerchant()
 local text, lines = tip("Item-A")
-eq(text, "Equipment sets: |cffffffffShadow|r\nCareful when selling it to this merchant.", "at a merchant: the warning")
-eq(lines[2] and lines[2].r, 1, "  in red")
-eq(tip("Item-R"), "Equipment sets: |cffffffffDiscipline|r", "  not for worn gear")
+eq(text, CAREFUL, "at a merchant, a set ring in the bags: the warning alone")
+eq(lines[1] and lines[1].r, 1, "  in red")
+eq(tip("Item-C"), CAREFUL, "  a cloak in two sets")
+eq(tip("Item-B"), "", "  the ring's copy in no set: nothing")
+eq(tip("Item-R"), "", "  not for worn gear")
+eq(tip(nil), "", "  no GUID (a vendor's, a link): nothing")
+eq(tip(WoW.Secret("g")), "", "  a secret GUID: nothing")
+WoW.setInfoThrows = true
+eq(tip("Item-A"), "", "  sets unreadable: nothing")
+WoW.setInfoThrows = false
 P.SetSetting("setguard", "sell", false)
-eq(tip("Item-A"), "Equipment sets: |cffffffffShadow|r", "  the sale warning off: no line")
+eq(tip("Item-A"), "", "  the sale warning off: nothing")
 P.SetSetting("setguard", "sell", true)
-WoW.closeMerchant()
-P.SetSetting("setguard", "tooltip", false)
-eq(tip("Item-A"), "", "the tooltip switch off: nothing")
-P.SetSetting("setguard", "tooltip", true)
 P.Set("setguard", false)
-eq(tip("Item-A"), "", "the pearl off: nothing")
+eq(tip("Item-A"), "", "  the pearl off: nothing")
 P.Set("setguard", true)
+WoW.closeMerchant()
 eq(WoW.hooked[C_Container].UseContainerItem, 1, "one use hook, kept across off and on")
 
 --------------------------------------------------------------------------------
@@ -142,9 +144,9 @@ local function warning() return SG._test.warning() end
 
 setup()
 local dialog = destroy(0, 1, "Item-A")
-check(said("Careful: %[Ring A%] is in your equipment set Shadow%."), "a set item: said with its link")
+check(said("Careful: %[Ring A%] is in your Equipment Set Shadow%."), "a set item: said with its link")
 check(warning() and warning():IsShown(), "  the warning shown")
-eq(warning().text:GetText(), "In your equipment set: Shadow", "  its text")
+eq(warning().text:GetText(), "In your Equipment Set: Shadow", "  its text")
 local pt = warning()._points and warning()._points[1]
 check(pt == nil or pt[2] == dialog, "  anchored to the popup")
 WoW.tick(0.2)
@@ -166,7 +168,7 @@ check(not (warning() and warning():IsShown()), "  no warning")
 
 setup()
 destroy(0, 3, "Item-C", "DELETE_GOOD_ITEM")
-check(said("in your equipment sets Shadow, Discipline%."), "two sets, the good-item popup")
+check(said("in your Equipment Sets Shadow, Discipline%."), "two sets, the good-item popup")
 check(warning():IsShown(), "  shown")
 WoW.fire("DELETE_ITEM_CONFIRM", "Ring", 2, 1, 0, "Item-B")
 check(not warning():IsShown(), "  a new popup hides the last warning at once")
@@ -191,7 +193,7 @@ setup()
 WoW.cursor = { bag = 0, slot = 1, id = RING }
 WoW.fire("DELETE_ITEM_CONFIRM", "Ring", 2, 1, 0, "Item-A")
 frame()
-check(GP.Notice.IsShown() and GP.Notice.Text() == "In your equipment set: Shadow", "no popup: the notice")
+check(GP.Notice.IsShown() and GP.Notice.Text() == "In your Equipment Set: Shadow", "no popup: the notice")
 
 -- A popup naming another GUID isn't the one.
 setup()
@@ -222,13 +224,13 @@ setup()
 P.Set("easydelete", true)
 local d = destroy(0, 1, "Item-A", "DELETE_GOOD_ITEM")
 eq(d.state.text, "", "easy delete: a set item isn't filled in")
-eq(GP.EasyDelete.state.last, "in an equipment set", "  why")
+eq(GP.EasyDelete.state.last, "in an Equipment Set", "  why")
 d = destroy(0, 2, "Item-B", "DELETE_GOOD_ITEM")
 eq(d.state.text, "DELETE", "  its copy in no set is")
 WoW.setInfoThrows = true
 d = destroy(0, 2, "Item-B", "DELETE_GOOD_ITEM")
 eq(d.state.text, "", "  sets unreadable: not filled in")
-eq(GP.EasyDelete.state.last, "equipment sets unreadable", "  why")
+eq(GP.EasyDelete.state.last, "Equipment Sets unreadable", "  why")
 WoW.setInfoThrows = false
 P.Set("setguard", false)
 d = destroy(0, 1, "Item-A", "DELETE_GOOD_ITEM")
@@ -250,7 +252,7 @@ check(not sold(), "a set ring right-clicked: nothing before SALE_FROM")
 WoW.advance(0.6)
 check(not sold(), "  still in its slot: pending")
 WoW.applySales()
-check(said("%[Ring A%], in your equipment set Shadow, left your bags at this merchant: if you sold it, buy it back "
+check(said("%[Ring A%], in your Equipment Set Shadow, left your bags at this merchant: if you sold it, buy it back "
     .. "from the Buyback tab%."), "  gone: said, never as a certain sale")
 check(GP.Notice.Text() == "A set item left your bags (Shadow)", "  the notice")
 mark = #WoW.chat
@@ -358,7 +360,7 @@ start()
 WoW.advance(0.3)
 check(not warned(), "nothing before the cast settles")
 WoW.advance(0.3)
-check(said("Your Disenchant may be on %[Ring A%], in your equipment set Shadow: move or press Esc to stop%."),
+check(said("Your Disenchant may be on %[Ring A%], in your Equipment Set Shadow: move or press Esc to stop%."),
     "a set ring used, then a Disenchant: warned")
 eq(GP.Notice.Text(), "Disenchanting a set item? (Shadow)", "  the notice")
 eq(WoW.soundsPlayed[#WoW.soundsPlayed][1], SOUNDKIT.RAID_WARNING, "  the sound")
@@ -368,7 +370,7 @@ start()
 WoW.advance(0.2)
 C_Container.UseContainerItem(0, 3)
 WoW.advance(0.5)
-check(said("may be on %[Cloak%], in your equipment sets Shadow, Discipline"), "the start first, then the use")
+check(said("may be on %[Cloak%], in your Equipment Sets Shadow, Discipline"), "the start first, then the use")
 
 setup()
 C_Container.UseContainerItem(0, 2)
@@ -456,7 +458,7 @@ WoW.advance(0.1)
 C_Container.UseContainerItem(0, 1)
 WoW.applySales()
 WoW.advance(1.5)
-check(said("%[Ring A%], in your equipment set Shadow, left your bags"), "a sale after a cancelled cast: still said")
+check(said("%[Ring A%], in your Equipment Set Shadow, left your bags"), "a sale after a cancelled cast: still said")
 eq(SG.state.uses[1].cast, nil, "  not claimed by the cancelled cast")
 WoW.closeMerchant()
 
@@ -470,7 +472,7 @@ WoW.fire("UNIT_SPELLCAST_INTERRUPTED", "player", ended, SG.DISENCHANT)
 C_Container.UseContainerItem(0, 1)
 WoW.applySales()
 WoW.advance(1.5)
-check(said("%[Ring A%], in your equipment set Shadow, left your bags"), "end then use in one frame: the sale said")
+check(said("%[Ring A%], in your Equipment Set Shadow, left your bags"), "end then use in one frame: the sale said")
 eq(SG.state.uses[1].cast, nil, "  not claimed by the ended cast")
 WoW.closeMerchant()
 
@@ -568,8 +570,8 @@ WoW.advance(0.2)
 C_Container.UseContainerItem(0, 3)
 WoW.applySales()
 WoW.advance(1.5)
-check(said("%[Ring A%], in your equipment set Shadow, left"), "two pending sales: the first said")
-check(said("%[Cloak%], in your equipment sets Shadow, Discipline, left"), "  and the second")
+check(said("%[Ring A%], in your Equipment Set Shadow, left"), "two pending sales: the first said")
+check(said("%[Cloak%], in your Equipment Sets Shadow, Discipline, left"), "  and the second")
 WoW.closeMerchant()
 
 -- A loading screen drops a pending sale.

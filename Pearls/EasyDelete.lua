@@ -71,7 +71,7 @@ local function fill(token, quality, quest, guid)
     -- Never a set item (#142): this copy must be plainly in no equipment set.
     local inSets = GP.EquipSets.ForLocation(loc)
     if inSets ~= false then
-        return skip(inSets == nil and "equipment sets unreadable" or "in an equipment set")
+        return skip(inSets == nil and "Equipment Sets unreadable" or "in an Equipment Set")
     end
     local okB, box = pcall(dialog.GetEditBox, dialog)
     if not okB or type(plain(box)) ~= "table" then return skip("no edit box") end
@@ -138,7 +138,7 @@ GP.Pearls.Register({
     desc = "Fills in DELETE when destroying a good item, and names it in chat.",
     help = "When the game asks you to type DELETE to destroy a Rare or better item, it is filled in for you and "
         .. "the item's link is said in your chat, so one click on Yes confirms. Only up to the quality you choose "
-        .. "(Epic by default): above it, you still type it. Never for an item in an equipment set. Once filled "
+        .. "(Epic by default): above it, you still type it. Never for an item in an Equipment Set. Once filled "
         .. "in, Yes or Enter destroys the item. "
         .. "/gpearls easydelete shows the last fill. Unverified until the game is live.",
     default = false,

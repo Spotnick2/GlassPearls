@@ -1,8 +1,9 @@
--- Pearls/SetGuard.lua: equipment set guard (#142). Item tooltips name the
--- equipment sets an item is in (Forever's don't), and losing a set item is
--- warned about: destroying it (under Blizzard's own delete popup), selling it
--- (a tooltip line at a merchant before, a warning after), disenchanting it
--- (during the cast).
+-- Pearls/SetGuard.lua: equipment set guard (#142). Losing an item in an
+-- equipment set is warned about: destroying it (under Blizzard's own delete
+-- popup), selling it (a tooltip line at a merchant before, a warning after),
+-- disenchanting it (during the cast). The game's own tooltip already names
+-- an item's sets ("Equipment Sets:", on bag and worn items: measured
+-- 2026-11-19, #144), so nothing here repeats that.
 --
 -- What the client allows (plan reviewed by Codex, #142): a right-click sale
 -- can't be stopped without replacing Blizzard's bag button, and the cast can't
@@ -91,7 +92,7 @@ local function linkOf(guid)
     return "an item"
 end
 
-local function sets(names) return names:find(", ", 1, true) and "equipment sets" or "equipment set" end
+local function sets(names) return names:find(", ", 1, true) and "Equipment Sets" or "Equipment Set" end
 
 local function notice(text)
     if GP.Notice then GP.Notice.Show(text) end
@@ -139,19 +140,17 @@ end
 --------------------------------------------------------------------------------
 -- Tooltip
 
+-- At a merchant only, for a set item in bags 0-4: the one warning before a sale.
 local function onTooltip(tooltip, data)
-    if not on("tooltip") or type(tooltip) ~= "table" or not plain(data, "table") then return end
+    if not on("sell") or not GP.Merchant.IsOpen() then return end
+    if type(tooltip) ~= "table" or not tooltip.AddLine or not plain(data, "table") then return end
     local guid = plain(data.guid, "string")
     if not guid or guid == "" then return end
     local loc = plain((call(C_Item.GetItemLocation, guid)), "table")
-    local names = GP.EquipSets.ForLocation(loc)
-    if type(names) ~= "string" or not tooltip.AddLine then return end
-    tooltip:AddLine("Equipment sets: |cffffffff" .. names .. "|r", 1, 0.82, 0, true)
-    if on("sell") and GP.Merchant.IsOpen() then
-        local bag = ask(loc, "IsBagAndSlot") == true and plain((call(loc.GetBagAndSlot, loc)), "number")
-        if bag and bag >= 0 and bag <= 4 then
-            tooltip:AddLine("Careful when selling it to this merchant.", 1, 0.125, 0.125, true)
-        end
+    if type(GP.EquipSets.ForLocation(loc)) ~= "string" then return end
+    local bag = ask(loc, "IsBagAndSlot") == true and plain((call(loc.GetBagAndSlot, loc)), "number")
+    if bag and bag >= 0 and bag <= 4 then
+        tooltip:AddLine("Careful when selling it to this merchant.", 1, 0.125, 0.125, true)
     end
 end
 SG.OnTooltip = onTooltip
@@ -413,7 +412,7 @@ function SG.Report()
             say(("  worn slot %d: %s"):format(slot, type(names) == "string" and names or "can't tell"))
         end
     end
-    if n == 0 then say("  No item in your bags or gear is in an equipment set.") end
+    if n == 0 then say("  No item in your bags or gear is in an Equipment Set.") end
 end
 
 local function configure(panel, refreshers)
@@ -421,7 +420,6 @@ local function configure(panel, refreshers)
     local head = GP.UI.Header(panel, "Equipment set guard")
     head:SetPoint("TOPLEFT", panel, "TOPLEFT", 0, 0)
     local rows = {
-        { "tooltip", "Name the sets in item tooltips" },
         { "destroy", "Warn when destroying a set item" },
         { "sell", "Warn when selling a set item" },
         { "disenchant", "Warn when disenchanting a set item" },
@@ -435,7 +433,8 @@ local function configure(panel, refreshers)
         last = cb
     end
     local note = GP.UI.Label(panel,
-        "Destroying keeps Blizzard's own confirmation, with the sets named under it. A sale can't be stopped: "
+        "Item tooltips already name an item's sets (the game's own line). Destroying keeps Blizzard's own "
+            .. "confirmation, with the sets named under it. A sale can't be stopped: "
             .. "at a merchant the tooltip says to take care, and when a set item you right-clicked leaves your "
             .. "bags you're told to check the Buyback tab. A disenchant can't be stopped by an add-on: during the "
             .. "cast you're told which set item it may be on, to move or press Esc. Unverified until checked in "
@@ -482,9 +481,9 @@ end
 GP.Pearls.Register({
     key = SG.KEY,
     name = "Equipment set guard",
-    desc = "Item tooltips name the equipment sets an item is in, and you're warned before destroying, and "
-        .. "when selling or disenchanting, a set item.",
-    help = "Tooltips of your own items (bags, bank, worn) name the equipment sets that copy is in. Destroying a "
+    desc = "You're warned before destroying, and when selling or disenchanting, an item in one of your "
+        .. "Equipment Sets.",
+    help = "The game's own tooltip already names an item's Equipment Sets. Destroying a "
         .. "set item keeps Blizzard's own confirmation, with the sets named under it. A sale can't be stopped by "
         .. "an add-on: at a merchant the tooltip says to take care, and when a set item you right-clicked there "
         .. "leaves your bags you're told to check the merchant's Buyback tab (dragging an item onto the merchant "
@@ -494,7 +493,7 @@ GP.Pearls.Register({
     default = true,
     category = "Loot & Bags",
     section = "Bags",
-    defaults = { tooltip = true, destroy = true, sell = true, disenchant = true },
+    defaults = { destroy = true, sell = true, disenchant = true },
     Enable = enable,
     Disable = disable,
     configure = configure,
@@ -502,7 +501,7 @@ GP.Pearls.Register({
         if not on("destroy") then state.token = state.token + 1; SG.HideWarning() end
         if not on("sell") then for _, u in ipairs(state.uses) do u.done = true end end
     end,
-    commands = { setguard = { help = "- your items in equipment sets, as the client reports them",
+    commands = { setguard = { help = "- your items in Equipment Sets, as the client reports them",
         run = function() SG.Report() end } },
 })
 
