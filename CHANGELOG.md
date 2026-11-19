@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- **Equipment set guard** (new, Loot & Bags, on by default): your items' tooltips name the equipment sets
+  that copy is in, which Forever's tooltips don't. Destroying a set item keeps the game's own confirmation,
+  with the sets named under it. Selling and disenchanting can't be stopped by an add-on, so at a merchant
+  the tooltip says to take care, a set item you right-clicked there that leaves your bags is pointed to the
+  Buyback tab, and during a Disenchant you're told which set item it may be on, so you can move or press
+  Esc. Each warning has its own switch (#142).
+- **Easy delete**: never fills in DELETE for an item in an equipment set (#142).
+
 ## v1.1.0 - 2026-11-18
 
 A new pearl, waypoint routes, and a vendor fix for auto gossip.

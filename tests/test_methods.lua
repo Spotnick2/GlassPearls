@@ -135,6 +135,19 @@ for icon, r in pairs(WoW.hbd.mini) do
     end
 end
 GP.Compass._test.disc():GetScript("OnEnter")(GP.Compass._test.disc())
+-- The equipment set guard's destroy warning under a popup, and its report.
+WoW.bags[0] = { size = 16, items = { [1] = { id = 19140, count = 1, guid = "Item-SG" } } }
+WoW.addSet(1, "Shadow", { [11] = WoW.packBag(0, 1) })
+WoW.cursor = { bag = 0, slot = 1, id = 19140 }
+WoW.showDeleteDialog("DELETE_ITEM", "Item-SG")
+WoW.fire("DELETE_ITEM_CONFIRM", "Ring", 2, 1, 0, "Item-SG")
+WoW.advance(0)
+check(GP.SetGuard._test.warning():IsShown(), "the set guard's warning shown for the exercise")
+WoW.tick(0.2)
+WoW.hideDialog("DELETE_ITEM")
+WoW.tick(0.2)
+WoW.cursor = nil
+SlashCmdList.GLASSPEARLS("setguard")
 -- Each pearl off and on again (its Disable and Enable).
 for _, def in ipairs(P.List()) do
     SlashCmdList.GLASSPEARLS(def.key .. " off")

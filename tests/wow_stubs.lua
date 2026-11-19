@@ -1784,7 +1784,8 @@ end
 -- (GameDialogDefs.lua:572, StaticPopup.lua:140), DELETE_ITEM_CONFIRM_STRING
 -- (GlobalStrings), InputUtil.IsGamepadUIEnabled.
 --   WoW.showDeleteDialog(which, guid) -> the dialog (its data and fields read-only: a
---     write is an error); dialog.editBox:GetText(); dialog.yes (Button1 enabled)
+--     write is an error); dialog.editBox:GetText(); dialog.yes (Button1 enabled);
+--     dialog:IsShown() until WoW.hideDialog(which)
 --   WoW.gamepad; WoW.itemLinks[guid] = "|cff...|h[...]|h|r" (GetItemLinkByGUID)
 --------------------------------------------------------------------------------
 
@@ -1804,7 +1805,7 @@ local function readOnly(t, label)
     return setmetatable({}, { __index = t, __newindex = function(_, k) error(label .. ": wrote " .. tostring(k)) end })
 end
 function WoW.showDeleteDialog(which, guid)
-    local state = { text = "", yes = false }
+    local state = { text = "", yes = false, shown = true }
     local box = { GetText = function() return state.text end }
     function box:SetText(text)
         state.text = text
@@ -1813,9 +1814,16 @@ function WoW.showDeleteDialog(which, guid)
     local d = { which = which, data = readOnly({ itemGUID = guid }, "dialog data") }
     function d:GetEditBox() return box end
     function d:GetButton1() return { IsEnabled = function() return state.yes end } end
+    function d:IsShown() return state.shown end
     d.state = state
     WoW.dialogs[which] = readOnly(d, "dialog")
     return WoW.dialogs[which]
+end
+-- The popup closed (Yes, No, Esc): no longer shown or found.
+function WoW.hideDialog(which)
+    local d = WoW.dialogs[which]
+    if d then d.state.shown = false end
+    WoW.dialogs[which] = nil
 end
 function StaticPopup_FindVisible(which)
     if WoW.popupThrows then error("popup read refused") end
@@ -2316,6 +2324,124 @@ function UnitIsDeadOrGhost(unit)
     return unitIsDeadOrGhostBefore(unit)
 end
 function UnitHasVehicleUI(unit) return unit == "player" and WoW.vehicle == true end
+
+--------------------------------------------------------------------------------
+-- Equipment sets by location, for the equipment set guard (#142). In the 70959
+-- dump: C_Item.GetItemLocation(itemGUID) -> optional ItemLocation,
+-- C_Container.GetContainerItemEquipmentSetInfo(bag, slot) -> inSet, setList,
+-- C_EquipmentSet.GetEquipmentSetInfo(id) -> name, icon, setID, ... and
+-- GetItemLocations(id) -> table, C_Container.GetContainerItemLink, C_Item.GetItemID. Blizzard's:
+-- ItemLocationMixin (Blizzard_ObjectAPI/Mainline/ItemLocation.lua: IsBagAndSlot,
+-- GetBagAndSlot, IsEquipmentSlot, GetEquipmentSlot), the location constants
+-- (Blizzard_FrameXMLBase/Constants.lua:129) and the packing that
+-- EquipmentManager_GetLocationData undoes (Shared/EquipmentManager.lua:1).
+--   WoW.addSet(setID, name, { [invSlot] = WoW.packWorn(slot) | WoW.packBag(bag, slot) })
+--     (also fills WoW.sets with the item IDs found there); WoW.resetSets()
+--   WoW.wornGUIDs[invSlot] = guid (WoW.equipped[invSlot] holds the item ID)
+--   WoW.setInfoThrows: GetContainerItemEquipmentSetInfo throws;
+--   WoW.setListSecret: its list is a secret; WoW.locationThrows: GetItemLocation throws
+-- The client's separator in setList is unmeasured; the stub joins with ", ".
+--------------------------------------------------------------------------------
+
+ITEM_INVENTORY_LOCATION_PLAYER = 0x00100000
+ITEM_INVENTORY_LOCATION_BAGS = 0x00200000
+ITEM_INVENTORY_LOCATION_BANK = 0x00400000
+function WoW.resetSets()
+    WoW.setInfo, WoW.wornGUIDs, WoW.sets = {}, {}, {}
+    WoW.setInfoThrows, WoW.setListSecret, WoW.locationThrows = false, false, false
+end
+WoW.resetSets()
+function WoW.packWorn(slot) return ITEM_INVENTORY_LOCATION_PLAYER + slot end
+function WoW.packBag(bag, slot)
+    return ITEM_INVENTORY_LOCATION_PLAYER + ITEM_INVENTORY_LOCATION_BAGS + bag * 256 + slot
+end
+function WoW.addSet(setID, name, locations)
+    WoW.setInfo[setID] = { name = name, locations = locations }
+    local ids = {}
+    for _, v in pairs(locations) do
+        local id
+        if v >= ITEM_INVENTORY_LOCATION_PLAYER + ITEM_INVENTORY_LOCATION_BAGS then
+            local rest = v - ITEM_INVENTORY_LOCATION_PLAYER - ITEM_INVENTORY_LOCATION_BAGS
+            local b = WoW.bags[math.floor(rest / 256)]
+            local s = b and b.items[rest % 256]
+            id = s and s.id
+        elseif v > ITEM_INVENTORY_LOCATION_PLAYER then
+            id = WoW.equipped[v - ITEM_INVENTORY_LOCATION_PLAYER]
+        end
+        if id then ids[#ids + 1] = id end
+    end
+    WoW.sets[setID] = ids
+end
+local function sortedSetIDs()
+    local ids = {}
+    for id in pairs(WoW.setInfo) do ids[#ids + 1] = id end
+    table.sort(ids)
+    return ids
+end
+local LocationMixin = {}
+function LocationMixin:IsBagAndSlot() return self.bag ~= nil end
+function LocationMixin:GetBagAndSlot() return self.bag, self.slot end
+function LocationMixin:IsEquipmentSlot() return self.equipmentSlot ~= nil end
+function LocationMixin:GetEquipmentSlot() return self.equipmentSlot end
+LocationMixin.__index = LocationMixin
+WoW.LocationMixin = LocationMixin
+-- The client's ItemLocation objects carry the mixin (C_Cursor.GetCursorItem and
+-- ItemLocation:CreateFromBagAndSlot included); the earlier stubs' plain tables gain it here.
+ItemLocation.CreateFromBagAndSlot = function(self, bag, slot)
+    return setmetatable({ bag = bag, slot = slot }, LocationMixin)
+end
+do
+    local cursorItem = C_Cursor.GetCursorItem
+    C_Cursor.GetCursorItem = function()
+        local loc = cursorItem()
+        if loc then return setmetatable(loc, LocationMixin) end
+    end
+end
+function C_Item.GetItemLocation(guid)
+    if WoW.locationThrows then error("GetItemLocation refused") end
+    for bag, b in pairs(WoW.bags) do
+        for slot, s in pairs(b.items) do
+            if s.guid ~= nil and s.guid == guid then return setmetatable({ bag = bag, slot = slot }, LocationMixin) end
+        end
+    end
+    for slot, g in pairs(WoW.wornGUIDs) do
+        if g == guid and WoW.equipped[slot] then return setmetatable({ equipmentSlot = slot }, LocationMixin) end
+    end
+    return nil
+end
+function C_Item.GetItemID(loc)
+    if loc and loc.bag then local s = WoW.bags[loc.bag] and WoW.bags[loc.bag].items[loc.slot]; return s and s.id end
+    if loc and loc.equipmentSlot then return WoW.equipped[loc.equipmentSlot] end
+end
+function C_Container.GetContainerItemEquipmentSetInfo(bag, slot)
+    if WoW.setInfoThrows then error("set info refused") end
+    local packed, names = WoW.packBag(bag, slot), {}
+    for _, id in ipairs(sortedSetIDs()) do
+        for _, v in pairs(WoW.setInfo[id].locations) do
+            if v == packed then names[#names + 1] = WoW.setInfo[id].name; break end
+        end
+    end
+    if WoW.setListSecret then return true, WoW.Secret("setList") end
+    return #names > 0, table.concat(names, ", ")
+end
+C_EquipmentSet.GetEquipmentSetIDs = function()
+    if next(WoW.setInfo) then return sortedSetIDs() end
+    local ids = {}
+    for id in pairs(WoW.sets) do ids[#ids + 1] = id end
+    return ids
+end
+C_EquipmentSet.GetEquipmentSetInfo = function(id)
+    local s = WoW.setInfo[id]
+    if s then return s.name, 134400, id, false, 0, 0, 0, 0, 0 end
+end
+C_EquipmentSet.GetItemLocations = function(id)
+    local s = WoW.setInfo[id]
+    return s and s.locations or {}
+end
+function C_Container.GetContainerItemLink(bag, slot)
+    local s = WoW.bags[bag] and WoW.bags[bag].items[slot]
+    return s and WoW.itemLink(s.id)
+end
 
 -- Strict globals: any read of an undefined global is an error, except the
 -- addon's own globals that are legitimately nil before first assignment.

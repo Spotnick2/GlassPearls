@@ -16,8 +16,10 @@ check(not PC.state.hunter, "a mage: not a hunter")
 for _, e in ipairs(PC.EVENTS) do
     check(not PC._test.events:IsEventRegistered(e), "  not registered: " .. e)
 end
--- Untrained gear (#86) has an item hook of its own: pet care's is counted apart.
-eq(#(WoW.tooltipPostCalls[Enum.TooltipDataType.Item] or {}) - (GP.Untrained.state.hooked and 1 or 0), 0,
+-- Untrained gear (#86) and the equipment set guard (#142) have item hooks of their own: pet care's is
+-- counted apart.
+eq(#(WoW.tooltipPostCalls[Enum.TooltipDataType.Item] or {}) - (GP.Untrained.state.hooked and 1 or 0)
+    - (GP.SetGuard.state.tipHooked and 1 or 0), 0,
     "  no tooltip hook")
 for _, cf in ipairs(WoW.containerFrames) do
     check(not (WoW.hooked[cf] and WoW.hooked[cf].UpdateItems), "  no bag hook")

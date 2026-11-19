@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: v1.1.0** (2026-11-18; v1.0.2 2026-11-17; v1.0.1 2026-11-16; v1.0.0, the first release, 2026-11-15); M1 (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64), library books (#72), invite from whispers (#77), untrained gear (#86), the world buff announcer (#104), gathering tracking (#110), waypoint routes (#139); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64), library books (#72), invite from whispers (#77), untrained gear (#86), the world buff announcer (#104), gathering tracking (#110), waypoint routes (#139), the equipment set guard (#142); the day-one
 probe (#5) follows. The pearls that sell, buy, pick or destroy were audited offline (#61,
 [docs/AUDIT.md](docs/AUDIT.md): the property, the trace matrix, 15 findings with witness tests, the
 declared exceptions). Nothing
@@ -32,7 +32,7 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 → `Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua` → `Libs\HereBeDragons-2.0\HereBeDragons-2.0.lua` →
 `Libs\HereBeDragons-2.0\HereBeDragons-Pins-2.0.lua` → `Compat.lua` → `Theme.lua` → `UI.lua` →
 `AccountSync.lua` → `Pearls.lua` → `SettingsSync.lua` → `Core\ToolItems.lua` → `Core\Bags.lua` →
-`Core\Merchant.lua` → `Core\AuraAlert.lua` → `Core\Notice.lua` → `Core\BagMarks.lua` → `Core\Compass.lua` →
+`Core\Merchant.lua` → `Core\AuraAlert.lua` → `Core\Notice.lua` → `Core\BagMarks.lua` → `Core\Compass.lua` → `Core\EquipSets.lua` →
 `Data\Landmarks.lua` → `Data\SpellRanks.lua` → `Data\AuraDurations.lua` → `Data\Training.lua` → `Data\Restock.lua` → `Data\Books.lua` → *(pearl files: `Pearls\BagsFullFrame.lua` →
 `Pearls\BagsFull.lua` → `Pearls\Landmarks.lua` → `Pearls\SpellRanksFrame.lua` →
 `Pearls\SpellRanks.lua` → `Pearls\JunkFrame.lua` → `Pearls\Junk.lua` → `Pearls\FixateFrame.lua` →
@@ -41,7 +41,7 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 `Pearls\MarkWheel.lua` → `Pearls\AutoGossipFrame.lua` → `Pearls\AutoGossip.lua` → `Pearls\FastLootFrame.lua` →
 `Pearls\FastLoot.lua` → `Pearls\LowBuffs.lua` → `Pearls\InstanceGearFrame.lua` → `Pearls\InstanceGear.lua` →
 `Pearls\PetCareFrame.lua` → `Pearls\PetCare.lua` → ... → `Pearls\Fishing.lua` → `Pearls\BooksFrame.lua` →
-`Pearls\Books.lua` → ... → `Pearls\WayFrame.lua` → `Pearls\Way.lua`)* →
+`Pearls\Books.lua` → ... → `Pearls\WayFrame.lua` → `Pearls\Way.lua` → `Pearls\SetGuard.lua`)* →
 `Options.lua` → `Minimap.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
@@ -534,7 +534,41 @@ order) and before the options window and bootstrap.
   the gamepad UI plainly off, `StaticPopup_FindVisible("DELETE_GOOD_ITEM")` (or the quest one) whose
   `data.itemGUID`, the payload's and the cursor item's GUID agree, the edit box empty, the link readable;
   then the box's own `SetText(DELETE_ITEM_CONFIRM_STRING)` (Blizzard's handler enables Yes) and a chat line
-  with the link. Never a write on the dialog, never the delete itself. Unmeasured until day one.
+  with the link. Never a write on the dialog, never the delete itself. **Never for a set item** (#142): the
+  cursor's location must read plainly in no set (`EquipSets.ForLocation` false; unreadable skips too),
+  whatever the set guard's switch. Unmeasured until day one.
+- **`Core\EquipSets.lua`**: which equipment sets hold **one copy** (#142), by location, never by item ID (a
+  list of set item IDs can't prove a copy is outside every set). `ForLocation(loc)` / `ForGUID(guid)` (through
+  `C_Item.GetItemLocation`) answer a display string of names, `false` (plainly in none) or `nil` (unknown). A
+  bag slot: the client's `C_Container.GetContainerItemEquipmentSetInfo` (`inSet`, `setList` shown as given; no
+  Blizzard caller). Worn (`ForWornSlot`): each set's `GetItemLocations`, `Decode` (Blizzard's
+  `EquipmentManager_GetLocationData` packing with the `ITEM_INVENTORY_LOCATION_*` constants: the slot, `false`
+  for a bag, the bank or the special values -1 / 0 / 1, `nil` unreadable); a match names the set at once, "in
+  none" only after every value of every set read. `|` escaped in both. Unmeasured.
+- **`Pearls\SetGuard.lua`**: equipment set guard (#142, pearl `setguard`, Loot & Bags > Bags, on by default;
+  `tooltip`, `destroy`, `sell`, `disenchant`, all on; its panel inside; Codex five rounds). **None of the three
+  warnings can stop anything** (a right-click sale can't be cancelled without replacing Blizzard's bag button;
+  `SpellStopCasting` is protected): the help says so. **Tooltip**: one item post-call (once; checks the switch),
+  `tooltipData.guid` (Blizzard's comparison manager reads it) -> "Equipment sets: names"; at a merchant, for a
+  bag item, a red "Careful when selling it to this merchant." (not "a right-click sells it": the Buyback tab
+  doesn't). **Destroy**: `DELETE_ITEM_CONFIRM` (a token), a frame later, the cursor's location when it holds the
+  payload GUID, else the GUID's; a set item: a chat line and our own click-through warning (UIParent child,
+  strata DIALOG, grown to its text) anchored under the popup among six names (`SG.POPUPS`) whose `data.itemGUID`
+  equals it, polled every 0.1 s (shown and the same GUID, read through `ask`; anything else hides it); no popup:
+  `Notice`. **The uses**: one `hooksecurefunc(C_Container, "UseContainerItem")` (Blizzard's bag right-click,
+  `Mainline/ContainerFrame.lua:1611`, which Forever loads; spell targeting; our junk seller), every call recorded
+  (bag, slot, the GUID read right after the call, its sets; set item or not; `USES_MAX` 8, `KEEP` 5 s; one let go
+  is done), a generation (`Forget`: Disable, loading screen) on every timer. **Disenchant** (13262, the only one,
+  3 s): `PAIR` (0.5) s after its `UNIT_SPELLCAST_START`, every unclaimed use within `PAIR`, either side, is that
+  cast's (never a sale, never a later cast's; claimed even once the cast is over), a set item among them warned
+  ("Your Disenchant may be on <link>...", notice, sound) only while it is the live cast. **Sell**: a single set
+  item used in bags 0-4 at a merchant with `sell` on, unclaimed, checked from `SALE_FROM` (1.1 s, past any
+  settle) to `SALE_UNTIL` (2.5 s) and at `BAG_UPDATE_DELAYED`: gone (no location, or neither a bag slot nor gear
+  1-19: the buyback slots) -> "left your bags at this merchant: if you sold it, buy it back from the Buyback tab";
+  still in its slot or unreadable: pending; held elsewhere: moved, dropped; the visit closing (`Merchant.On`,
+  which also makes the session tracked) or the switch drops it. A visit already open when it's switched on isn't
+  seen; dragging an item onto the merchant, a sale completed inside the call, `target-item` and inventory
+  targeting aren't seen. `/gpearls setguard` lists the set items as the client reports them. Unmeasured.
 - **`Pearls\Sparkle.lua`**: quest loot sparkle (#44, pearl `sparkle`, Loot & Bags > Loot, **off** by default; its
   trade-off is in `desc`; its one setting, and panel, are the stars', below). `SP.WANTED`: `outlineModeShowLootEffectWhenDisabled` "1" and
   the four outline modes "0" (a reference addon's facts). Applied out of combat at Enable, each loading screen

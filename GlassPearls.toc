@@ -30,6 +30,7 @@ Core\AuraAlert.lua
 Core\Notice.lua
 Core\BagMarks.lua
 Core\Compass.lua
+Core\EquipSets.lua
 Data\Landmarks.lua
 Data\SpellRanks.lua
 Data\AuraDurations.lua
@@ -82,6 +83,7 @@ Pearls\WorldBuffs.lua
 Pearls\GatherTrack.lua
 Pearls\WayFrame.lua
 Pearls\Way.lua
+Pearls\SetGuard.lua
 Options.lua
 Minimap.lua
 GlassPearls.lua
