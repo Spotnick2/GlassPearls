@@ -560,7 +560,8 @@ order) and before the options window and bootstrap.
   (bag, slot, the GUID read right after the call, its sets; set item or not; `USES_MAX` 8, `KEEP` 5 s; one let go
   is done), a generation (`Forget`: Disable, loading screen) on every timer. **Disenchant** (13262, the only one,
   3 s): `SETTLE` (0.55) s after its `UNIT_SPELLCAST_START`, every unclaimed use within `PAIR` (0.5), either side, is that
-  cast's (never a sale, never a later cast's; claimed even once the cast is over), a set item among them warned
+  cast's (never a sale, never a later cast's; claimed even once the cast is over, but never a use made after
+  its STOP / INTERRUPTED / FAILED / SUCCEEDED), a set item among them warned
   ("Your Disenchant may be on <link>...", notice, sound) only while it is the live cast. **Sell**: a single set
   item used in bags 0-4 at a merchant with `sell` on, unclaimed, checked from `SALE_FROM` (1.1 s, past `PAIR`;
   a start near it still unsettled is waited for) to `SALE_UNTIL` (2.5 s) and at `BAG_UPDATE_DELAYED`: gone (no location, or neither a bag slot nor gear

@@ -265,7 +265,7 @@ end
 -- SETTLE seconds after a Disenchant started (its window closed), its candidates are settled: every
 -- unclaimed use within PAIR of the start, either side, belongs to that cast
 -- (never a sale, never another cast's), whether or not the warning is on and
--- even when the cast is already over; casts settle in the order they started,
+-- even when the cast is already over, but never one made after it ended; casts settle in the order they started,
 -- so an overlap goes to the earlier one. A set item among them is warned only
 -- while that cast is still the one under way.
 local function settle(cast, gen)
@@ -276,7 +276,9 @@ local function settle(cast, gen)
     end
     local live, warned = state.cast == cast, false
     for _, u in ipairs(state.uses) do
-        if not u.cast and math.abs(u.at - cast.at) <= SG.PAIR then
+        -- Never a use made after the cast ended (cancelled, failed): that one is
+        -- someone else's, a sale perhaps (Codex's PR review, P2).
+        if not u.cast and math.abs(u.at - cast.at) <= SG.PAIR and not (cast.endedAt and u.at > cast.endedAt) then
             u.cast = cast.guid
             if live and not warned and type(u.names) == "string" and on("disenchant") then
                 warned = true
@@ -369,8 +371,12 @@ events:SetScript("OnEvent", function(_, event, ...)
         C_Timer.After(SG.SETTLE, function() settle(cast, gen) end)
     elseif SG.CAST_ENDS[event] then
         local unit, castGUID = ...
-        if state.cast and plain(unit, "string") == "player" and plain(castGUID, "string") == state.cast.guid then
-            state.cast = nil
+        castGUID = plain(unit, "string") == "player" and plain(castGUID, "string")
+        if not castGUID then return end
+        if state.cast and castGUID == state.cast.guid then state.cast = nil end
+        -- An open cast that ended claims only the uses made before (ties included).
+        for _, c in ipairs(state.open) do
+            if c.guid == castGUID and not c.endedAt then c.endedAt = now() end
         end
     elseif event == "BAG_UPDATE_DELAYED" then
         SG.CheckSales()

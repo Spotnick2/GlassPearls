@@ -445,6 +445,32 @@ WoW.advance(0.6)
 check(not warned(), "a cancelled cast's set item isn't the next cast's")
 eq(SG.state.uses[1].cast, first, "  claimed by the cancelled cast")
 
+-- Cancelled, then another set item sold: the cancelled cast never claims the
+-- sale (Codex's PR review, P2).
+setup()
+WoW.openMerchant()
+local cancelled = start()
+WoW.advance(0.1)
+WoW.fire("UNIT_SPELLCAST_INTERRUPTED", "player", cancelled, SG.DISENCHANT)
+WoW.advance(0.1)
+C_Container.UseContainerItem(0, 1)
+WoW.applySales()
+WoW.advance(1.5)
+check(said("%[Ring A%], in your equipment set Shadow, left your bags"), "a sale after a cancelled cast: still said")
+eq(SG.state.uses[1].cast, nil, "  not claimed by the cancelled cast")
+WoW.closeMerchant()
+
+-- Ended in the same moment as the use: still that cast's.
+setup()
+WoW.openMerchant()
+C_Container.UseContainerItem(0, 1)
+local failed = start()
+WoW.fire("UNIT_SPELLCAST_FAILED", "player", failed, SG.DISENCHANT)
+WoW.applySales()
+WoW.advance(1.5)
+check(not sold(), "a use before the cast ended: still the cast's, never a sale")
+WoW.closeMerchant()
+
 -- Switched off and on with a sale pending: its timers do nothing.
 setup()
 WoW.openMerchant()
