@@ -460,6 +460,20 @@ check(said("%[Ring A%], in your equipment set Shadow, left your bags"), "a sale 
 eq(SG.state.uses[1].cast, nil, "  not claimed by the cancelled cast")
 WoW.closeMerchant()
 
+-- Ended, then another set item sold in the same frame: not the cast's
+-- (Codex's follow-up review: equal timestamps).
+setup()
+WoW.openMerchant()
+local ended = start()
+WoW.advance(0.1)
+WoW.fire("UNIT_SPELLCAST_INTERRUPTED", "player", ended, SG.DISENCHANT)
+C_Container.UseContainerItem(0, 1)
+WoW.applySales()
+WoW.advance(1.5)
+check(said("%[Ring A%], in your equipment set Shadow, left your bags"), "end then use in one frame: the sale said")
+eq(SG.state.uses[1].cast, nil, "  not claimed by the ended cast")
+WoW.closeMerchant()
+
 -- Ended in the same moment as the use: still that cast's.
 setup()
 WoW.openMerchant()

@@ -56,7 +56,7 @@ SG.CAST_ENDS = { UNIT_SPELLCAST_STOP = true, UNIT_SPELLCAST_INTERRUPTED = true, 
 SG.EQUIP_LAST = 19       -- INVSLOT_LAST_EQUIPPED: gear, not the buyback or bank slots
 
 local events = CreateFrame("Frame")
-local state = { hooked = false, tipHooked = false, token = 0, gen = 0, uses = {}, cast = nil, open = {},
+local state = { hooked = false, tipHooked = false, token = 0, gen = 0, uses = {}, cast = nil, open = {}, seq = 0,
                 last = "nothing yet" }
 SG.state = state
 
@@ -278,7 +278,7 @@ local function settle(cast, gen)
     for _, u in ipairs(state.uses) do
         -- Never a use made after the cast ended (cancelled, failed): that one is
         -- someone else's, a sale perhaps (Codex's PR review, P2).
-        if not u.cast and math.abs(u.at - cast.at) <= SG.PAIR and not (cast.endedAt and u.at > cast.endedAt) then
+        if not u.cast and math.abs(u.at - cast.at) <= SG.PAIR and not (cast.lastUse and u.seq > cast.lastUse) then
             u.cast = cast.guid
             if live and not warned and type(u.names) == "string" and on("disenchant") then
                 warned = true
@@ -322,7 +322,8 @@ local function onUse(bag, slot)
     if not GP.Pearls.IsOn(SG.KEY) then return end
     bag, slot = plain(bag, "number"), plain(slot, "number")
     if not (bag and slot) then return end
-    local u = { bag = bag, slot = slot, at = now(), link = "an item", gen = state.gen }
+    state.seq = state.seq + 1     -- the order of uses and cast ends, where GetTime() ties within a frame
+    local u = { bag = bag, slot = slot, at = now(), link = "an item", gen = state.gen, seq = state.seq }
     state.uses[#state.uses + 1] = u
     prune()
     local loc = call(ItemLocation.CreateFromBagAndSlot, ItemLocation, bag, slot)
@@ -374,9 +375,10 @@ events:SetScript("OnEvent", function(_, event, ...)
         castGUID = plain(unit, "string") == "player" and plain(castGUID, "string")
         if not castGUID then return end
         if state.cast and castGUID == state.cast.guid then state.cast = nil end
-        -- An open cast that ended claims only the uses made before (ties included).
+        -- An open cast that ended claims only the uses made before its end, by
+        -- their order (a use in the same frame, after the end, is not its).
         for _, c in ipairs(state.open) do
-            if c.guid == castGUID and not c.endedAt then c.endedAt = now() end
+            if c.guid == castGUID and not c.lastUse then c.lastUse = state.seq end
         end
     elseif event == "BAG_UPDATE_DELAYED" then
         SG.CheckSales()
