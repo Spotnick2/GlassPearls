@@ -583,6 +583,24 @@ WoW.fire("BAG_UPDATE_DELAYED")
 check(not sold(), "  then the cast claims it")
 WoW.closeMerchant()
 
+-- A cast before a loading screen, a new one after: the old settle timer
+-- leaves the new one's open record alone (Codex round 6, optional).
+setup()
+start()
+WoW.fire("PLAYER_LEAVING_WORLD")
+start()
+WoW.advance(SG.SETTLE)
+eq(#SG.state.open, 0, "the new cast settled, the old timer did nothing")
+setup()
+start()
+WoW.fire("PLAYER_LEAVING_WORLD")
+WoW.advance(0.3)
+start()
+WoW.advance(0.3)
+eq(#SG.state.open, 1, "  the old timer fired first: the new cast still open")
+WoW.advance(0.3)
+eq(#SG.state.open, 0, "  then settled by its own")
+
 -- Where an item is: unknown stays unknown.
 setup()
 eq(SG.Whereabouts("Item-A"), "held", "whereabouts: in a bag")
