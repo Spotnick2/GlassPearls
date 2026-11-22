@@ -76,7 +76,7 @@ C.SOUNDS = { tick = { 158565, 25477 }, finish = { 158566, 25478 } }
 local events = CreateFrame("Frame")
 local ticker = CreateFrame("Frame")
 C.state = { gen = 0, queued = false, retry = false, retries = 0, prevTrack = nil, prevID = nil,
-            presence = nil, camp = nil, benefits = nil, digit = nil, kits = {}, soundFailed = {}, test = nil, reads = {} }
+            presence = nil, camp = nil, benefits = nil, digit = nil, digitPreview = nil, kits = {}, soundFailed = {}, test = nil, reads = {} }
 local state = C.state
 
 local function setting(name) return GP.Pearls.Setting(C.KEY, name) end
@@ -307,11 +307,13 @@ render = function(t)
     else
         d = digitAt(C.CountdownDeadline(t), t)
     end
-    if d ~= state.digit then
-        -- A test's digit never follows a live one unchanged: it starts 20 s from its end.
-        state.digit = d
-        Frame().Digit(d, state.test ~= nil)
-        if d and not state.test and setting("sound") then C.Play("tick") end
+    -- A new digit, or the same one handed between a test and a live countdown
+    -- (its strata, and a live one's tick).
+    local preview = state.test ~= nil
+    if d ~= state.digit or (d and preview ~= state.digitPreview) then
+        state.digit, state.digitPreview = d, preview
+        Frame().Digit(d, preview)
+        if d and not preview and setting("sound") then C.Play("tick") end
     end
     if #views > 0 then
         Frame().Show(views, t)
@@ -410,7 +412,7 @@ local function disable()
     reset()
     events:UnregisterAllEvents()
     ticker:SetScript("OnUpdate", nil)
-    state.digit = nil
+    state.digit, state.digitPreview = nil, nil
     Frame().Digit(nil)
     Frame().Lock()
     Frame().Hide()

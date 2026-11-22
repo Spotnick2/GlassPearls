@@ -436,4 +436,17 @@ WoW.advance(10.1)
 eq(#rows(), 0, "  gone after 20 s")
 check(not CF._test.frame():IsMouseEnabled(), "  click-through again")
 
+-- A test ending on 1 with a live countdown also on 1: the live digit takes over.
+clear()
+at(20000); aura(); track(191); rested(2, 19990); aura()     -- the third stack at 20060
+at(20039.5); SlashCmdList.GLASSPEARLS("camp test")           -- the test ends at 20059.5
+at(20059.3); frame()
+eq(CF.DigitText(), "1", "a test's last digit")
+ticks = played(TICK)
+WoW.advance(0.3)                                             -- its end, 0.4 s before the stack
+eq(CF.DigitText(), "1", "  the live countdown's 1 at its end")
+eq(CF._test.digit():GetFrameStrata(), "HIGH", "  on the live strata")
+eq(played(TICK), ticks + 1, "  with its tick")
+clear()
+
 done("test_camp")
