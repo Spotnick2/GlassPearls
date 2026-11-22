@@ -350,12 +350,14 @@ end
 function C.Test()
     if not C.enabled then return API.Print("Camp timers are off: /gpearls camp on.") end
     local t = GetTime()
-    state.test = { ends = t + C.TEST_SECONDS }
+    local test = { ends = t + C.TEST_SECONDS }
+    state.test = test
     local gen = state.gen
     render(t)
     Frame().Unlock()
     C_Timer.After(C.TEST_SECONDS, function()
-        if gen ~= state.gen or not state.test then return end
+        -- Only this test's own end: a test started again runs its full time.
+        if gen ~= state.gen or state.test ~= test then return end
         state.test = nil
         Frame().Lock()
         render()

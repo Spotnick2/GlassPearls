@@ -408,6 +408,22 @@ at(19000)
 SlashCmdList.GLASSPEARLS("camp test")
 eq(#rows(), 2, "/gpearls camp test: both bars")
 check(CF._test.frame():IsMouseEnabled(), "  draggable during the test")
+-- Above the options window (its Test button leaves it open over the bars' default spot).
+local STRATA = { BACKGROUND = 1, LOW = 2, MEDIUM = 3, HIGH = 4, DIALOG = 5, FULLSCREEN = 6, FULLSCREEN_DIALOG = 7 }
+SlashCmdList.GLASSPEARLS("")
+local win = _G[GP.Options.NAME]
+check(win and win:IsShown(), "  the options window open")
+check(STRATA[CF._test.frame():GetFrameStrata()] > STRATA[win:GetFrameStrata()], "  the bars above it")
+SlashCmdList.GLASSPEARLS("")
+-- Started again 15 s in: the new test runs its own 20 s.
+at(19015); SlashCmdList.GLASSPEARLS("camp test")
+WoW.advance(5.1)
+eq(#rows(), 2, "a test started again: not cut short by the first one's end")
+at(19000); WoW.flushTimers()
+eq(#rows(), 0, "  gone after its own 20 s")
+eq(CF._test.frame():GetFrameStrata(), "MEDIUM", "  back below the windows")
+at(19000)
+SlashCmdList.GLASSPEARLS("camp test")
 ticks = played(TICK)
 at(19010); frame()
 eq(CF.DigitText(), "10", "  the digits at its end")

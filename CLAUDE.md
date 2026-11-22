@@ -602,7 +602,7 @@ order) and before the options window and bootstrap.
   game: whether 429960 is readable, the 60 s timing, `applications`, the instance ID on re-entry, the sounds,
   the campfire and its benefits landing within 2 s.
 - **`Pearls\CampFrame.lua`**: its bars (one per view: icon, the client's name and the bag's "n/3", a
-  `StatusBar` filled over the period, "m:ss" or "..." while waiting; click-through, draggable during a test,
+  `StatusBar` filled over the period, "m:ss" or "..." while waiting; click-through, draggable and raised above the options window (`FULLSCREEN_DIALOG`) during a test,
   per character `camp`), its digits (`GameFont_Gigantic`, centre +260, click-through) and its panel.
 - **`Pearls\Sparkle.lua`**: quest loot sparkle (#44, pearl `sparkle`, Loot & Bags > Loot, **off** by default; its
   trade-off is in `desc`; its one setting, and panel, are the stars', below). `SP.WANTED`: `outlineModeShowLootEffectWhenDisabled` "1" and

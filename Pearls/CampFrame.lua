@@ -18,6 +18,9 @@ Frame.NAME, Frame.DIGIT_NAME = "GlassPearlsCampFrame", "GlassPearlsCampCount"
 Frame.WIDTH, Frame.ROW, Frame.PAD = 240, 22, 8
 Frame.DEFAULT_Y = -140          -- under the middle of the screen, clear of the alerts above it
 Frame.DIGIT_Y = 260             -- above the centre text (+200)
+-- During a test the bars are grabbed with the options window open (DIALOG):
+-- raised above it, then back.
+Frame.STRATA, Frame.TEST_STRATA = "MEDIUM", "FULLSCREEN_DIALOG"
 Frame.COLORS = { bag = { 0.25, 0.55, 1 }, camp = { 1, 0.55, 0.15 } }
 local BAR_TEXTURE = "Interface\\TargetingFrame\\UI-StatusBar"
 local QUESTION = "Interface\\Icons\\INV_Misc_QuestionMark"
@@ -91,7 +94,7 @@ end
 
 local function build()
     f = CreateFrame("Frame", Frame.NAME, UIParent)
-    f:SetFrameStrata("MEDIUM")
+    f:SetFrameStrata(Frame.STRATA)
     f:SetClampedToScreen(true)
     f:SetMovable(true)
     f:EnableMouse(false)
@@ -138,8 +141,8 @@ function Frame.Hide()
 end
 
 function Frame.IsShown() return f ~= nil and f:IsShown() end
-function Frame.Unlock() if f then f:EnableMouse(true) end end
-function Frame.Lock() if f then f:EnableMouse(false) end end
+function Frame.Unlock() if f then f:SetFrameStrata(Frame.TEST_STRATA); f:EnableMouse(true) end end
+function Frame.Lock() if f then f:SetFrameStrata(Frame.STRATA); f:EnableMouse(false) end end
 
 -- The countdown's number; nil hides it.
 function Frame.Digit(d)
