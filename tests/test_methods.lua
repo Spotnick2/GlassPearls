@@ -148,6 +148,18 @@ WoW.hideDialog("DELETE_ITEM")
 WoW.tick(0.2)
 WoW.cursor = nil
 SlashCmdList.GLASSPEARLS("setguard")
+-- Camp timers' bars and digits (#149): a bag with two stacks into its countdown, the campfire, the report.
+WoW.now = 5000
+WoW.auras[429960] = { expirationTime = 0, duration = 0, auraInstanceID = 9 }
+WoW.auras[429959] = { expirationTime = 4990 + 7200, duration = 7200, applications = 2 }
+WoW.auras[1229739] = { expirationTime = 5060, duration = 60 }
+WoW.fire("UNIT_AURA", "player"); WoW.advance(0)
+WoW.now = 5051; WoW.tick(0.1)
+check(GP.CampFrame.DigitText() ~= nil, "the camp countdown shown for the exercise")
+SlashCmdList.GLASSPEARLS("camp")
+SlashCmdList.GLASSPEARLS("camp test")
+WoW.tick(0.1)
+WoW.auras[429960], WoW.auras[429959], WoW.auras[1229739] = nil, nil, nil
 -- Each pearl off and on again (its Disable and Enable).
 for _, def in ipairs(P.List()) do
     SlashCmdList.GLASSPEARLS(def.key .. " off")

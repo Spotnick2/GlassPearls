@@ -84,6 +84,8 @@ Pearls\GatherTrack.lua
 Pearls\WayFrame.lua
 Pearls\Way.lua
 Pearls\SetGuard.lua
+Pearls\CampFrame.lua
+Pearls\Camp.lua
 Options.lua
 Minimap.lua
 GlassPearls.lua
