@@ -21,6 +21,7 @@ Frame.DIGIT_Y = 260             -- above the centre text (+200)
 -- During a test the bars are grabbed with the options window open (DIALOG):
 -- raised above it, then back.
 Frame.STRATA, Frame.TEST_STRATA = "MEDIUM", "FULLSCREEN_DIALOG"
+Frame.DIGIT_STRATA = "HIGH"
 Frame.COLORS = { bag = { 0.25, 0.55, 1 }, camp = { 1, 0.55, 0.15 } }
 local BAR_TEXTURE = "Interface\\TargetingFrame\\UI-StatusBar"
 local QUESTION = "Interface\\Icons\\INV_Misc_QuestionMark"
@@ -144,8 +145,9 @@ function Frame.IsShown() return f ~= nil and f:IsShown() end
 function Frame.Unlock() if f then f:SetFrameStrata(Frame.TEST_STRATA); f:EnableMouse(true) end end
 function Frame.Lock() if f then f:SetFrameStrata(Frame.STRATA); f:EnableMouse(false) end end
 
--- The countdown's number; nil hides it.
-function Frame.Digit(d)
+-- The countdown's number; nil hides it. A test's (preview) is raised above the
+-- options window too; a live one is on its own strata.
+function Frame.Digit(d, preview)
     if not d then
         if digit then digit:Hide() end
         return
@@ -154,12 +156,12 @@ function Frame.Digit(d)
         digit = CreateFrame("Frame", Frame.DIGIT_NAME, UIParent)
         digit:SetSize(200, 120)
         digit:SetPoint("CENTER", UIParent, "CENTER", 0, Frame.DIGIT_Y)
-        digit:SetFrameStrata("HIGH")
         digit:EnableMouse(false)
         digit.text = digit:CreateFontString(nil, "OVERLAY", "GameFont_Gigantic")
         digit.text:SetPoint("CENTER", digit, "CENTER")
         digit.text:SetShadowOffset(2, -2)
     end
+    digit:SetFrameStrata(preview and Frame.TEST_STRATA or Frame.DIGIT_STRATA)
     digit.text:SetText(tostring(d))
     digit:Show()
 end

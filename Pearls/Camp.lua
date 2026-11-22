@@ -308,8 +308,9 @@ render = function(t)
         d = digitAt(C.CountdownDeadline(t), t)
     end
     if d ~= state.digit then
+        -- A test's digit never follows a live one unchanged: it starts 20 s from its end.
         state.digit = d
-        Frame().Digit(d)
+        Frame().Digit(d, state.test ~= nil)
         if d and not state.test and setting("sound") then C.Play("tick") end
     end
     if #views > 0 then
