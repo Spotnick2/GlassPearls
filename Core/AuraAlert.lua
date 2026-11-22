@@ -6,7 +6,8 @@
 --   present (a plain table, every field read plain: expiration, duration,
 --   source unit), absent (a nil AND C_Secrets.ShouldSpellAuraBeSecret(id)
 --   plainly false: this aura is readable now; a spell can be always secret),
---   or unknown (anything else). Never a name.
+--   or unknown (anything else). Never a name. When present, also the stack
+--   count and the aura instance ID, each plain or nil, read apart (#149).
 -- AA.Sounds.New(failKey): the client's own aura sounds
 --   (C_UnitAuras.AddAuraSound), registered out of combat (held otherwise),
 --   removed when switched off, a refusal recorded under failKey. Unverified
@@ -43,14 +44,30 @@ local function tryRead(id)
     local exp, dur, src = a.expirationTime, a.duration, a.sourceUnit
     if API.IsSecret(exp) or API.IsSecret(dur) then return "unknown" end
     if API.IsSecret(src) or type(src) ~= "string" then src = nil end
-    return "present", type(exp) == "number" and exp or 0, type(dur) == "number" and dur or 0, src
+    return "present", type(exp) == "number" and exp or 0, type(dur) == "number" and dur or 0, src, a
 end
 
--- result, expiration (0: none), duration, source unit (or nil).
+-- One optional whole-number field of a plain aura table, in its own pcall
+-- (#149): a secret, odd or throwing field is nil and never spoils the rest.
+local function tryWhole(a, name, min)
+    local x = a[name]
+    if API.IsSecret(x) or type(x) ~= "number" or x ~= math.floor(x) or x < min then return nil end
+    return x
+end
+
+local function whole(a, name, min)
+    local ok, v = pcall(tryWhole, a, name, min)
+    if ok then return v end
+end
+
+-- result, expiration (0: none), duration, source unit (or nil); when present,
+-- also the stack count (applications, >= 0) and the aura instance ID
+-- (auraInstanceID, >= 1), each a plain whole number or nil (#149).
 function AA.Read(id)
-    local ok, result, exp, dur, src = pcall(tryRead, id)
+    local ok, result, exp, dur, src, a = pcall(tryRead, id)
     if not ok then return "unknown" end
-    return result, exp, dur, src
+    if result ~= "present" then return result, exp, dur, src end
+    return result, exp, dur, src, whole(a, "applications", 0), whole(a, "auraInstanceID", 1)
 end
 
 -- The name of whoever applied it, or nil.

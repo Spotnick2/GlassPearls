@@ -942,7 +942,14 @@ end
 WoW.auras, WoW.spellAuraSecret, WoW.auraSounds, WoW.soundsPlayed = {}, {}, {}, {}
 Enum.UnitAuraSoundTrigger = { Added = 0, ApplicationsIncreased = 1, Removed = 2 }
 SOUNDKIT = { RAID_WARNING = 8959 }
-function PlaySound(kit, channel) table.insert(WoW.soundsPlayed, { kit, channel }) return true end
+-- WoW.soundRefused[kit] = true: willPlay false, nothing played (a newer kit the
+-- client lacks: the porting guide's "Not every Retail sound kit exists"; #149).
+WoW.soundRefused = {}
+function PlaySound(kit, channel)
+    if WoW.soundRefused[kit] then return false end
+    table.insert(WoW.soundsPlayed, { kit, channel })
+    return true
+end
 -- PlaySoundFile (70532 dump), for the world buff sounds (#104): recorded in
 -- WoW.soundsPlayed as { path, channel }, like PlaySound.
 function PlaySoundFile(path, channel) table.insert(WoW.soundsPlayed, { path, channel }) return true end

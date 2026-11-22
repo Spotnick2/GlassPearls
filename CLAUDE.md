@@ -19,7 +19,7 @@ day-one checklist are [docs/PLAN.md](docs/PLAN.md).
 **Status: v1.2.0** (2026-11-19; v1.1.0 2026-11-18; v1.0.2 2026-11-17; v1.0.1 2026-11-16; v1.0.0, the first release, 2026-11-15); M1 (docs/PLAN.md): the options window and the look (#3) and settings sync
 (#4) and the first pearl, the bags-full helper (#6), are built, the second, map landmarks (#10), and the
 third, low spell ranks (#12), the fourth, junk selling and repair (#15), the fifth, the fixate alert (#17), and the sixth,
-uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64), library books (#72), invite from whispers (#77), untrained gear (#86), the world buff announcer (#104), gathering tracking (#110), waypoint routes (#139), the equipment set guard (#142); the day-one
+uncrushable (#19), the seventh, buff alerts (#21), the eighth, the paladin tank reminders (#22), the ninth, the training reminder (#27), the tenth, restock (#14), the eleventh, the raid mark wheel (#34), the twelfth, auto gossip (#47), the thirteenth, faster loot (#36), the fourteenth, low-rank buffs (#42), the fifteenth, instance gear reminders (#43), and the sixteenth, hunter pet care (#38), and social automation (#37), easy delete (#40), quest loot sparkle (#44), trade summary (#45), train all (#39), the junk spotlight (#41), easy fishing (#64), library books (#72), invite from whispers (#77), untrained gear (#86), the world buff announcer (#104), gathering tracking (#110), waypoint routes (#139), the equipment set guard (#142), camp timers (#149); the day-one
 probe (#5) follows. The pearls that sell, buy, pick or destroy were audited offline (#61,
 [docs/AUDIT.md](docs/AUDIT.md): the property, the trace matrix, 15 findings with witness tests, the
 declared exceptions). Nothing
@@ -41,7 +41,7 @@ TOC load order: `Libs\LibGlass-1.0\LibGlass-1.0.xml` → `Libs\LibAccountSync-1.
 `Pearls\MarkWheel.lua` → `Pearls\AutoGossipFrame.lua` → `Pearls\AutoGossip.lua` → `Pearls\FastLootFrame.lua` →
 `Pearls\FastLoot.lua` → `Pearls\LowBuffs.lua` → `Pearls\InstanceGearFrame.lua` → `Pearls\InstanceGear.lua` →
 `Pearls\PetCareFrame.lua` → `Pearls\PetCare.lua` → ... → `Pearls\Fishing.lua` → `Pearls\BooksFrame.lua` →
-`Pearls\Books.lua` → ... → `Pearls\WayFrame.lua` → `Pearls\Way.lua` → `Pearls\SetGuard.lua`)* →
+`Pearls\Books.lua` → ... → `Pearls\WayFrame.lua` → `Pearls\Way.lua` → `Pearls\SetGuard.lua` → `Pearls\CampFrame.lua` → `Pearls\Camp.lua`)* →
 `Options.lua` → `Minimap.lua` → `GlassPearls.lua`. Pearls load after
 everything they may use (they register sets with settings sync at file scope; test_toc checks the
 order) and before the options window and bootstrap.
@@ -286,7 +286,8 @@ order) and before the options window and bootstrap.
   `ITEM_LOCK_CHANGED` (Blizzard's lock handler never runs `UpdateItems`). Each refresh while on first installs the hooks its `show` needs, once each, so a seller switched on later gets them. Unmeasured until day one.
 - **`Core\AuraAlert.lua`**: what the aura-alert pearls share (#21). `AA.Read(id)`: one player aura by
   ID inside one pcall, answering present (plain table and fields, with its source unit), absent (nil
-  AND `C_Secrets.ShouldSpellAuraBeSecret(id)` plainly false) or unknown. `AA.Sounds.New(failKey)`:
+  AND `C_Secrets.ShouldSpellAuraBeSecret(id)` plainly false) or unknown; when present also the stack count
+  and the aura instance ID (#149), each plain whole number or nil, read in its own pcall. `AA.Sounds.New(failKey)`:
   the client's aura sounds (register out of combat or held, remove some or all, refusals recorded).
   `AA.Source(unit)`: a plain, non-empty name or nil. `AA.Entry.New(ids)`: one alert's evidence,
   per ID an aura answer and an overlay answer kept apart; an ID is present (aura present or overlay
@@ -572,6 +573,32 @@ order) and before the options window and bootstrap.
   which also makes the session tracked) or the switch drops it. A visit already open when it's switched on isn't
   seen; dragging an item onto the merchant, a sale completed inside the call, `target-item` and inventory
   targeting aren't seen. `/gpearls setguard` lists the set items as the client reports them. Unmeasured.
+- **`Pearls\Camp.lua`**: camp timers (#149, pearl `camp`, Interface > Timers, on by default; `bag`, `campfire`,
+  `countdown`, `sound`, all on; Codex eight rounds to consensus). The client's tables: the Cozy Sleeping Bag puts
+  429960 (Well-Rested Tracking Aura: no duration, a periodic trigger every 60 s) on you, which adds a stack of
+  429959 (Well-Rested, 2 h, up to 3, each refreshing it); 1229739 (Welcoming Campfire, 1 min) grants Camp
+  Benefits when it ends. One check reads the three a frame after `UNIT_AURA` (payload unread), at Enable, PEW
+  and regen end; every callback carries a generation. **A presence** (one bag visit as far as the client can
+  tell) starts at a plain present after anything else, at a plain present whose instance ID isn't plainly
+  equal to the previous check's plain one, and at every PEW; `since` is its check's time; `entered` = `since`
+  only after a plain absent or between two plain, different IDs. **One anchoring rule**: a Well-Rested
+  application time (expiration - duration, both positive) later than `since` by more than `MARGIN` (0.5 s), the
+  latest; else `entered`; else "waiting" (no time). A witnessed application (a plain count rise, or plainly
+  absent -> present) is **pending** until a usable time, which then anchors whatever its margin; a check's
+  time never anchors. Unresolved reads (tracking unknown; Well-Rested unknown, no count, no usable time) keep
+  what is known and share one retry a second later (out of combat, 10 in a row); tracking unknown ends the
+  presence. Overdue 3 s past the next stack: waiting. **3/3** only when a known lower count of the presence
+  reaches 3 (read before the tracking aura, so leaving in the same check still counts): `Notice` and the
+  finish sound, once. **The countdown**: an anchor, not overdue, exactly 2 stacks with a usable time now,
+  Well-Rested lasting past the next stack + 3 s; the digit `ceil(left)` in (0, 10], shown and ticked once per
+  change, zero silent. No campfire countdown (cut in review). The campfire: its own plain expiration; unknown
+  keeps it, gone at a plain absent or once passed. **Sounds**: only when due; tick 158565 then 25477, finish
+  158566 then 25478 (`PlaySound(kit, "Master")`), the first with `willPlay` plainly true kept; both refused
+  recorded (`camp sound <kind>`) and tried again next time. `/gpearls camp [test]`. Unmeasured until checked in
+  game: whether 429960 is readable, the 60 s timing, `applications`, the instance ID on re-entry, the sounds.
+- **`Pearls\CampFrame.lua`**: its bars (one per view: icon, the client's name and the bag's "n/3", a
+  `StatusBar` filled over the period, "m:ss" or "..." while waiting; click-through, draggable during a test,
+  per character `camp`), its digits (`GameFont_Gigantic`, centre +260, click-through) and its panel.
 - **`Pearls\Sparkle.lua`**: quest loot sparkle (#44, pearl `sparkle`, Loot & Bags > Loot, **off** by default; its
   trade-off is in `desc`; its one setting, and panel, are the stars', below). `SP.WANTED`: `outlineModeShowLootEffectWhenDisabled` "1" and
   the four outline modes "0" (a reference addon's facts). Applied out of combat at Enable, each loading screen
@@ -993,7 +1020,7 @@ macros, known spells, overrides and a spell on the cursor (`WoW.actions`, `WoW.k
 (`UseContainerItem` with no merchant uses the item), ...) and its goods (`WoW.goods`,
 `BuyMerchantItem` into the bags, `WoW.buysAsync`, `WoW.buyShort`,
 `WoW.buyRefuses`, `WoW.equipped`, `WoW.loadedAddOns`), and player auras with the client's aura sounds and per-spell secrecy (`WoW.auras`,
-`WoW.spellAuraSecret`, `WoW.auraSounds`; `GetAuraDataBySpellName` throws, so no name lookup
+`WoW.spellAuraSecret`, `WoW.auraSounds`, `WoW.soundRefused` for a kit `PlaySound` refuses; `GetAuraDataBySpellName` throws, so no name lookup
 survives a test), and the character panel's stats (`WoW.stats`, `CharacterStatsPaneScrollBox`,
 `PaperDollFrame_UpdateStats`), and the raid mark wheel's: units and marks (`WoW.units`, `WoW.marks`,
 `UnitIsUnit`, `SetRaidTarget` from the secure action only, else `WoW.forbidden`), a
