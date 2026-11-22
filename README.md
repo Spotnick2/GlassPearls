@@ -2,10 +2,10 @@
 
 <img src="https://raw.githubusercontent.com/Spotnick2/GlassPearls/main/docs/screenshots/pearl.png" alt="" width="96" align="right">
 
-**Thirty small things World of Warcraft: Forever should have done for you all along, in one
+**Thirty-one small things World of Warcraft: Forever should have done for you all along, in one
 addon.** Junk sold and gear repaired the moment you open a merchant. Bags that never block your
 loot. A trainer that tells you what's new when you level. Library books, dungeon doors and boats on
-your map, and a compass along any `/way` route you paste. Fishing without hunting for the bobber. A raid mark wheel at your cursor. And many more.
+your map, and a compass along any `/way` route you paste. Bars that tell you when your sleeping bag and campfire are done with you. Fishing without hunting for the bobber. A raid mark wheel at your cursor. And many more.
 
 Each one is a **pearl**: a small, independent feature with its own switch. Keep the ones you love,
 turn off the rest. Your choices follow you to every one of your own WoW accounts.
@@ -140,6 +140,16 @@ them one step at a time.
   step's pin stays on the minimap's edge while it is farther away.
 - The route is kept for your character until you clear it or paste another. Not while dead, on a
   flight or in an instance. Alt-drag the compass to move it.
+
+**Camp timers** (on). Bars that show when your camp is done with you.
+- Resting in a Cozy Sleeping Bag: your Well-Rested stacks and the time to the next one (one a minute,
+  up to 3). Already at 3 stacks with time gone, it counts to the minute that brings them back to
+  their full 2 hours.
+- The last 10 seconds before that show a large number in the middle of the screen, with the game's
+  countdown sound, then "Well-Rested 3/3": time to get up.
+- Next to a Welcoming Campfire: the time left until its camp benefits, gone once they're given.
+- `/gpearls camp test` shows the bars so you can drag them where you want them. After a `/reload` in
+  the bag, its time waits for the next stack (the game doesn't say when you lay down).
 
 ### Combat
 
@@ -299,6 +309,7 @@ you can place it:
 | Quest loot sparkle | `/gpearls sparkle`; `sparkle restore` (while off) puts your settings back; `sparkle target`: what the game says about the object you're facing |
 | Library books | `/gpearls books`: what's left and the nearest; `books test`, `books compass reset` |
 | Waypoint routes | `/gpearls way`: the step list; `way paste`, `way 66 34 note` adds a step, `way clear` |
+| Camp timers | `/gpearls camp`: what the game answers about the bag and the campfire; `camp test` places the bars |
 | World buff announcer | `/gpearls worldbuffs`: what it heard; `worldbuffs test` |
 | Fixate alert | `/gpearls fixate`, `fixate test` |
 | Buff alerts | `/gpearls buffs`, `buffs test` |
