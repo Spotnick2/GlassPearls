@@ -180,12 +180,13 @@ function Frame.Configure(panel, refreshers)
         "While you rest in a Cozy Sleeping Bag: your stacks and the time to the next one (one a minute, up to 3).")
     bag:SetPoint("TOPLEFT", head, "BOTTOMLEFT", -4, -6)
     local camp = check("Campfire: the time to its benefits", "campfire",
-        "Next to a Welcoming Campfire: the time left until its camp benefits.")
+        "Next to a Welcoming Campfire: the time left until its camp benefits, gone once they're given.")
     camp:SetPoint("TOPLEFT", bag, "BOTTOMLEFT", 0, -2)
     local head2 = GP.UI.Header(panel, "Countdown")
     head2:SetPoint("TOPLEFT", camp, "BOTTOMLEFT", 4, -14)
-    local count = check("Count down the last 10 seconds before the third stack", "countdown",
-        "A large number in the middle of the screen, then \"3/3\" when the third stack lands: time to get up.")
+    local count = check("Count down the last 10 seconds before the bag tops you up", "countdown",
+        "Before the third stack, or at 3 stacks before the minute that brings them back to 2 hours: a large "
+        .. "number in the middle of the screen, then \"3/3\": time to get up.")
     count:SetPoint("TOPLEFT", head2, "BOTTOMLEFT", -4, -6)
     local sound = check("With the game's countdown sound", "sound")
     sound:SetPoint("TOPLEFT", count, "BOTTOMLEFT", 0, -2)

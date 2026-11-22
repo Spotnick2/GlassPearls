@@ -9,7 +9,7 @@ WoW.spells[429959] = { name = "Ausgeruht", icon = 132802 }        -- the client'
 WoW.spells[1229739] = { name = "Einladendes Lagerfeuer", icon = 135805 }
 local GP = loadAddon()
 local C, P, CF, AA = GP.Camp, GP.Pearls, GP.CampFrame, GP.AuraAlert
-local TRACK, RESTED, FIRE = 429960, 429959, 1229739
+local TRACK, RESTED, FIRE, BENEFITS = 429960, 429959, 1229739, 1229741
 
 check(P.IsLive("camp"), "on by default")
 eq(P.Get("camp").category, "Interface", "on the Interface page")
@@ -42,7 +42,7 @@ local function played(kit)
     return n
 end
 local function clear()
-    WoW.auras[TRACK], WoW.auras[RESTED], WoW.auras[FIRE] = nil, nil, nil
+    WoW.auras[TRACK], WoW.auras[RESTED], WoW.auras[FIRE], WoW.auras[BENEFITS] = nil, nil, nil, nil
     WoW.spellAuraSecret[TRACK], WoW.spellAuraSecret[RESTED] = nil, nil
     aura()
 end
@@ -98,10 +98,41 @@ eq(bag(), nil, "  the bar gone")
 clear()
 
 --------------------------------------------------------------------------------
--- A presence that starts full says nothing; a reload waits for the next stack.
-at(1000); track(21); rested(3, 950); aura()
-eq(bag(), nil, "lying down at 3/3: no bar")
-eq(played(FINISH), 2, "  and nothing said")
+-- Already at 3/3 with an hour gone (the owner, 2026-11-21): the next tick puts it
+-- back to its full 2 h, so that is what the bar and the countdown aim at.
+at(1000); track(21); rested(3, 1000 - 3600); aura()
+r = bag()
+check(r ~= nil, "lying down at 3/3 with an hour gone: the bar")
+eq(r.label:GetText(), "Ausgeruht 3/3", "  the stacks")
+eq(r.time:GetText(), "1:00", "  the refresh a minute after lying down")
+at(1050); frame()
+eq(CF.DigitText(), "10", "  counted down")
+eq(played(FINISH), 2, "  nothing said yet")
+at(1060.2); rested(3, 1060); aura()
+eq(played(FINISH), 3, "the refresh read: 3/3, full")
+eq(bag(), nil, "  the bar goes")
+eq(CF.DigitText(), nil, "  and the digit")
+at(1120); rested(3, 1120); aura()
+eq(played(FINISH), 3, "  the next refresh: said once")
+eq(bag(), nil, "  no bar")
+clear()
+-- A reload at 3/3: waiting (its application is from before), the refresh fills it.
+at(1500); track(22); rested(3, 1490)
+P.Set("camp", false); P.Set("camp", true)
+eq(bag().time:GetText(), "...", "a reload at 3/3: waiting")
+at(1500.4); rested(3, 1500.4); aura()
+eq(played(FINISH), 3, "  an application inside the margin: not full")
+at(1550); rested(3, 1550); aura()
+eq(played(FINISH), 4, "  the next refresh: full")
+eq(bag(), nil, "  the bar gone")
+clear()
+-- 3 stacks with no readable count: never full, the bar stays.
+at(1700); aura(); track(23); rested(nil, nil)
+WoW.auras[RESTED] = { expirationTime = 1700 + 3600, duration = 7200 }
+aura()
+at(1760); WoW.auras[RESTED] = { expirationTime = 1760 + 7200, duration = 7200 }; aura()
+eq(played(FINISH), 4, "no count: never full")
+check(bag() ~= nil, "  the bar stays")
 clear()
 
 -- Reload mid-rest (Enable with the tracking aura on): waiting, then a stack anchors.
@@ -304,6 +335,25 @@ eq(#rows(), 0, "campfire off: its bar goes")
 P.SetSetting("camp", "campfire", true)
 WoW.auras[FIRE] = nil; aura()
 eq(#rows(), 0, "plainly absent: gone")
+
+-- While you sit it comes back; once it gave the benefits, what follows is a refresh.
+local function fire(app) WoW.auras[FIRE] = { expirationTime = app + 60, duration = 60 } end
+local function benefits(app) WoW.auras[BENEFITS] = { expirationTime = app + 3600, duration = 3600 } end
+at(17200); fire(17200); benefits(17000 - 1800); aura()
+eq(#rows(), 1, "old benefits: the campfire's bar")
+at(17260); fire(17260); benefits(17260); aura()
+eq(#rows(), 0, "the benefits given with the next campfire: no bar")
+WoW.auras[BENEFITS] = WoW.Secret("aura"); aura()
+eq(#rows(), 0, "  the benefits unknown: the last plain one kept")
+WoW.auras[BENEFITS] = nil; aura()
+eq(#rows(), 1, "  plainly absent: the bar again")
+at(17320); fire(17320); benefits(17318.5); aura()
+eq(#rows(), 0, "the benefits a moment before the campfire: given")
+at(17380); fire(17380); benefits(17377.5); aura()
+eq(#rows(), 1, "  more than 2 s before: not this campfire's")
+at(17381); benefits(17381); aura()
+eq(#rows(), 0, "the benefits a second after the campfire: given")
+WoW.auras[FIRE], WoW.auras[BENEFITS] = nil, nil; aura()
 
 --------------------------------------------------------------------------------
 -- The generation: disable then re-enable before a queued check fires.

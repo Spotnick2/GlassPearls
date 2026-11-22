@@ -4,8 +4,9 @@
 
 - **Camp timers** (new, Interface, on by default): while you rest in a Cozy Sleeping Bag, a bar shows your
   Well-Rested stacks and the time to the next one, and a 10 second countdown (with the game's countdown
-  sound) before the third: get up when it says 3/3. Next to a campfire, a bar shows the time left until its
-  camp benefits. After a /reload the bag's time waits for its next stack (#149).
+  sound) before the third, or, already at 3 stacks, before the minute that puts them back to their full 2 hours:
+  get up when it says 3/3. Next to a campfire, a bar shows the time left until its camp benefits, gone once
+  they're given. After a /reload the bag's time waits for its next stack (#149).
 
 ## v1.2.0 - 2026-11-19
 

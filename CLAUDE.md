@@ -577,7 +577,7 @@ order) and before the options window and bootstrap.
   `countdown`, `sound`, all on; Codex eight rounds to consensus). The client's tables: the Cozy Sleeping Bag puts
   429960 (Well-Rested Tracking Aura: no duration, a periodic trigger every 60 s) on you, which adds a stack of
   429959 (Well-Rested, 2 h, up to 3, each refreshing it); 1229739 (Welcoming Campfire, 1 min) grants Camp
-  Benefits when it ends. One check reads the three a frame after `UNIT_AURA` (payload unread), at Enable, PEW
+  Benefits (1229741) when it ends and comes back while you sit. One check reads the four a frame after `UNIT_AURA` (payload unread), at Enable, PEW
   and regen end; every callback carries a generation. **A presence** (one bag visit as far as the client can
   tell) starts at a plain present after anything else, at a plain present whose instance ID isn't plainly
   equal to the previous check's plain one, and at every PEW; `since` is its check's time; `entered` = `since`
@@ -587,15 +587,20 @@ order) and before the options window and bootstrap.
   absent -> present) is **pending** until a usable time, which then anchors whatever its margin; a check's
   time never anchors. Unresolved reads (tracking unknown; Well-Rested unknown, no count, no usable time) keep
   what is known and share one retry a second later (out of combat, 10 in a row); tracking unknown ends the
-  presence. Overdue 3 s past the next stack: waiting. **3/3** only when a known lower count of the presence
-  reaches 3 (read before the tracking aura, so leaving in the same check still counts): `Notice` and the
-  finish sound, once. **The countdown**: an anchor, not overdue, exactly 2 stacks with a usable time now,
-  Well-Rested lasting past the next stack + 3 s; the digit `ceil(left)` in (0, 10], shown and ticked once per
+  presence. Overdue 3 s past the next stack: waiting. **Full** (the owner, 2026-11-21: the goal is 3 stacks
+  at the full 2 h; at 3/3 each tick refreshes them, measured 1 h back to 2 h): 3 stacks given during the
+  presence, by a witnessed rise to 3 or an application later than `since` + `MARGIN`; never at a presence's
+  start; read before the tracking aura, so leaving in the same check still counts; once: `Notice` "3/3", the
+  finish sound, the bar gone. **The countdown**: an anchor, not overdue, 2 or 3 stacks (not full) with a usable
+  time now, Well-Rested lasting past the next tick + 3 s; the digit `ceil(left)` in (0, 10], shown and ticked once per
   change, zero silent. No campfire countdown (cut in review). The campfire: its own plain expiration; unknown
-  keeps it, gone at a plain absent or once passed. **Sounds**: only when due; tick 158565 then 25477, finish
+  keeps it, gone at a plain absent or once passed, hidden while Camp Benefits' application time (unknown keeps
+  the last plain one) is no earlier than its own less `CAMP_SLACK` (2 s): the benefits given, the rest is a
+  refresh. **Sounds**: only when due; tick 158565 then 25477, finish
   158566 then 25478 (`PlaySound(kit, "Master")`), the first with `willPlay` plainly true kept; both refused
   recorded (`camp sound <kind>`) and tried again next time. `/gpearls camp [test]`. Unmeasured until checked in
-  game: whether 429960 is readable, the 60 s timing, `applications`, the instance ID on re-entry, the sounds.
+  game: whether 429960 is readable, the 60 s timing, `applications`, the instance ID on re-entry, the sounds,
+  the campfire and its benefits landing within 2 s.
 - **`Pearls\CampFrame.lua`**: its bars (one per view: icon, the client's name and the bag's "n/3", a
   `StatusBar` filled over the period, "m:ss" or "..." while waiting; click-through, draggable during a test,
   per character `camp`), its digits (`GameFont_Gigantic`, centre +260, click-through) and its panel.

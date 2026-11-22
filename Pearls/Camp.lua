@@ -1,6 +1,6 @@
 -- Pearls/Camp.lua: camp timers (#149). Bars for the Cozy Sleeping Bag (the time
 -- to its next Well-Rested stack) and the Welcoming Campfire (the time to its
--- camp benefits), and a 10 s countdown before the bag's third stack. Its bars,
+-- camp benefits), and a 10 s countdown before the bag tops you up. Its bars,
 -- digits and panel are Pearls/CampFrame.lua; the aura read is
 -- Core/AuraAlert.lua's.
 --
@@ -8,10 +8,13 @@
 -- Tracking Aura" on you (no duration, PERIODIC_TRIGGER_SPELL every 60 s), which
 -- adds a stack of 429959 "Well-Rested" (2 h, up to 3 stacks, each refreshing
 -- it) every 60 s, the first 60 s after it landed. 1229739 "Welcoming Campfire"
--- lasts 1 min and then grants 1229741 "Camp Benefits". IDs only, never a name.
+-- lasts 1 min and then grants 1229741 "Camp Benefits"; while you sit it comes
+-- back (seen 2026-11-21: 50 s left with the benefits fresh). At 3 stacks the
+-- bag's tick refreshes Well-Rested to its full 2 h (the owner, 2026-11-21: 1 h
+-- left, back to 2 h). IDs only, never a name.
 --
 -- The bag's timer (Codex, eight rounds to consensus):
--- - One check reads the three auras together, a frame after UNIT_AURA (its
+-- - One check reads the four auras together, a frame after UNIT_AURA (its
 --   payload never read), and at Enable, PLAYER_ENTERING_WORLD and
 --   PLAYER_REGEN_ENABLED. Every callback carries the generation (Enable and
 --   Disable bump it): a stale one does nothing.
@@ -31,15 +34,20 @@
 --   with no count or no usable time while in the bag) keep what is known and
 --   share one retry a second later (out of combat; RETRY_MAX in a row, then the
 --   events drive it). The tracking aura unknown ends the presence at once.
--- - 3/3: a presence that starts full says nothing; a known lower count reaching
---   3 is said once, read before the tracking aura so leaving in the same check
---   still counts.
--- - The countdown: only with an anchor, not overdue, exactly 2 stacks read now
---   with a usable time, and Well-Rested lasting past the next stack. The digit is
---   ceil(time left) in (0, 10], shown and ticked once per change; zero is
---   silent, the finish is the 3/3 above.
+-- - Full (the owner: the goal is 3 stacks at the full 2 h): 3 stacks given
+--   during this presence, by a witnessed rise to 3 or an application time later
+--   than `since` by more than MARGIN (a refresh at 3/3). A presence never starts
+--   full; becoming full is said once ("3/3") and ends the bar. Read before the
+--   tracking aura, so leaving in the same check still counts.
+-- - The countdown: only with an anchor, not overdue, 2 or 3 stacks read now
+--   (the next tick fills or refreshes them) with a usable time, and Well-Rested
+--   lasting past the next tick. The digit is ceil(time left) in (0, 10], shown
+--   and ticked once per change; zero is silent, the finish is the 3/3 above.
 -- The campfire: its own plain expiration and duration; an unknown read keeps
--- the last plain one, gone at a plain absent or once that time has passed.
+-- the last plain one, gone at a plain absent or once that time has passed, and
+-- hidden while Camp Benefits' application time is no earlier than this
+-- Welcoming Campfire's (less CAMP_SLACK): it already gave them, what follows is
+-- a refresh. An unknown Camp Benefits read keeps the last plain one.
 -- Unmeasured until checked in game (the plan's day-one list, #149).
 
 GlassPearls = GlassPearls or {}
@@ -50,10 +58,11 @@ local C = {}
 GP.Camp = C
 
 C.KEY = "camp"
-C.TRACK, C.RESTED, C.CAMPFIRE = 429960, 429959, 1229739
+C.TRACK, C.RESTED, C.CAMPFIRE, C.BENEFITS = 429960, 429959, 1229739, 1229741
 C.PERIOD = 60          -- the tracking aura's period (SpellEffect 1114589)
 C.MAX = 3              -- Well-Rested's stacks (the item's text)
 C.MARGIN = 0.5
+C.CAMP_SLACK = 2       -- the benefits and the next campfire land together, in either order
 C.EPSILON = 1e-6
 C.OVERDUE = 3
 C.COUNT = 10
@@ -67,7 +76,7 @@ C.SOUNDS = { tick = { 158565, 25477 }, finish = { 158566, 25478 } }
 local events = CreateFrame("Frame")
 local ticker = CreateFrame("Frame")
 C.state = { gen = 0, queued = false, retry = false, retries = 0, prevTrack = nil, prevID = nil,
-            presence = nil, camp = nil, digit = nil, kits = {}, soundFailed = {}, test = nil, reads = {} }
+            presence = nil, camp = nil, benefits = nil, digit = nil, kits = {}, soundFailed = {}, test = nil, reads = {} }
 local state = C.state
 
 local function setting(name) return GP.Pearls.Setting(C.KEY, name) end
@@ -119,8 +128,14 @@ local function applyRested(p, wr, wexp, wdur, wcount)
     local app = usable and (wexp - wdur) or nil
     local count
     if wr == "absent" then count = 0 elseif wr == "present" then count = wcount end
-    if wr == "present" and (p.rested == "absent" or (count and p.count and count > p.count)) then
+    local witnessed = wr == "present" and (p.rested == "absent" or (count and p.count and count > p.count))
+    if witnessed then
         p.pending, p.entered = true, nil      -- a stack landed: `entered` is over
+    end
+    -- Full: 3 stacks given during this presence (a rise, or a refresh at 3/3).
+    if count and count >= C.MAX and not p.full and (witnessed or (app and app > p.since + C.MARGIN)) then
+        p.full = true
+        finish()
     end
     -- While pending, the anchor is ignored (C.BagView) until a usable time comes.
     if app then
@@ -131,14 +146,7 @@ local function applyRested(p, wr, wexp, wdur, wcount)
         end
     end
     if wr == "absent" or wr == "present" then p.rested = wr end
-    if count ~= nil then
-        if count >= C.MAX and p.lowerSeen and not p.announced then
-            p.announced = true
-            finish()
-        end
-        p.count = count
-        if count < C.MAX then p.lowerSeen = true end
-    end
+    if count ~= nil then p.count = count end
     p.countNow = count
     p.usableNow = usable
     p.restedEnds = usable and wexp or nil
@@ -147,14 +155,14 @@ end
 
 local function newPresence(t, entered)
     return { since = t, entered = entered, anchor = nil, pending = false, rested = nil, count = nil,
-             countNow = nil, usableNow = false, restedEnds = nil, lowerSeen = false, announced = false }
+             countNow = nil, usableNow = false, restedEnds = nil, full = false }
 end
 
 -- The bag bar's view, or nil: { id, count, max, endsAt, span } (endsAt nil: waiting).
 function C.BagView(t)
     local p = state.presence
     if not p or not setting("bag") then return nil end
-    if p.count and p.count >= C.MAX then return nil end
+    if p.full then return nil end
     local v = { kind = "bag", id = C.RESTED, count = p.countNow, max = C.MAX, span = C.PERIOD }
     local anchor = p.anchor or p.entered
     if anchor and not p.pending then
@@ -164,13 +172,14 @@ function C.BagView(t)
     return v
 end
 
--- The next stack's time when it will be the third and may be counted down, else nil.
+-- The next tick's time when it will make the stacks full and may be counted
+-- down, else nil.
 function C.CountdownDeadline(t)
     if not setting("countdown") then return nil end
     local v = C.BagView(t)
     if not (v and v.endsAt) then return nil end
     local p = state.presence
-    if p.countNow ~= C.MAX - 1 or not p.usableNow then return nil end
+    if not (p.countNow and p.countNow >= C.MAX - 1 and p.usableNow) then return nil end
     if not (p.restedEnds and p.restedEnds > v.endsAt + C.OVERDUE) then return nil end
     return v.endsAt
 end
@@ -197,7 +206,8 @@ function C.Check()
     local tr, _, _, _, _, tid = AA.Read(C.TRACK)
     local wr, wexp, wdur, _, wcount = AA.Read(C.RESTED)
     local cf, cexp, cdur = AA.Read(C.CAMPFIRE)
-    state.reads = { track = tr, trackID = tid, rested = wr, restedCount = wcount, campfire = cf }
+    local cb, bexp, bdur = AA.Read(C.BENEFITS)
+    state.reads = { track = tr, trackID = tid, rested = wr, restedCount = wcount, campfire = cf, benefits = cb }
     local unresolved = tr == "unknown"
     local p = state.presence
     -- Well-Rested first, against the presence it belongs to: the third stack and
@@ -225,9 +235,14 @@ function C.Check()
     state.prevTrack, state.prevID = tr, tr == "present" and tid or nil
     -- The campfire.
     if cf == "present" and cexp > 0 and cdur > 0 then
-        state.camp = { ends = cexp, span = cdur }
+        state.camp = { ends = cexp, span = cdur, app = cexp - cdur }
     elseif cf == "absent" then
         state.camp = nil
+    end
+    if cb == "present" and bexp > 0 and bdur > 0 then
+        state.benefits = bexp - bdur
+    elseif cb == "absent" then
+        state.benefits = nil
     end
     if unresolved then scheduleRetry() else state.retries = 0 end
     render(t)
@@ -260,7 +275,9 @@ function C.Views(t)
     if bag then views[#views + 1] = bag end
     local camp = state.camp
     if camp and camp.ends <= t then state.camp, camp = nil, nil end
-    if camp and setting("campfire") then
+    -- The benefits given at (or just before) this campfire's start: only a refresh is left.
+    local given = camp and state.benefits and state.benefits >= camp.app - C.CAMP_SLACK
+    if camp and not given and setting("campfire") then
         views[#views + 1] = { kind = "camp", id = C.CAMPFIRE, span = camp.span, endsAt = camp.ends }
     end
     return views
@@ -317,12 +334,13 @@ function C.Report()
     API.Print(("  %d %s: %s, stacks %s"):format(C.RESTED, spellName(C.RESTED, "Well-Rested"), fmt(r.rested),
         fmt(r.restedCount)))
     API.Print(("  %d %s: %s"):format(C.CAMPFIRE, spellName(C.CAMPFIRE, "campfire"), fmt(r.campfire)))
+    API.Print(("  %d %s: %s"):format(C.BENEFITS, spellName(C.BENEFITS, "benefits"), fmt(r.benefits)))
     local p = state.presence
     if p then
         local v = C.BagView(t)
-        API.Print(("  In the bag since %s s ago; entered %s, anchor %s, pending %s, stacks %s, next stack in %s s."):format(
+        API.Print(("  In the bag since %s s ago; entered %s, anchor %s, pending %s, stacks %s, full %s, next tick in %s s."):format(
             fmt(t - p.since), p.entered and "seen" or "not seen", p.anchor and fmt(t - p.anchor) .. " s ago" or "none",
-            tostring(p.pending), fmt(p.count), v and v.endsAt and fmt(v.endsAt - t) or "?"))
+            tostring(p.pending), fmt(p.count), tostring(p.full), v and v.endsAt and fmt(v.endsAt - t) or "?"))
     else
         API.Print("  Not in a sleeping bag.")
     end
@@ -371,6 +389,7 @@ local function reset()
     state.gen = state.gen + 1
     state.queued, state.retry, state.retries = false, false, 0
     state.presence, state.prevTrack, state.prevID, state.camp, state.test = nil, nil, nil, nil, nil
+    state.benefits = nil
 end
 
 local function enable()
@@ -397,11 +416,12 @@ end
 GP.Pearls.Register({
     key = C.KEY,
     name = "Camp timers",
-    desc = "Bars for the sleeping bag's next Well-Rested stack and the campfire's benefits, with a countdown before the third stack.",
+    desc = "Bars for the sleeping bag's next Well-Rested stack and the campfire's benefits, with a countdown before the bag tops you up.",
     help = "While you rest in a Cozy Sleeping Bag: a bar with your Well-Rested stacks and the time to the next one (a "
         .. "stack every minute, up to 3), and a 10 second countdown before the third, with the game's countdown "
-        .. "sound. Leave the bag when it says 3/3. Next to a campfire: a bar with the time left until its camp "
-        .. "benefits. The bag's time shows only once the game has given a stack or seen you lie down (after a "
+        .. "sound. Already at 3 stacks, it counts down to the minute that puts them back to their full 2 hours. "
+        .. "Leave the bag when it says 3/3. Next to a campfire: a bar with the time left until its camp "
+        .. "benefits, gone once they're given. The bag's time shows only once the game has given a stack or seen you lie down (after a "
         .. "/reload it waits for the next stack). /gpearls camp says what the game answers; /gpearls camp test "
         .. "shows the bars to place them. Unmeasured until checked in game.",
     default = true,
