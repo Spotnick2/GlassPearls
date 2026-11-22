@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## v1.3.0 - 2026-11-22
+
+A new pearl: camp timers.
 
 - **Camp timers** (new, Interface, on by default): while you rest in a Cozy Sleeping Bag, a bar shows your
   Well-Rested stacks and the time to the next one, and a 10 second countdown (with the game's countdown
