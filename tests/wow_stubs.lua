@@ -1982,8 +1982,9 @@ end
 
 -- Blizzard_PlayerSpells (load on demand): PlayerSpellsFrame and its spellbook
 -- child (Camelot/Blizzard_PlayerSpellsFrame.xml:52, parentKey SpellBookFrame,
--- frameLevel 100), for the low spell ranks' button (#162).
+-- frameLevel 100), for the low spell ranks' button (#162). Loaded once a session.
 function WoW.loadPlayerSpells()
+    if WoW.loadedAddOns.Blizzard_PlayerSpells then return end
     PlayerSpellsFrame = CreateFrame("Frame", "PlayerSpellsFrame", UIParent)
     PlayerSpellsFrame.SpellBookFrame = CreateFrame("Frame", nil, PlayerSpellsFrame)
     PlayerSpellsFrame.SpellBookFrame:SetFrameLevel(100)

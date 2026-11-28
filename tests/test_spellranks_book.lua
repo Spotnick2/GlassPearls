@@ -41,8 +41,8 @@ eq(b:GetText(), "Update ranks", "  'Update ranks'")
 eq(b:GetFrameLevel(), book:GetFrameLevel() + 10, "  well above the book's art")
 eq(b.smartNavigationIgnored, true, "  out of the gamepad's smart navigation")
 check(b:IsShown(), "  shown while on")
-WoW.loadPlayerSpells()
-eq(F.BookButton(), b, "made once")
+eq(F.EnsureBookButton(), b, "made once")
+eq(b:GetParent(), book, "  still on the same spellbook")
 
 local function said(pattern)
     for _, l in ipairs(newChat()) do if l:find(pattern, 1, true) then return true end end
