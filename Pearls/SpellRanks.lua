@@ -1,7 +1,9 @@
 -- Pearls/SpellRanks.lua: low spell ranks (#12). Spells on your action bars, or
 -- cast, in a lower rank than one you know; after combat, a popup lists them
 -- (Update and Keep per row, Later, Update all; a row's Update is Update all
--- with that row alone, #75). The popup and the gear's panel are
+-- with that row alone, #75), and the spellbook's Update ranks button (#162)
+-- does it on demand: a check, then Update all inside its click. The popup,
+-- the spellbook button and the gear's panel are
 -- Pearls/SpellRanksFrame.lua; the rank groups are Data/SpellRanks.lua
 -- (generated from the client's tables): everything here compares spell IDs.
 --
@@ -272,8 +274,10 @@ end
 
 local function rowKey(r) return r.kind .. ":" .. r.id .. ">" .. r.best end
 
--- force: "button" (asked for: always show, or say there's nothing), "after"
--- (after an update or Keep: refresh what's shown), nil (only what's new).
+-- force: "button" (asked for: always show, or say there's nothing), "updated"
+-- (the spellbook button after it updated: show what's left, quiet when
+-- nothing is), "after" (after an update or Keep: refresh what's shown), nil
+-- (only what's new).
 function SR.Check(force)
     if not SR.enabled then return end   -- switched off: nothing checks, shows or changes
     if API.InCombat() then state.waitCombat = true; return end
@@ -436,7 +440,8 @@ local function updateSlot(row, slot)
 end
 
 -- Update all: the bar rows given (the popup's), in our button's click.
-function SR.Update(rows)
+-- quiet: the caller checks again itself (the spellbook button).
+function SR.Update(rows, quiet)
     if API.InCombat() then say("Spells can be updated after combat."); return 0 end
     if state.byHand then
         say("The game refused a change earlier: drag the higher ranks from your spellbook.")
@@ -456,7 +461,7 @@ function SR.Update(rows)
         say(n == 1 and "1 action button updated to the highest rank."
             or (n .. " action buttons updated to the highest rank."))
     end
-    SR.Check("after")
+    if not quiet then SR.Check("after") end
     return n
 end
 
@@ -474,13 +479,32 @@ end
 
 function SR.Later() Frame().Hide() end
 
+-- The spellbook's Update ranks button (#162): check now and update the bar
+-- rows inside this click, then show what's left (macros, casts, a refused
+-- button), or say there was nothing.
+function SR.UpdateNow()
+    if not SR.enabled then
+        say("Low spell ranks is off: switch it on in /gpearls (Combat).")
+        return 0
+    end
+    if API.InCombat() then say("Spells can be updated after combat."); return 0 end
+    local rows = SR.Scan()
+    state.rows = rows
+    local n = 0
+    for _, r in ipairs(rows) do
+        if r.kind == "bar" then n = SR.Update(rows, true); break end
+    end
+    SR.Check(n > 0 and "updated" or "button")
+    return n
+end
+
 --------------------------------------------------------------------------------
 -- Events
 
 local EVENTS = { "SPELLS_CHANGED", "LEARNED_SPELL_IN_SKILL_LINE", "PLAYER_LEVEL_UP",
                  "ACTIVE_TALENT_GROUP_CHANGED", "ACTIONBAR_SLOT_CHANGED", "UPDATE_MACROS",
                  "TRAINER_SHOW", "TRAINER_CLOSED", "UNIT_SPELLCAST_SUCCEEDED",
-                 "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED", "ADDON_ACTION_FORBIDDEN" }
+                 "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED", "ADDON_ACTION_FORBIDDEN", "ADDON_LOADED" }
 
 local function onEvent(_, event, ...)
     API.NoteCombat(event)
@@ -525,6 +549,8 @@ local function onEvent(_, event, ...)
             state.waitCombat = false
             SR.Schedule(SR.AFTER_COMBAT)
         end
+    elseif event == "ADDON_LOADED" then
+        if ... == "Blizzard_PlayerSpells" then Frame().EnsureBookButton() end
     elseif event == "ADDON_ACTION_FORBIDDEN" then
         local addon, fn = ...
         if addon == ADDON then
@@ -539,6 +565,8 @@ local function enable()
     SR.enabled = true
     API.RegisterEvents(events, EVENTS)
     if setting("atLogin") then SR.Schedule(SR.LOGIN_DELAY) end
+    Frame().EnsureBookButton()   -- nothing until the spellbook exists; then ADDON_LOADED
+    Frame().RefreshBookButton()
 end
 
 local function disable()
@@ -547,6 +575,7 @@ local function disable()
     state.gen = state.gen + 1
     state.pending, state.waitCombat, state.waitTrainer = false, false, false
     Frame().Hide()
+    Frame().RefreshBookButton()
 end
 
 GP.SettingsSync.RegisterSet(SR.KEEP)
@@ -561,15 +590,18 @@ GP.Pearls.Register({
         .. "spell alone. It checks at login, after you learn a "
         .. "spell (once the trainer window closes), and after a dual-spec swap. Spells in macros are listed, never "
         .. "edited. A low rank you cast is listed too. Keep a rank you use low on purpose: it's never listed again, "
-        .. "on any of your accounts. /gpearls ranks checks now.",
+        .. "on any of your accounts. /gpearls ranks checks now, and so does the Update ranks button in your spellbook, "
+        .. "which also updates the buttons at once.",
     default = true,
     category = "Combat",
     section = "Spells",
-    defaults = { afterLearning = true, afterSpecSwap = true, atLogin = true, warnCasts = true, macros = true },
+    defaults = { afterLearning = true, afterSpecSwap = true, atLogin = true, warnCasts = true, macros = true,
+                 spellbook = true },
     Enable = enable,
     Disable = disable,
     configure = function(panel, refreshers) GP.SpellRanksFrame.Configure(panel, refreshers) end,
     onSettingChanged = function()
+        Frame().RefreshBookButton()
         if SR.enabled and Frame().IsShown() then SR.Check("after") end
     end,
     commands = { ranks = { help = "check your action bars for low spell ranks now", run = SR.CheckNow } },

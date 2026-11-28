@@ -88,6 +88,8 @@ WoW.tick()
 WorldMapFrame:Hide()
 WoW.loadTrainerUI()
 WoW.tick()
+WoW.loadPlayerSpells()
+poke(GP.SpellRanksFrame.BookButton())
 
 -- Every command: the framework's, each pearl's report, and its test where it has one.
 for _, cmd in ipairs({ "help", "list", "version", "failures", "sync" }) do SlashCmdList.GLASSPEARLS(cmd) end

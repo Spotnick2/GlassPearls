@@ -44,6 +44,8 @@ end
 WoW.templates.SearchBoxTemplate = function(w, t)
     if not WoW.missingTemplates[t] then w.Instructions = Methods.CreateFontString(w) end
 end
+-- Blizzard_GamepadSmartNavigation/SmartNavigation.xml:3: its one KeyValue.
+WoW.templates.SmartNavigationIgnoredTemplate = function(w) w.smartNavigationIgnored = true end
 -- SecureTemplates.xml:4: protected, with Blizzard's OnClick (WoW.secureActionClick).
 WoW.templates.SecureActionButtonTemplate = function(w)
     w._protected = true
@@ -1976,6 +1978,17 @@ function WoW.loadTrainerUI()
     ClassTrainerTrainButton = CreateFrame("Button", "ClassTrainerTrainButton", ClassTrainerFrame,
         "MagicButtonTemplate")
     WoW.fire("ADDON_LOADED", "Blizzard_TrainerUI")
+end
+
+-- Blizzard_PlayerSpells (load on demand): PlayerSpellsFrame and its spellbook
+-- child (Camelot/Blizzard_PlayerSpellsFrame.xml:52, parentKey SpellBookFrame,
+-- frameLevel 100), for the low spell ranks' button (#162).
+function WoW.loadPlayerSpells()
+    PlayerSpellsFrame = CreateFrame("Frame", "PlayerSpellsFrame", UIParent)
+    PlayerSpellsFrame.SpellBookFrame = CreateFrame("Frame", nil, PlayerSpellsFrame)
+    PlayerSpellsFrame.SpellBookFrame:SetFrameLevel(100)
+    WoW.loadedAddOns.Blizzard_PlayerSpells = true
+    WoW.fire("ADDON_LOADED", "Blizzard_PlayerSpells")
 end
 
 function WoW.calledCount(name)

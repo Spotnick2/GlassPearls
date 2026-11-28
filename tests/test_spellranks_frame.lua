@@ -2,7 +2,7 @@
 -- each row's text ("Rank 1 > Rank 4", buttons, stance, macro, cast), the
 -- pages (every finding reachable, each with its Keep), Keep, Later, the close X, Update all (shown only with bar rows,
 -- disabled by hand), a row's own Update (bar rows only, that row alone, #75), Esc, the drag position, the tooltip, and the panel's
--- switches, Check now and kept list. In both looks.
+-- switches (the spellbook button's too, #162), Check now and kept list. In both looks.
 dofile("tests/wow_stubs.lua")
 dofile("tests/harness.lua")
 
@@ -188,12 +188,15 @@ for _, w in ipairs(content._children) do
     if w._template == "UICheckButtonTemplate" then checks[#checks + 1] = w end
     if w._template == "UIPanelButtonTemplate" then buttons[w:GetText()] = buttons[w:GetText()] or w end
 end
-eq(#checks, 5, "five switches")
+eq(#checks, 6, "six switches")
 checks[1]:SetChecked(false)
 checks[1]:GetScript("OnClick")(checks[1])
 eq(P.Setting("spellranks", "afterLearning"), false, "the first: after learning")
-checks[5]:SetChecked(false)
-checks[5]:GetScript("OnClick")(checks[5])
+checks[4]:SetChecked(false)
+checks[4]:GetScript("OnClick")(checks[4])
+eq(P.Setting("spellranks", "spellbook"), false, "the fourth: the spellbook button (#162)")
+checks[6]:SetChecked(false)
+checks[6]:GetScript("OnClick")(checks[6])
 eq(P.Setting("spellranks", "macros"), false, "the last: macros")
 P.ResetSettings("spellranks")
 newChat()
