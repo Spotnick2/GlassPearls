@@ -227,6 +227,46 @@ end
 function Frame.IsShown() return f ~= nil and f:IsShown() end
 
 --------------------------------------------------------------------------------
+-- The spellbook's Update ranks button (#162): our own button, a child of
+-- Blizzard's spellbook (PlayerSpellsFrame.SpellBookFrame, Blizzard_PlayerSpells,
+-- load on demand; Camelot/Blizzard_PlayerSpellsFrame.xml:52), bottom left,
+-- across from its paging controls (Blizzard_SpellBookFrame.xml:143). Made once
+-- the spellbook exists; shown while the pearl and its `spellbook` setting are
+-- on. Its click is SR.UpdateNow, which changes the bars inside it. Kept out of
+-- the gamepad's smart navigation (SmartNavigationIgnoredTemplate): it walks the
+-- book's children, and the book's stick handlers expect every focused button
+-- in one of its two page views (Blizzard_SpellBookFrame.lua:788, Codex).
+
+Frame.BOOK_BUTTON = "GlassPearlsSpellRanksBookButton"
+local bookButton
+
+function Frame.EnsureBookButton()
+    if bookButton then return bookButton end
+    local book = rawget(_G, "PlayerSpellsFrame")
+    book = book and book.SpellBookFrame
+    if not book then return nil end
+    bookButton = CreateFrame("Button", Frame.BOOK_BUTTON, book,
+        "UIPanelButtonTemplate,SmartNavigationIgnoredTemplate")
+    bookButton:SetSize(120, 22)
+    bookButton:SetText("Update ranks")
+    bookButton:SetPoint("BOTTOMLEFT", book, "BOTTOMLEFT", 75, 40)
+    bookButton:SetFrameLevel(book:GetFrameLevel() + 10)
+    bookButton:SetScript("OnClick", function() SR().UpdateNow() end)
+    GP.UI.Tooltip(bookButton, "Update ranks",
+        "Checks your action bars for spells in a lower rank than you know and puts the highest rank on those "
+        .. "buttons (same place, same key). Macros are listed, never changed.")
+    Frame.RefreshBookButton()
+    return bookButton
+end
+
+function Frame.RefreshBookButton()
+    if not bookButton then return end
+    bookButton:SetShown(SR().enabled == true and GP.Pearls.Setting("spellranks", "spellbook") == true)
+end
+
+function Frame.BookButton() return bookButton end
+
+--------------------------------------------------------------------------------
 -- The Configuration Panel: when it checks, what it lists, the kept ranks.
 
 local PAGE = 6
@@ -246,6 +286,8 @@ function Frame.Configure(panel, refreshers)
         "A few seconds after, or when the class trainer's window closes.", -4, -6)
     a = check(a, "After a dual-spec swap", "afterSpecSwap", "Each spec has its own bars.")
     a = check(a, "At login", "atLogin")
+    a = check(a, "Update ranks button in the spellbook", "spellbook",
+        "Checks your bars and updates them in one click, whenever you like.")
     local what = GP.UI.Header(panel, "What it lists")
     what:SetPoint("TOPLEFT", a, "BOTTOMLEFT", 4, -14)
     a = check(what, "Low ranks you cast", "warnCasts",

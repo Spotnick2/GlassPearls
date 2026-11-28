@@ -869,8 +869,13 @@ order) and before the options window and bootstrap.
   of the group on the cursor is cleared, anything else is left and said, a failed placement is
   undone only into an empty slot, and the first unclean result stops the run. Unmeasured until
   day one: whether the client updates bars itself, `PlaceAction` from addon code, the page mapping.
-- **`Pearls\SpellRanksFrame.lua`**: its popup (per row Update, which is Update all with that row alone, #75, and Keep; Later, Update all; position per character) and
-  its Configuration Panel (when it checks, what it lists, Check now, the kept ranks).
+- **`Pearls\SpellRanksFrame.lua`**: its popup (per row Update, which is Update all with that row alone, #75, and Keep; Later, Update all; position per character),
+  the spellbook's **Update ranks** button (#162: our own, a child of `PlayerSpellsFrame.SpellBookFrame`, made at
+  `ADDON_LOADED` "Blizzard_PlayerSpells" or at Enable when it already exists, bottom left at (75, 40) across from the
+  paging controls, `SmartNavigationIgnoredTemplate` because the gamepad's smart navigation walks the book's children
+  and its stick handlers expect a focused button in a page view; shown while on and `spellbook` (on); its click,
+  `SR.UpdateNow`, scans, runs Update all on the bar rows inside the click, then shows what's left or says nothing was
+  low) and its Configuration Panel (when it checks, the spellbook button, what it lists, Check now, the kept ranks).
 - **`Pearls\BagsFullFrame.lua`**: its window (beside the loot window, or where the player dragged it,
   per character) and its Configuration Panel (quality scope, greys first, the never-suggest list).
   Beside the loot window means the side with room (#129: "loot window at cursor" puts it anywhere,

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- **Low spell ranks**: an Update ranks button in your spellbook (bottom left) checks your action bars and
+  puts the highest rank on them in one click, whenever you like; what it can't change (macros) is listed.
+  It can be switched off in the pearl's options (#162).
+
 ## v1.3.0 - 2026-11-22
 
 A new pearl: camp timers.
